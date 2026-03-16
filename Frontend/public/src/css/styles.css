@@ -225,3 +225,62 @@ footer {
         gap: 0.2rem;
     }
 }
+
+#funcionalidades-avanzadas .info-card {
+    padding: 1.25rem;
+}
+
+#funcionalidades-avanzadas .form-label {
+    font-size: 0.84rem;
+    color: #4a5f79;
+    font-weight: 700;
+}
+
+#funcionalidades-avanzadas .form-control,
+#funcionalidades-avanzadas .form-select,
+#funcionalidades-avanzadas textarea {
+    border-radius: 0.75rem;
+    border-color: #cfdbea;
+}
+
+#funcionalidades-avanzadas .form-control:focus,
+#funcionalidades-avanzadas .form-select:focus,
+#funcionalidades-avanzadas textarea:focus {
+    border-color: #4ec77e;
+    box-shadow: 0 0 0 0.2rem rgba(48, 184, 106, 0.16);
+}
+
+.kpi-chip {
+    display: inline-flex;
+    align-items: center;
+    background: #edf6ff;
+    border: 1px solid #d4e4f5;
+    color: #2e4560;
+    border-radius: 999px;
+    padding: 0.35rem 0.75rem;
+    font-size: 0.83rem;
+    font-weight: 700;
+}
+
+.chat-answer {
+    border: 1px solid #d7e4f2;
+    border-radius: 0.9rem;
+    padding: 0.85rem;
+    background: #f8fcff;
+    color: #334960;
+    min-height: 4rem;
+}
+
+.badge-medal {
+    background: linear-gradient(135deg, #ffe08a 0%, #ffc947 100%);
+    color: #5e4100;
+    border: 1px solid #f0bb37;
+    border-radius: 999px;
+    padding: 0.4rem 0.8rem;
+    font-size: 0.82rem;
+    font-weight: 800;
+}
+
+#funcionalidades-avanzadas .list-group-item {
+    border-color: #d8e4ef;
+}

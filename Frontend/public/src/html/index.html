@@ -22,6 +22,7 @@
                     <li class="nav-item"><a class="nav-link" href="#beneficios">Beneficios</a></li>
                     <li class="nav-item"><a class="nav-link" href="#beneficios-detalle">Como funciona</a></li>
                     <li class="nav-item"><a class="nav-link" href="#demo">Demo</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#funcionalidades-avanzadas">Funciones pro</a></li>
                     <li class="nav-item ms-lg-2"><a class="btn btn-light rounded-pill px-4" href="login.html">Ingresar</a></li>
                 </ul>
             </div>
@@ -184,6 +185,217 @@
             </div>
         </section>
 
+        <section class="py-5" id="funcionalidades-avanzadas">
+            <div class="container">
+                <div class="section-heading mb-4">
+                    <p class="kicker">Laboratorio financiero</p>
+                    <h2 class="h2 fw-bold mb-2">Funciones avanzadas de la consigna</h2>
+                    <p class="text-muted mb-0">Modulo de prueba con divisas, suscripciones, gastos compartidos, asesor y gamificacion.</p>
+                </div>
+
+                <div class="row g-3 g-lg-4 mb-1">
+                    <div class="col-lg-6">
+                        <article class="info-card h-100">
+                            <h3 class="h5 fw-bold mb-3">Sesion y perfil</h3>
+                            <div id="authStatus" class="small text-muted mb-3">Sin sesion iniciada.</div>
+                            <form id="profileForm" class="row g-2">
+                                <div class="col-md-6">
+                                    <label for="profileName" class="form-label">Nombre</label>
+                                    <input id="profileName" name="name" class="form-control" placeholder="Nombre completo">
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="profileEmail" class="form-label">Email</label>
+                                    <input id="profileEmail" name="email" type="email" class="form-control" placeholder="correo@dominio.com">
+                                </div>
+                                <div class="col-12 d-flex flex-wrap gap-2">
+                                    <button class="btn btn-outline-light" type="submit">Guardar perfil</button>
+                                    <button class="btn btn-outline-danger" type="button" id="logoutBtn">Cerrar sesion</button>
+                                </div>
+                            </form>
+                            <p id="profileMessage" class="small mb-0 mt-2"></p>
+                        </article>
+                    </div>
+
+                    <div class="col-lg-6">
+                        <article class="info-card h-100">
+                            <h3 class="h5 fw-bold mb-3">Carga de ticket con OCR (IA)</h3>
+                            <form id="ticketForm" class="row g-2" enctype="multipart/form-data">
+                                <div class="col-md-8">
+                                    <label for="ticketImage" class="form-label">Imagen del ticket</label>
+                                    <input id="ticketImage" name="ticket" class="form-control" type="file" accept="image/*" required>
+                                </div>
+                                <div class="col-md-4 d-grid align-items-end">
+                                    <button class="btn btn-primary app-btn" type="submit">Interpretar ticket</button>
+                                </div>
+                            </form>
+                            <p id="ticketMessage" class="small mb-0 mt-2"></p>
+                        </article>
+                    </div>
+                </div>
+
+                <div class="row g-3 g-lg-4">
+                    <div class="col-lg-6">
+                        <article class="info-card h-100">
+                            <h3 class="h5 fw-bold mb-3">1) Registro de gasto multi-divisa</h3>
+                            <form id="expenseForm" class="row g-2">
+                                <div class="col-md-6">
+                                    <label for="expenseConcept" class="form-label">Concepto</label>
+                                    <input id="expenseConcept" name="concept" class="form-control" required placeholder="Cena, alquiler, gimnasio">
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="expenseCategory" class="form-label">Categoria</label>
+                                    <select id="expenseCategory" name="category" class="form-select" required>
+                                        <option value="Alimentacion">Alimentacion</option>
+                                        <option value="Transporte">Transporte</option>
+                                        <option value="Ocio">Ocio</option>
+                                        <option value="Suscripciones">Suscripciones</option>
+                                        <option value="Salud">Salud</option>
+                                        <option value="Vivienda">Vivienda</option>
+                                        <option value="Otros">Otros</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="expenseAmount" class="form-label">Monto</label>
+                                    <input id="expenseAmount" name="amount" class="form-control" type="number" min="0.01" step="0.01" required>
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="expenseCurrency" class="form-label">Moneda</label>
+                                    <select id="expenseCurrency" name="currency" class="form-select" required>
+                                        <option value="ARS">ARS</option>
+                                        <option value="USD">USD</option>
+                                        <option value="EUR">EUR</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="expenseDate" class="form-label">Fecha</label>
+                                    <input id="expenseDate" name="date" class="form-control" type="date" required>
+                                </div>
+                                <div class="col-md-8">
+                                    <label for="expenseSplit" class="form-label">Personas adicionales para dividir</label>
+                                    <input id="expenseSplit" name="splitWith" class="form-control" type="number" min="0" step="1" value="0">
+                                </div>
+                                <div class="col-md-4 d-grid align-items-end">
+                                    <button class="btn btn-primary app-btn" type="submit">Guardar gasto</button>
+                                </div>
+                            </form>
+
+                            <div class="mt-3 small text-muted" id="ratesInfo">Cargando cotizaciones...</div>
+                            <div class="d-flex flex-wrap gap-2 mt-2" id="kpiSummary"></div>
+                        </article>
+                    </div>
+
+                    <div class="col-lg-6">
+                        <article class="info-card h-100">
+                            <h3 class="h5 fw-bold mb-3">2) Suscripciones y gastos recurrentes</h3>
+                            <form id="subscriptionForm" class="row g-2">
+                                <div class="col-md-5">
+                                    <label for="subName" class="form-label">Servicio</label>
+                                    <input id="subName" name="name" class="form-control" required placeholder="Netflix, alquiler">
+                                </div>
+                                <div class="col-md-3">
+                                    <label for="subAmount" class="form-label">Monto</label>
+                                    <input id="subAmount" name="amount" class="form-control" type="number" min="0.01" step="0.01" required>
+                                </div>
+                                <div class="col-md-2">
+                                    <label for="subCurrency" class="form-label">Moneda</label>
+                                    <select id="subCurrency" name="currency" class="form-select">
+                                        <option value="ARS">ARS</option>
+                                        <option value="USD">USD</option>
+                                        <option value="EUR">EUR</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-2">
+                                    <label for="subDay" class="form-label">Dia</label>
+                                    <input id="subDay" name="day" class="form-control" type="number" min="1" max="31" required>
+                                </div>
+                                <div class="col-12 d-grid">
+                                    <button class="btn btn-outline-light" type="submit">Agregar suscripcion</button>
+                                </div>
+                            </form>
+
+                            <div class="mt-3" id="subscriptionCommitted"></div>
+                            <ul class="list-group mt-2" id="subscriptionList"></ul>
+                            <div class="small text-muted mt-2" id="recurrentHint"></div>
+                        </article>
+                    </div>
+
+                    <div class="col-lg-6">
+                        <article class="info-card h-100">
+                            <h3 class="h5 fw-bold mb-3">3) Chatbot asesor financiero</h3>
+                            <div class="row g-2">
+                                <div class="col-md-4">
+                                    <label for="advisorProvider" class="form-label">Modo</label>
+                                    <select id="advisorProvider" class="form-select">
+                                        <option value="local">Asesor local</option>
+                                        <option value="openai">OpenAI</option>
+                                        <option value="gemini">Gemini</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-8">
+                                    <label for="advisorApiKey" class="form-label">API Key (opcional)</label>
+                                    <input id="advisorApiKey" class="form-control" placeholder="Solo para pruebas en cliente">
+                                </div>
+                            </div>
+
+                            <form id="advisorForm" class="mt-3 d-grid gap-2">
+                                <label for="advisorQuestion" class="form-label mb-0">Tu consulta</label>
+                                <textarea id="advisorQuestion" class="form-control" rows="3" placeholder="En que gaste mas esta semana?" required></textarea>
+                                <button class="btn btn-primary app-btn" type="submit">Consultar</button>
+                            </form>
+                            <div class="chat-answer mt-3" id="advisorAnswer">Escribe una pregunta para obtener recomendaciones.</div>
+                        </article>
+                    </div>
+
+                    <div class="col-lg-6">
+                        <article class="info-card h-100">
+                            <h3 class="h5 fw-bold mb-3">4) Gamificacion de metas</h3>
+                            <form id="budgetForm" class="row g-2">
+                                <div class="col-md-6">
+                                    <label for="budgetCategory" class="form-label">Categoria</label>
+                                    <select id="budgetCategory" name="category" class="form-select">
+                                        <option value="Ocio">Ocio</option>
+                                        <option value="Alimentacion">Alimentacion</option>
+                                        <option value="Transporte">Transporte</option>
+                                        <option value="Suscripciones">Suscripciones</option>
+                                        <option value="Salud">Salud</option>
+                                        <option value="Vivienda">Vivienda</option>
+                                        <option value="Otros">Otros</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="budgetAmount" class="form-label">Tope ARS/mes</label>
+                                    <input id="budgetAmount" name="amount" class="form-control" type="number" min="1" step="1" required>
+                                </div>
+                                <div class="col-md-2 d-grid align-items-end">
+                                    <button class="btn btn-outline-light" type="submit">OK</button>
+                                </div>
+                            </form>
+                            <div class="small text-muted mt-2">Medalla al cumplir 3 meses seguidos por debajo del tope.</div>
+                            <div id="badgeList" class="d-flex flex-wrap gap-2 mt-3"></div>
+                            <ul id="expenseList" class="list-group mt-3"></ul>
+                        </article>
+                    </div>
+
+                    <div class="col-lg-12">
+                        <article class="info-card h-100" id="advisorPanelCard">
+                            <h3 class="h5 fw-bold mb-3">5) Panel de asesor financiero</h3>
+                            <div class="row g-2">
+                                <div class="col-md-4">
+                                    <label for="advisorUserId" class="form-label">User ID a analizar</label>
+                                    <input id="advisorUserId" class="form-control" placeholder="UUID del usuario">
+                                </div>
+                                <div class="col-md-8 d-flex gap-2 align-items-end">
+                                    <button class="btn btn-outline-light" id="advisorOverviewBtn" type="button">Ver overview global</button>
+                                    <button class="btn btn-primary app-btn" id="advisorPatternsBtn" type="button">Ver patrones del usuario</button>
+                                </div>
+                            </div>
+                            <pre class="chat-answer mt-3 mb-0" id="advisorPanelOutput">Disponible para cuentas con rol asesor.</pre>
+                        </article>
+                    </div>
+                </div>
+            </div>
+        </section>
+
         <section class="py-5">
             <div class="container">
                 <div class="cta-final text-center">
@@ -201,7 +413,9 @@
         </div>
     </footer>
 
+    <script src="../js/config.js"></script>
     <script src="../js/main.js"></script>
+    <script src="../js/advanced-features.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
 </body>
 </html>

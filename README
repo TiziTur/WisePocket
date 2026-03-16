@@ -1,40 +1,171 @@
-Ing-Web-II
+Ing-Web-II | Plataforma Inteligente de Gestion de Gastos Personales
 
-Proyecto frontend con estructura separada por tipo de archivo: HTML, CSS y JavaScript.
+Proyecto de Ingenieria Web II (2026) con arquitectura cliente-servidor.
 
-Estructura actual
+Incluye:
+
+- Frontend web responsive (HTML, CSS, JavaScript).
+- Backend API REST con NestJS.
+- Persistencia con SQLite (TypeORM).
+- Autenticacion JWT y manejo de roles (usuario/asesor).
+- Carga de tickets con OCR (Tesseract).
+- Modulos extra: multi-divisa, suscripciones, gastos compartidos, chatbot asesor y gamificacion.
+
+Arquitectura
+
+Frontend (HTML/CSS/JS)
+-> HTTP/REST
+-> Backend NestJS
+-> Base de datos SQLite
+
+Estructura del repositorio
 
 - Frontend/public/src/html
-	- index.html
-	- login.html
+  - index.html
+  - login.html
 - Frontend/public/src/css
-	- styles.css
-	- login.css
+  - styles.css
+  - login.css
 - Frontend/public/src/js
-	- main.js
-	- login.js
+  - main.js
+  - login.js
+  - advanced-features.js
+- Backend/src
+  - app.module.ts
+  - main.ts
+  - auth/
+  - users/
+  - expenses/
+  - tickets/
+  - advisor/
+  - common/roles/
 
-Compatibilidad de rutas
+Roles del sistema
 
-Los archivos HTML estan dentro de Frontend/public/src/html, por eso usan rutas relativas con ../ para cargar estilos y scripts:
+- user: registra y consulta sus gastos.
+- advisor: puede ver usuarios y analitica avanzada.
 
-- index.html
-	- CSS: ../css/styles.css
-	- JS: ../js/main.js
-- login.html
-	- CSS: ../css/login.css
-	- JS: ../js/login.js
+Cuenta asesor demo
 
-Como ejecutar el frontend
+- email: advisor@wisepocket.com
+- password: 123456
 
-1. Abre el proyecto en VS Code.
-2. Ejecuta un servidor estatico (por ejemplo, Live Server).
-3. Abre Frontend/public/src/html/index.html desde ese servidor.
+Backend API REST (NestJS)
 
-Nota sobre login
+Base URL:
 
-El archivo Frontend/public/src/js/login.js consume la API en:
+- http://localhost:3000/api
 
-- http://localhost:3000/api/auth/login
+Auth
 
-Si no hay backend corriendo en ese puerto, el formulario mostrara un mensaje de conexion.
+- POST /auth/register
+- POST /auth/login
+- GET /auth/me
+- PUT /auth/profile
+
+Users (solo asesor)
+
+- GET /users
+
+Expenses
+
+- GET /expenses
+- POST /expenses
+- PUT /expenses/:id
+- DELETE /expenses/:id
+
+Tickets (OCR IA)
+
+- POST /tickets/upload (multipart/form-data, campo: ticket)
+
+Advisor (solo asesor)
+
+- GET /advisor/overview
+- GET /advisor/users/:userId/patterns
+
+Modelo de datos (resumen)
+
+User
+
+- id
+- name
+- email
+- passwordHash
+- role
+
+Expense
+
+- id
+- commerce
+- date
+- amount
+- currency (ARS/USD/EUR)
+- category
+- description
+- participants
+- userId
+
+Funcionalidades implementadas
+
+Requeridas por consigna
+
+- Registro de usuario.
+- Login.
+- Edicion de perfil.
+- Diferenciacion de roles usuario/asesor.
+- CRUD de gastos.
+- Carga de ticket con OCR para extraer monto/comercio/fecha y precargar formulario.
+- Visualizacion de gastos y estadisticas.
+- Analisis de patrones para asesor.
+- Recomendaciones financieras.
+
+Extras implementadas
+
+- Manejo de multiples divisas con cotizaciones en tiempo real (DolarAPI + ER-API).
+- Suscripciones y calculo de dinero comprometido del mes siguiente.
+- Gastos compartidos tipo Splitwise (impacto real dividido).
+- Chatbot asesor (modo local y opcion OpenAI/Gemini).
+- Gamificacion con medallas por cumplimiento de presupuesto.
+
+Ejecucion local
+
+Requisito: Node.js 20+ y npm.
+
+Backend
+
+1. cd Backend
+2. npm install
+3. copia .env.example a .env
+4. npm run start:dev
+
+Frontend
+
+1. Servir Frontend/public/src/html con Live Server (u otro servidor estatico)
+2. Abrir index.html
+
+Notas tecnicas
+
+- login.js y advanced-features.js consumen API en http://localhost:3000/api.
+- Si no hay backend disponible, el modulo avanzado conserva fallback local para algunas funciones.
+
+Despliegue sugerido
+
+- Frontend: Netlify, Vercel o GitHub Pages.
+- Backend: Render, Railway o Fly.io.
+- Base de datos productiva recomendada: Supabase, Railway Postgres o MongoDB Atlas.
+
+IA utilizada
+
+- OCR en backend con Tesseract.js para interpretar tickets.
+- Integracion opcional con LLM (OpenAI/Gemini) desde frontend para respuestas de asesor.
+
+Entregables cubiertos en este repositorio
+
+- Codigo fuente frontend + backend.
+- README con arquitectura, modelo de datos, endpoints y uso de IA.
+
+Pendiente para entrega final
+
+- Publicar URL del frontend.
+- Publicar URL del backend.
+- Preparar demo final del flujo completo.

@@ -1,0 +1,24 @@
+import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import { Role } from '../common/roles/role.enum';
+import { Expense } from '../expenses/expense.entity';
+
+@Entity('users')
+export class User {
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
+
+  @Column({ unique: true })
+  email: string;
+
+  @Column()
+  name: string;
+
+  @Column()
+  passwordHash: string;
+
+  @Column({ type: 'text', default: Role.USER })
+  role: Role;
+
+  @OneToMany(() => Expense, (expense) => expense.user)
+  expenses: Expense[];
+}

@@ -1,1 +1,4 @@
 node_modules
+Backend/dist
+Backend/database.sqlite
+Backend/.env

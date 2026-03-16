@@ -3,158 +3,205 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GastoClaro | Gestion Inteligente de Gastos</title>
+    <title>WisePocket | Tu billetera de gastos</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Manrope:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
     <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
-    <div class="background-glow" aria-hidden="true"></div>
-
-    <header class="topbar">
-        <div class="logo">GastoClaro</div>
-        <nav class="topbar-nav">
-            <a href="#beneficios">Beneficios</a>
-            <a href="#demo">Demostracion</a>
-        </nav>
-        <a class="btn btn-outline" href="login.html">Ingresar</a>
+    <header class="navbar navbar-expand-lg sticky-top app-navbar py-3">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="#">WisePocket</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#menuPrincipal" aria-controls="menuPrincipal" aria-expanded="false" aria-label="Abrir navegacion">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="menuPrincipal">
+                <ul class="navbar-nav ms-auto align-items-lg-center gap-lg-2">
+                    <li class="nav-item"><a class="nav-link" href="#beneficios">Beneficios</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#beneficios-detalle">Como funciona</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#demo">Demo</a></li>
+                    <li class="nav-item ms-lg-2"><a class="btn btn-light rounded-pill px-4" href="login.html">Ingresar</a></li>
+                </ul>
+            </div>
+        </div>
     </header>
 
-    <main class="hero" id="ingreso">
-        <section class="hero-content">
-            <p class="badge">Plataforma de administracion de gastos personales</p>
-            <h1>Controla tus gastos. Entiende tus habitos. Toma mejores decisiones.</h1>
-            <p class="lead">
-                Registra tickets y comprobantes en segundos, organiza tus movimientos y comparte tu avance con un asesor financiero
-                que identifica patrones de consumo para ayudarte a mejorar tu salud economica.
-            </p>
-            <div class="actions">
-                <a class="btn btn-primary" href="login.html">Comenzar ahora</a>
-                <a class="btn btn-ghost" href="#beneficios">Ver beneficios</a>
+    <main>
+        <section class="hero py-5" id="ingreso">
+            <div class="container">
+                <div class="row g-4 g-lg-5 align-items-center">
+                    <div class="col-lg-7">
+                        <span class="hero-chip">Gestion de gastos simple y clara</span>
+                        <h1 class="display-5 fw-bold mt-3 mb-3">Tu plata ordenada en una sola app, sin vueltas.</h1>
+                        <p class="hero-lead mb-4">
+                            Guarda tickets, clasifica tus consumos y recibe recomendaciones practicas de tu asesor financiero.
+                            Todo en una experiencia cotidiana y facil de usar.
+                        </p>
+                        <div class="d-flex flex-wrap gap-2">
+                            <a class="btn btn-primary app-btn px-4 py-2 rounded-pill" href="login.html">Comenzar ahora</a>
+                            <a class="btn btn-outline-light px-4 py-2 rounded-pill" href="#beneficios">Ver beneficios</a>
+                        </div>
+                    </div>
+                    <div class="col-lg-5">
+                        <aside class="wallet-card">
+                            <p class="mb-2 text-light-emphasis small">Resumen rapido</p>
+                            <h2 class="h4 fw-bold mb-3">Tu mes en un vistazo</h2>
+                            <div class="stat-row"><span>Gastos registrados</span><strong>126</strong></div>
+                            <div class="stat-row"><span>Presupuesto disponible</span><strong>$ 241.300</strong></div>
+                            <div class="stat-row"><span>Alertas activas</span><strong>3</strong></div>
+                        </aside>
+                    </div>
+                </div>
             </div>
         </section>
 
-        <aside class="hero-panel">
-            <h2>Que podras hacer</h2>
-            <ul>
-                <li>Cargar tickets con foto o PDF desde cualquier dispositivo.</li>
-                <li>Categorizar consumos para ver en que se va tu dinero.</li>
-                <li>Recibir analisis de un asesor sobre tus patrones de gasto.</li>
-                <li>Visualizar reportes simples para actuar con rapidez.</li>
-            </ul>
-        </aside>
+        <section class="py-5" id="beneficios">
+            <div class="container">
+                <div class="row g-3 g-lg-4">
+                    <div class="col-md-6 col-lg-4">
+                        <article class="feature-card h-100">
+                            <h3 class="h5 fw-bold mb-2">Registro rapido</h3>
+                            <p class="mb-0">Subi comprobantes desde tu celu en segundos.</p>
+                        </article>
+                    </div>
+                    <div class="col-md-6 col-lg-4">
+                        <article class="feature-card h-100">
+                            <h3 class="h5 fw-bold mb-2">Categorias automaticas</h3>
+                            <p class="mb-0">Ordena tus gastos para entender mejor tus habitos.</p>
+                        </article>
+                    </div>
+                    <div class="col-md-6 col-lg-4">
+                        <article class="feature-card h-100">
+                            <h3 class="h5 fw-bold mb-2">Acompanamiento real</h3>
+                            <p class="mb-0">Tu asesor te propone mejoras concretas y alcanzables.</p>
+                        </article>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="py-5" id="beneficios-detalle">
+            <div class="container">
+                <div class="section-heading mb-4">
+                    <p class="kicker">Experiencia completa</p>
+                    <h2 class="h2 fw-bold mb-2">Una entrada completa a tu app de gastos</h2>
+                    <p class="text-muted mb-0">Cuadros informativos, visualizaciones y flujo de uso real.</p>
+                </div>
+
+                <div class="row g-3 g-lg-4">
+                    <div class="col-md-6">
+                        <article class="info-card h-100">
+                            <h3 class="h5 fw-bold">Panel de movimientos</h3>
+                            <p>Filtra por fecha, categoria o medio de pago en tiempo real.</p>
+                            <ul class="mb-0">
+                                <li>Busqueda por texto y monto.</li>
+                                <li>Vista mensual y semanal.</li>
+                                <li>Etiquetas personalizadas.</li>
+                            </ul>
+                        </article>
+                    </div>
+                    <div class="col-md-6">
+                        <article class="info-card h-100">
+                            <h3 class="h5 fw-bold">Control de presupuesto</h3>
+                            <p>Configura limites por rubro y activa alertas preventivas.</p>
+                            <ul class="mb-0">
+                                <li>Reglas por categoria.</li>
+                                <li>Semaforo de avance.</li>
+                                <li>Recordatorios automáticos.</li>
+                            </ul>
+                        </article>
+                    </div>
+                    <div class="col-md-6">
+                        <article class="info-card h-100">
+                            <h3 class="h5 fw-bold">Asesor financiero</h3>
+                            <p>Analisis de patrones de consumo y plan de mejora mensual.</p>
+                            <ul class="mb-0">
+                                <li>Resumen de habitos.</li>
+                                <li>Recomendaciones priorizadas.</li>
+                                <li>Seguimiento mensual.</li>
+                            </ul>
+                        </article>
+                    </div>
+                    <div class="col-md-6">
+                        <article class="info-card h-100">
+                            <h3 class="h5 fw-bold">Carga de comprobantes</h3>
+                            <p>Sube ticket o PDF y acelera cada registro de gasto.</p>
+                            <ul class="mb-0">
+                                <li>Imagen o PDF.</li>
+                                <li>Lectura asistida de texto.</li>
+                                <li>Categorizacion sugerida.</li>
+                            </ul>
+                        </article>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="py-5" id="demo">
+            <div class="container">
+                <div class="section-heading mb-4">
+                    <p class="kicker">Demostracion</p>
+                    <h2 class="h2 fw-bold mb-2">Visualiza el valor de la plataforma</h2>
+                </div>
+
+                <div class="row g-3 g-lg-4">
+                    <div class="col-lg-4">
+                        <article class="demo-card h-100">
+                            <h3 class="h5 fw-bold">Indicadores</h3>
+                            <div class="stat-list mt-3">
+                                <div><span class="stat-number" data-target="126">0</span><small>tickets cargados</small></div>
+                                <div><span class="stat-number" data-target="18">0</span><small>categorias analizadas</small></div>
+                                <div><span class="stat-number" data-target="92">0</span><small>recomendaciones aplicadas</small></div>
+                            </div>
+                        </article>
+                    </div>
+                    <div class="col-lg-8">
+                        <article class="demo-card h-100">
+                            <h3 class="h5 fw-bold">Flujo reciente de gastos</h3>
+                            <div class="table-responsive mt-3">
+                                <table class="table align-middle mb-0">
+                                    <thead>
+                                        <tr>
+                                            <th>Fecha</th>
+                                            <th>Concepto</th>
+                                            <th>Categoria</th>
+                                            <th>Monto</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr><td>10/03</td><td>Supermercado</td><td>Alimentacion</td><td>$43.200</td></tr>
+                                        <tr><td>11/03</td><td>Combustible</td><td>Transporte</td><td>$28.500</td></tr>
+                                        <tr><td>12/03</td><td>Streaming</td><td>Suscripciones</td><td>$8.700</td></tr>
+                                        <tr><td>12/03</td><td>Farmacia</td><td>Salud</td><td>$12.900</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </article>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="py-5">
+            <div class="container">
+                <div class="cta-final text-center">
+                    <h2 class="h3 fw-bold mb-2">Empieza ahora y convierte tus gastos en decisiones inteligentes</h2>
+                    <p class="text-muted mb-3">Accede a tu cuenta y continua con tu panel personal.</p>
+                    <a class="btn btn-primary app-btn px-4 py-2 rounded-pill" href="login.html">Ir a inicio de sesion</a>
+                </div>
+            </div>
+        </section>
     </main>
 
-    <section class="benefits benefits-intro" id="beneficios">
-        <article>
-            <h3>Registro rapido</h3>
-            <p>Carga comprobantes y tickets en menos de 15 segundos desde celular o web.</p>
-        </article>
-        <article>
-            <h3>Analisis inteligente</h3>
-            <p>Detecta tendencias de consumo para planificar mejor tu mes y evitar fugas.</p>
-        </article>
-        <article>
-            <h3>Asesoria profesional</h3>
-            <p>Comparte tus datos con tu asesor para recibir recomendaciones accionables.</p>
-        </article>
-    </section>
-
-    <section class="benefits-expanded" id="beneficios-detalle">
-        <div class="section-heading">
-            <p class="kicker">Beneficios en profundidad</p>
-            <h2>Una entrada completa a una app dinamica de gestion financiera</h2>
-            <p>Esta pagina presenta una experiencia mas extensa con cuadros informativos, demostraciones y un flujo real de acceso.</p>
+    <footer class="py-4">
+        <div class="container text-center text-muted">
+            <p class="mb-0">WisePocket | Tu entrada a una administracion financiera mas clara.</p>
         </div>
-
-        <div class="info-grid">
-            <article class="info-card">
-                <h3>Panel de movimientos</h3>
-                <p>Consulta gastos por categoria, metodo de pago y fecha con filtros dinamicos en tiempo real.</p>
-                <ul>
-                    <li>Busqueda por texto y monto.</li>
-                    <li>Etiquetas personalizadas.</li>
-                    <li>Vista mensual y semanal.</li>
-                </ul>
-            </article>
-            <article class="info-card">
-                <h3>Control de presupuesto</h3>
-                <p>Configura limites por rubro y recibe alertas preventivas antes de excederte.</p>
-                <ul>
-                    <li>Reglas por categoria.</li>
-                    <li>Semaforo de avance.</li>
-                    <li>Recordatorios automáticos.</li>
-                </ul>
-            </article>
-            <article class="info-card">
-                <h3>Asesor financiero</h3>
-                <p>El asesor analiza patrones de consumo y propone objetivos concretos de mejora.</p>
-                <ul>
-                    <li>Resumen de habitos.</li>
-                    <li>Recomendaciones priorizadas.</li>
-                    <li>Seguimiento mensual.</li>
-                </ul>
-            </article>
-            <article class="info-card">
-                <h3>Carga de comprobantes</h3>
-                <p>Sube tickets e identifica datos clave para acelerar el registro del gasto.</p>
-                <ul>
-                    <li>Imagen o PDF.</li>
-                    <li>Lectura asistida de texto.</li>
-                    <li>Categorizacion sugerida.</li>
-                </ul>
-            </article>
-        </div>
-    </section>
-
-    <section class="demo" id="demo">
-        <div class="section-heading">
-            <p class="kicker">Demostracion de valor</p>
-            <h2>Ejemplo de comportamiento dinamico del sistema</h2>
-        </div>
-
-        <div class="demo-layout">
-            <article class="demo-card stats">
-                <h3>Indicadores simulados</h3>
-                <div class="stat-list">
-                    <div><span class="stat-number" data-target="126">0</span><small>tickets cargados</small></div>
-                    <div><span class="stat-number" data-target="18">0</span><small>categorias analizadas</small></div>
-                    <div><span class="stat-number" data-target="92">0</span><small>recomendaciones aplicadas</small></div>
-                </div>
-            </article>
-            <article class="demo-card table-card">
-                <h3>Flujo de gastos reciente</h3>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Fecha</th>
-                            <th>Concepto</th>
-                            <th>Categoria</th>
-                            <th>Monto</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr><td>10/03</td><td>Supermercado</td><td>Alimentacion</td><td>$43.200</td></tr>
-                        <tr><td>11/03</td><td>Combustible</td><td>Transporte</td><td>$28.500</td></tr>
-                        <tr><td>12/03</td><td>Streaming</td><td>Suscripciones</td><td>$8.700</td></tr>
-                        <tr><td>12/03</td><td>Farmacia</td><td>Salud</td><td>$12.900</td></tr>
-                    </tbody>
-                </table>
-            </article>
-        </div>
-    </section>
-
-    <section class="cta-final">
-        <h2>Empieza ahora y convierte tus gastos en decisiones inteligentes</h2>
-        <p>Accede a la plataforma y prueba el flujo de inicio de sesion para continuar con tu panel personal.</p>
-        <a class="btn btn-primary" href="login.html">Ir a inicio de sesion</a>
-    </section>
-
-    <footer>
-        <p>GastoClaro | Tu entrada a una administracion financiera mas clara.</p>
     </footer>
 
     <script src="js/main.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
 </body>
 </html>

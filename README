@@ -1,1 +1,40 @@
-benja virgasoo
+Ing-Web-II
+
+Proyecto frontend con estructura separada por tipo de archivo: HTML, CSS y JavaScript.
+
+Estructura actual
+
+- Frontend/public/src/html
+	- index.html
+	- login.html
+- Frontend/public/src/css
+	- styles.css
+	- login.css
+- Frontend/public/src/js
+	- main.js
+	- login.js
+
+Compatibilidad de rutas
+
+Los archivos HTML estan dentro de Frontend/public/src/html, por eso usan rutas relativas con ../ para cargar estilos y scripts:
+
+- index.html
+	- CSS: ../css/styles.css
+	- JS: ../js/main.js
+- login.html
+	- CSS: ../css/login.css
+	- JS: ../js/login.js
+
+Como ejecutar el frontend
+
+1. Abre el proyecto en VS Code.
+2. Ejecuta un servidor estatico (por ejemplo, Live Server).
+3. Abre Frontend/public/src/html/index.html desde ese servidor.
+
+Nota sobre login
+
+El archivo Frontend/public/src/js/login.js consume la API en:
+
+- http://localhost:3000/api/auth/login
+
+Si no hay backend corriendo en ese puerto, el formulario mostrara un mensaje de conexion.

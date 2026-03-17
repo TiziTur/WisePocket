@@ -188,6 +188,7 @@ Recomendaciones adicionales para siguiente etapa:
 7.5 Tickets
 - POST /api/tickets/ocr
 - POST /api/tickets/upload (compat legacy)
+- Regla de importe OCR: prioridad a lineas con TOTAL/A PAGAR, descartando ruido de direccion.
 
 ====================================================================
 8) DECISIONES TECNICAS Y MOTIVACION

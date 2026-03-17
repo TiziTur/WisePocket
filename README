@@ -163,6 +163,10 @@ POST   /tickets/ocr          - Procesar ticket OCR (campo multipart: image) y gu
 POST   /tickets/upload       - Endpoint compatible legacy (campo multipart: ticket)
 ```
 
+Notas de OCR:
+- La extracción de importe prioriza líneas con "TOTAL"/"A PAGAR".
+- Se ignoran líneas típicas de dirección para evitar tomar números de calle como monto.
+
 ### Asesor (Análisis)
 ```
 GET    /advisor/overview/:id     - Overview visualizable del cliente

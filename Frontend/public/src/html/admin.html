@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Panel Admin — Klarity</title>
+  <link rel="icon" type="image/svg+xml"
+        href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%233b82f6'><path d='M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5'/></svg>" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+  <link rel="stylesheet" href="/src/css/styles.css" />
+  <link rel="stylesheet" href="/src/css/dashboard.css" />
+</head>
+<body>
+<div class="dash-layout" id="dashLayout">
+
+  <!-- ── Top bar ─────────────────────────────────────────── -->
+  <header class="dash-topbar">
+    <button class="dash-menu-btn" onclick="toggleSidebar()"><i class="bi bi-list"></i></button>
+    <a href="/" class="dash-topbar-brand">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--k-primary)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+      Klarity
+      <span class="role-chip rc-admin ms-2" style="font-size:.68rem">Admin</span>
+    </a>
+    <div class="dash-topbar-right">
+      <button class="dash-btn-icon" id="themeToggle" title="Cambiar tema" data-theme-toggle>
+        <i class="bi bi-moon-stars-fill" id="themeIcon"></i>
+      </button>
+      <div class="dash-avatar" id="avatarInitials" style="background:var(--k-danger,#ef4444)" title="Admin">A</div>
+    </div>
+  </header>
+
+  <!-- ── Sidebar ─────────────────────────────────────────── -->
+  <aside class="dash-sidebar" id="sidebar">
+    <nav class="dash-nav-section" aria-label="Administración">
+      <p class="dash-nav-label">Administración</p>
+      <button type="button" class="dash-nav-link active w-100 border-0 bg-transparent text-start" onclick="showSection('overview', this)">
+        <i class="bi bi-grid-1x2-fill"></i> Visión general
+      </button>
+      <button type="button" class="dash-nav-link w-100 border-0 bg-transparent text-start" onclick="showSection('users', this)">
+        <i class="bi bi-people-fill"></i> Usuarios
+        <span class="nav-badge" id="usersBadge">—</span>
+      </button>
+      <button type="button" class="dash-nav-link w-100 border-0 bg-transparent text-start" onclick="showSection('expenses', this)">
+        <i class="bi bi-receipt"></i> Todos los gastos
+      </button>
+    </nav>
+    <nav class="dash-nav-section" aria-label="Sistema">
+      <p class="dash-nav-label">Sistema</p>
+      <button type="button" class="dash-nav-link w-100 border-0 bg-transparent text-start" onclick="showSection('health', this)">
+        <i class="bi bi-heart-pulse-fill"></i> Estado del sistema
+      </button>
+      <button type="button" class="dash-nav-link w-100 border-0 bg-transparent text-start" onclick="showSection('profile', this)">
+        <i class="bi bi-person-circle"></i> Mi perfil
+      </button>
+    </nav>
+    <div class="dash-sidebar-footer">
+      <button class="dash-nav-link w-100 border-0 bg-transparent text-start" onclick="logout()">
+        <i class="bi bi-box-arrow-right"></i> Cerrar sesión
+      </button>
+    </div>
+  </aside>
+
+  <!-- ── Main ────────────────────────────────────────────── -->
+  <main class="dash-main">
+
+    <!-- ====== OVERVIEW ===================================== -->
+    <div id="section-overview">
+      <div class="dash-page-header">
+        <div>
+          <h1 class="dash-page-title">Visión general</h1>
+          <p class="dash-page-sub">Estadísticas de la plataforma Klarity</p>
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="loadAll()">
+          <i class="bi bi-arrow-clockwise me-1"></i> Actualizar
+        </button>
+      </div>
+
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <div class="kpi-icon" style="background:#dbeafe;color:#3b82f6"><i class="bi bi-people-fill"></i></div>
+          <span class="kpi-label">Total usuarios</span>
+          <span class="kpi-value" id="kpiUsers">—</span>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon" style="background:#ede9fe;color:#7c3aed"><i class="bi bi-person-badge-fill"></i></div>
+          <span class="kpi-label">Asesores</span>
+          <span class="kpi-value" id="kpiAdvisors">—</span>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon" style="background:#fee2e2;color:#b91c1c"><i class="bi bi-shield-fill"></i></div>
+          <span class="kpi-label">Admins</span>
+          <span class="kpi-value" id="kpiAdmins">—</span>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon" style="background:#dcfce7;color:#16a34a"><i class="bi bi-receipt"></i></div>
+          <span class="kpi-label">Total gastos</span>
+          <span class="kpi-value" id="kpiExpenses">—</span>
+        </div>
+      </div>
+
+      <!-- Role distribution -->
+      <div class="row g-3">
+        <div class="col-12 col-lg-4">
+          <div class="dash-panel">
+            <p class="dash-panel-title">Distribución de roles</p>
+            <div id="roleDistWrap" style="padding:.5rem 0;display:flex;flex-direction:column;gap:.65rem"></div>
+          </div>
+        </div>
+        <div class="col-12 col-lg-8">
+          <div class="dash-table-wrap">
+            <div class="dash-table-head">
+              <span class="dash-table-title">Últimos usuarios registrados</span>
+            </div>
+            <div style="overflow-x:auto">
+              <table class="dash-table">
+                <thead><tr><th>Nombre</th><th>Email</th><th>Rol</th><th>ID</th></tr></thead>
+                <tbody id="recentUsersTbody">
+                  <tr><td colspan="4" class="dash-empty"><span class="loading-spinner"></span></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ====== USERS MANAGEMENT ============================ -->
+    <div id="section-users" style="display:none">
+      <div class="dash-page-header">
+        <div>
+          <h1 class="dash-page-title">Gestión de usuarios</h1>
+          <p class="dash-page-sub">Todos los usuarios de la plataforma</p>
+        </div>
+        <div class="d-flex gap-2">
+          <select id="filterRole" class="dash-input" onchange="filterUsers()" style="width:auto;padding:.45rem .75rem">
+            <option value="">Todos los roles</option>
+            <option value="user">User</option>
+            <option value="advisor">Advisor</option>
+            <option value="admin">Admin</option>
+          </select>
+          <button class="btn btn-primary btn-sm" onclick="loadUsers()">
+            <i class="bi bi-arrow-clockwise me-1"></i>
+          </button>
+        </div>
+      </div>
+
+      <div class="dash-table-wrap">
+        <div style="overflow-x:auto">
+          <table class="dash-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Nombre</th>
+                <th>Email</th>
+                <th>Rol</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="allUsersTbody">
+              <tr><td colspan="5" class="dash-empty"><span class="loading-spinner"></span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ====== EXPENSES VIEW ================================ -->
+    <div id="section-expenses" style="display:none">
+      <div class="dash-page-header">
+        <div>
+          <h1 class="dash-page-title">Todos los gastos</h1>
+          <p class="dash-page-sub">Vista de gastos (scope según permisos del backend)</p>
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="loadAdminExpenses()">
+          <i class="bi bi-arrow-clockwise me-1"></i> Actualizar
+        </button>
+      </div>
+
+      <div class="dash-table-wrap">
+        <div style="overflow-x:auto">
+          <table class="dash-table">
+            <thead>
+              <tr><th>ID</th><th>Concepto</th><th>Categoría</th><th>Importe</th><th>Moneda</th><th>Fecha</th></tr>
+            </thead>
+            <tbody id="adminExpensesTbody">
+              <tr><td colspan="6" class="dash-empty"><span class="loading-spinner"></span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ====== HEALTH ======================================= -->
+    <div id="section-health" style="display:none">
+      <div class="dash-page-header">
+        <div>
+          <h1 class="dash-page-title">Estado del sistema</h1>
+          <p class="dash-page-sub">Comprueba la conectividad con el backend</p>
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="checkHealth()">
+          <i class="bi bi-arrow-clockwise me-1"></i> Comprobar
+        </button>
+      </div>
+
+      <div class="row g-3">
+        <div class="col-12 col-md-6">
+          <div class="dash-panel">
+            <p class="dash-panel-title">Backend API</p>
+            <div style="display:flex;align-items:center;gap:.75rem;margin-bottom:1rem">
+              <div id="healthDot" style="width:12px;height:12px;border-radius:50%;background:var(--k-muted);flex-shrink:0"></div>
+              <span id="healthStatus" style="font-size:.9rem;color:var(--k-text2)">Comprobando...</span>
+            </div>
+            <code id="healthUrl" style="font-size:.78rem;color:var(--k-muted)"></code>
+          </div>
+        </div>
+        <div class="col-12 col-md-6">
+          <div class="dash-panel">
+            <p class="dash-panel-title">Información de entorno</p>
+            <div style="display:flex;flex-direction:column;gap:.5rem;font-size:.87rem;color:var(--k-text2)">
+              <div><span style="color:var(--k-muted)">API URL:</span> <code id="envApiUrl" style="font-size:.78rem"></code></div>
+              <div><span style="color:var(--k-muted)">User Agent:</span> <code id="envUA" style="font-size:.78rem;word-break:break-all"></code></div>
+              <div><span style="color:var(--k-muted)">Hora del servidor:</span> <span id="envTime">—</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ====== PROFILE ====================================== -->
+    <div id="section-profile" style="display:none">
+      <div class="dash-page-header">
+        <div><h1 class="dash-page-title">Mi perfil</h1><p class="dash-page-sub">Cuenta de administrador</p></div>
+      </div>
+      <div class="dash-panel" style="max-width:480px">
+        <div style="display:flex;flex-direction:column;gap:.75rem;font-size:.9rem">
+          <div><span style="color:var(--k-muted)">Nombre:</span> <strong id="adminName">—</strong></div>
+          <div><span style="color:var(--k-muted)">Email:</span> <strong id="adminEmail">—</strong></div>
+          <div><span style="color:var(--k-muted)">Rol:</span> <span class="role-chip rc-admin ms-1">Admin</span></div>
+        </div>
+        <hr style="border-color:var(--k-border);margin:1rem 0" />
+        <button class="btn btn-sm" style="border:1px solid var(--k-danger,#ef4444);color:var(--k-danger,#ef4444);background:transparent" onclick="logout()">
+          <i class="bi bi-box-arrow-right me-1"></i> Cerrar sesión
+        </button>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<button id="sidebarOverlay" type="button" aria-label="Cerrar menú lateral"
+  style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:998;border:0;padding:0;cursor:pointer"></button>
+
+<!-- Change role modal (simple) -->
+<div id="roleModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9999;align-items:center;justify-content:center">
+  <div style="background:var(--k-surface);border-radius:1rem;padding:1.75rem;max-width:380px;width:90%;box-shadow:var(--k-shadow-lg)">
+    <h5 style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;margin-bottom:1rem">Cambiar rol</h5>
+    <p style="font-size:.88rem;color:var(--k-text2);margin-bottom:1.25rem">Usuario ID: <strong id="roleModalUserId">—</strong></p>
+    <select id="roleModalSelect" class="dash-input mb-3">
+      <option value="user">user</option>
+      <option value="advisor">advisor</option>
+      <option value="admin">admin</option>
+    </select>
+    <div style="display:flex;gap:.75rem">
+      <button class="btn btn-primary flex-fill" onclick="confirmRoleChange()">Guardar</button>
+      <button class="btn flex-fill" style="border:1px solid var(--k-border)" onclick="closeRoleModal()">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<script src="/src/js/config.js"></script>
+<script src="/src/js/theme.js"></script>
+<script>
+const API = window.WISEPOCKET_API_BASE_URL || 'https://wisepocket-production.up.railway.app/api';
+
+function getToken() { return localStorage.getItem('klarity_token') || sessionStorage.getItem('klarity_token'); }
+function getUserData() {
+  try { const r = localStorage.getItem('klarity_user')||sessionStorage.getItem('klarity_user'); return r?JSON.parse(r):null; }
+  catch { return null; }
+}
+function authHeaders() { return {'Content-Type':'application/json','Authorization':'Bearer '+getToken()}; }
+function escHtml(s){ return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function fmtDate(d){ if(!d)return'—'; const dt=new Date(d); return isNaN(dt)?d:dt.toLocaleDateString('es-ES',{day:'2-digit',month:'short',year:'numeric'}); }
+
+// Guard
+(function() {
+  const token = getToken();
+  if (!token) { window.location.href = '/login'; return; }
+  const user = getUserData();
+  if (user) {
+    const role = (user.role||'').toLowerCase();
+    if (role === 'user')    { window.location.href = '/dashboard'; return; }
+    if (role === 'advisor') { window.location.href = '/advisor';   return; }
+    document.getElementById('avatarInitials').textContent = (user.name||user.email||'A').slice(0,1).toUpperCase();
+    if(document.getElementById('adminName')) document.getElementById('adminName').textContent = user.name || '—';
+    if(document.getElementById('adminEmail')) document.getElementById('adminEmail').textContent = user.email || '—';
+  }
+})();
+
+// Nav
+const SECTIONS = ['overview','users','expenses','health','profile'];
+function showSection(name, linkEl) {
+  SECTIONS.forEach(id => {
+    const el = document.getElementById('section-' + id);
+    if(el) el.style.display = id === name ? '' : 'none';
+  });
+  document.querySelectorAll('.dash-nav-link').forEach(a => a.classList.remove('active'));
+  if(linkEl) linkEl.classList.add('active');
+  if(name === 'users') loadUsers();
+  if(name === 'expenses') loadAdminExpenses();
+  if(name === 'health') checkHealth();
+  closeSidebar();
+}
+
+function toggleSidebar() {
+  const sb = document.getElementById('sidebar');
+  const ov = document.getElementById('sidebarOverlay');
+  sb.classList.toggle('open');
+  ov.style.display = sb.classList.contains('open') ? 'block' : 'none';
+}
+function closeSidebar() {
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sidebarOverlay').style.display = 'none';
+}
+
+document.getElementById('sidebarOverlay').addEventListener('click', closeSidebar);
+
+// ── Load all users ────────────────────────────────────────
+let allUsers = [];
+async function loadUsers() {
+  const tb = document.getElementById('allUsersTbody');
+  if(tb) tb.innerHTML = '<tr><td colspan="5" class="dash-empty"><span class="loading-spinner"></span></td></tr>';
+  try {
+    const res = await fetch(API + '/users', { headers: authHeaders() });
+    if (res.status === 401) { logout(); return; }
+    const data = await res.json();
+    allUsers = Array.isArray(data) ? data : (data.data || []);
+    renderKPIs(allUsers);
+    renderRecentTable(allUsers.slice(0, 5));
+    renderFullUsersTable(allUsers);
+    const badge = document.getElementById('usersBadge');
+    if(badge) badge.textContent = allUsers.length;
+  } catch(e) {
+    const err = `<tr><td colspan="5" class="dash-empty text-danger">Error: ${escHtml(e.message)}</td></tr>`;
+    if(tb) tb.innerHTML = err;
+  }
+}
+
+function renderKPIs(users) {
+  document.getElementById('kpiUsers').textContent = users.length;
+  document.getElementById('kpiAdvisors').textContent = users.filter(u=>(u.role||'').toLowerCase()==='advisor').length;
+  document.getElementById('kpiAdmins').textContent = users.filter(u=>(u.role||'').toLowerCase()==='admin').length;
+
+  // Role distribution bars
+  const dist = document.getElementById('roleDistWrap');
+  if(!dist) return;
+  const roles = ['user','advisor','admin'];
+  const colors = {'user':'var(--k-primary)','advisor':'#7c3aed','admin':'#ef4444'};
+  dist.innerHTML = roles.map(r => {
+    const cnt = users.filter(u=>(u.role||'').toLowerCase()===r).length;
+    const pct = users.length ? Math.round((cnt/users.length)*100) : 0;
+    return `<div>
+      <div style="display:flex;justify-content:space-between;font-size:.8rem;margin-bottom:.3rem">
+        <span class="role-chip rc-${r}">${r}</span>
+        <span style="color:var(--k-muted)">${cnt} (${pct}%)</span>
+      </div>
+      <div style="background:var(--k-bg);border-radius:999px;height:7px;overflow:hidden">
+        <div style="width:${pct}%;height:100%;background:${colors[r]};border-radius:999px"></div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderRecentTable(users) {
+  const tb = document.getElementById('recentUsersTbody');
+  if(!tb) return;
+  if(!users.length){ tb.innerHTML='<tr><td colspan="4" class="dash-empty">Sin usuarios</td></tr>'; return; }
+  tb.innerHTML = users.map(u=>`
+    <tr>
+      <td>${escHtml(u.name||u.username||'—')}</td>
+      <td>${escHtml(u.email||'—')}</td>
+      <td><span class="role-chip rc-${(u.role||'user').toLowerCase()}">${escHtml(u.role||'user')}</span></td>
+      <td><code style="font-size:.78rem">${u.id||'—'}</code></td>
+    </tr>`).join('');
+}
+
+function renderFullUsersTable(users) {
+  const tb = document.getElementById('allUsersTbody');
+  if(!tb) return;
+  if(!users.length){ tb.innerHTML='<tr><td colspan="5" class="dash-empty">Sin usuarios</td></tr>'; return; }
+  tb.innerHTML = users.map(u=>`
+    <tr>
+      <td><code style="font-size:.78rem">${u.id||'—'}</code></td>
+      <td><strong>${escHtml(u.name||u.username||'—')}</strong></td>
+      <td>${escHtml(u.email||'—')}</td>
+      <td><span class="role-chip rc-${(u.role||'user').toLowerCase()}">${escHtml(u.role||'user')}</span></td>
+      <td>
+        <button class="dash-btn-icon" title="Cambiar rol" onclick="openRoleModal(${u.id},'${escHtml(u.role||'user')}')"><i class="bi bi-pencil-square"></i></button>
+      </td>
+    </tr>`).join('');
+}
+
+function filterUsers() {
+  const role = document.getElementById('filterRole').value;
+  const filtered = role ? allUsers.filter(u=>(u.role||'').toLowerCase()===role) : allUsers;
+  renderFullUsersTable(filtered);
+}
+
+// ── Role modal ────────────────────────────────────────────
+let _roleModalUserId = null;
+function openRoleModal(id, currentRole) {
+  _roleModalUserId = id;
+  document.getElementById('roleModalUserId').textContent = id;
+  document.getElementById('roleModalSelect').value = currentRole.toLowerCase();
+  document.getElementById('roleModal').style.display = 'flex';
+}
+function closeRoleModal() { document.getElementById('roleModal').style.display = 'none'; _roleModalUserId = null; }
+async function confirmRoleChange() {
+  const role = document.getElementById('roleModalSelect').value;
+  if (!_roleModalUserId) return;
+  try {
+    const res = await fetch(API + '/users/' + _roleModalUserId, {
+      method: 'PATCH',
+      headers: authHeaders(),
+      body: JSON.stringify({ role })
+    });
+    if (!res.ok) throw new Error((await res.json()).message || 'Error');
+    closeRoleModal();
+    loadUsers();
+  } catch(e) {
+    alert('Error: ' + e.message);
+  }
+}
+
+// ── Admin expenses ────────────────────────────────────────
+async function loadAdminExpenses() {
+  const tb = document.getElementById('adminExpensesTbody');
+  if(tb) tb.innerHTML = '<tr><td colspan="6" class="dash-empty"><span class="loading-spinner"></span></td></tr>';
+  try {
+    const res = await fetch(API + '/expenses', { headers: authHeaders() });
+    if (res.status === 401) { logout(); return; }
+    const data = await res.json();
+    document.getElementById('kpiExpenses').textContent = Array.isArray(data) ? data.length : '—';
+    if(!tb) return;
+    const expenses = Array.isArray(data) ? data : (data.data || []);
+    if(!expenses.length){ tb.innerHTML='<tr><td colspan="6" class="dash-empty">Sin gastos</td></tr>'; return; }
+    tb.innerHTML = expenses.map(e=>`
+      <tr>
+        <td><code style="font-size:.78rem">${e.id||'—'}</code></td>
+        <td>${escHtml(e.concept||e.description||'—')}</td>
+        <td>${escHtml(e.category||'Otro')}</td>
+        <td><strong>${(+e.amount||0).toFixed(2)}</strong></td>
+        <td>${escHtml(e.currency||'EUR')}</td>
+        <td>${fmtDate(e.date||e.createdAt)}</td>
+      </tr>`).join('');
+  } catch(e) {
+    if(tb) tb.innerHTML=`<tr><td colspan="6" class="dash-empty text-danger">Error: ${escHtml(e.message)}</td></tr>`;
+  }
+}
+
+// ── Health check ──────────────────────────────────────────
+async function checkHealth() {
+  const dot = document.getElementById('healthDot');
+  const status = document.getElementById('healthStatus');
+  const urlEl = document.getElementById('healthUrl');
+  const envUrl = document.getElementById('envApiUrl');
+  const envUA = document.getElementById('envUA');
+  const envTime = document.getElementById('envTime');
+
+  const base = API.replace(/\/api\/?$/, '');
+  if(urlEl) urlEl.textContent = base + '/api';
+  if(envUrl) envUrl.textContent = API;
+  if(envUA) envUA.textContent = navigator.userAgent;
+
+  dot.style.background = '#f59e0b';
+  status.textContent = 'Comprobando...';
+  try {
+    const res = await fetch(base, { signal: AbortSignal.timeout(6000) });
+    if (res.ok || res.status < 500) {
+      dot.style.background = '#10b981';
+      status.textContent = 'API accesible (HTTP ' + res.status + ')';
+    } else {
+      throw new Error('HTTP ' + res.status);
+    }
+  } catch(e) {
+    dot.style.background = '#ef4444';
+    status.textContent = 'Sin respuesta: ' + e.message;
+  }
+  if(envTime) envTime.textContent = new Date().toLocaleString('es-ES');
+}
+
+// ── Load all ──────────────────────────────────────────────
+function loadAll() { loadUsers(); loadAdminExpenses(); }
+
+function logout() {
+  localStorage.removeItem('klarity_token'); localStorage.removeItem('klarity_user');
+  sessionStorage.removeItem('klarity_token'); sessionStorage.removeItem('klarity_user');
+  window.location.href = '/login';
+}
+
+// Init
+loadAll();
+</script>
+</body>
+</html>

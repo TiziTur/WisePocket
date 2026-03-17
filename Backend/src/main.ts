@@ -5,9 +5,16 @@ import { AppModule } from './app.module';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
+  // Security headers
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const helmet = require('helmet');
+  app.use(helmet());
+
   app.enableCors({
-    origin: true,
+    origin: process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(',') : true,
     credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
   });
 
   app.useGlobalPipes(
@@ -25,3 +32,4 @@ async function bootstrap() {
 }
 
 bootstrap();
+

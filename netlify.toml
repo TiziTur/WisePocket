@@ -10,3 +10,18 @@
   from = "/login"
   to = "/src/html/login.html"
   status = 200
+
+[[redirects]]
+  from = "/dashboard"
+  to = "/src/html/dashboard.html"
+  status = 200
+
+[[redirects]]
+  from = "/advisor"
+  to = "/src/html/advisor.html"
+  status = 200
+
+[[redirects]]
+  from = "/admin"
+  to = "/src/html/admin.html"
+  status = 200

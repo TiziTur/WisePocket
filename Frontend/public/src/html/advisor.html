@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Panel Asesor — Klarity</title>
+  <link rel="icon" type="image/svg+xml"
+        href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%233b82f6'><path d='M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5'/></svg>" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+  <link rel="stylesheet" href="/src/css/styles.css" />
+  <link rel="stylesheet" href="/src/css/dashboard.css" />
+</head>
+<body>
+<div class="dash-layout" id="dashLayout">
+
+  <!-- ── Top bar ─────────────────────────────────────────── -->
+  <header class="dash-topbar">
+    <button class="dash-menu-btn" onclick="toggleSidebar()"><i class="bi bi-list"></i></button>
+    <a href="/" class="dash-topbar-brand">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--k-primary)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+      Klarity
+      <span class="role-chip rc-advisor ms-2" style="font-size:.68rem">Asesor</span>
+    </a>
+    <div class="dash-topbar-right">
+      <button class="dash-btn-icon" id="themeToggle" title="Cambiar tema" data-theme-toggle>
+        <i class="bi bi-moon-stars-fill" id="themeIcon"></i>
+      </button>
+      <div class="dash-avatar" id="avatarInitials" title="Mi perfil">A</div>
+    </div>
+  </header>
+
+  <!-- ── Sidebar ─────────────────────────────────────────── -->
+  <aside class="dash-sidebar" id="sidebar">
+    <nav class="dash-nav-section" aria-label="Asesor">
+      <p class="dash-nav-label">Asesor</p>
+      <button type="button" class="dash-nav-link active w-100 border-0 bg-transparent text-start" onclick="showSection('clients', this)">
+        <i class="bi bi-people-fill"></i> Mis clientes
+      </button>
+      <button type="button" class="dash-nav-link w-100 border-0 bg-transparent text-start" onclick="showSection('overview', this)">
+        <i class="bi bi-person-lines-fill"></i> Resumen de cliente
+      </button>
+      <button type="button" class="dash-nav-link w-100 border-0 bg-transparent text-start" onclick="showSection('patterns', this)">
+        <i class="bi bi-graph-up-arrow"></i> Patrones de gasto
+      </button>
+      <button type="button" class="dash-nav-link w-100 border-0 bg-transparent text-start" onclick="showSection('recommend', this)">
+        <i class="bi bi-stars"></i> Recomendaciones IA
+      </button>
+    </nav>
+    <nav class="dash-nav-section" aria-label="Cuenta">
+      <p class="dash-nav-label">Cuenta</p>
+      <button type="button" class="dash-nav-link w-100 border-0 bg-transparent text-start" onclick="showSection('profile', this)">
+        <i class="bi bi-person-circle"></i> Mi perfil
+      </button>
+    </nav>
+    <div class="dash-sidebar-footer">
+      <button class="dash-nav-link w-100 border-0 bg-transparent text-start" onclick="logout()">
+        <i class="bi bi-box-arrow-right"></i> Cerrar sesión
+      </button>
+    </div>
+  </aside>
+
+  <!-- ── Main ────────────────────────────────────────────── -->
+  <main class="dash-main">
+
+    <!-- ====== CLIENTS LIST ================================= -->
+    <div id="section-clients">
+      <div class="dash-page-header">
+        <div>
+          <h1 class="dash-page-title">Mis clientes</h1>
+          <p class="dash-page-sub">Lista de usuarios asignados a tu asesoría</p>
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="loadClients()">
+          <i class="bi bi-arrow-clockwise me-1"></i> Actualizar
+        </button>
+      </div>
+
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <div class="kpi-icon" style="background:#ede9fe;color:#7c3aed"><i class="bi bi-people-fill"></i></div>
+          <span class="kpi-label">Total clientes</span>
+          <span class="kpi-value" id="kpiClients">—</span>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon" style="background:#dbeafe;color:#3b82f6"><i class="bi bi-check-circle-fill"></i></div>
+          <span class="kpi-label">Activos este mes</span>
+          <span class="kpi-value" id="kpiActive">—</span>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon" style="background:#dcfce7;color:#16a34a"><i class="bi bi-cash-stack"></i></div>
+          <span class="kpi-label">Gasto promedio</span>
+          <span class="kpi-value" id="kpiAvg">—</span>
+        </div>
+      </div>
+
+      <div class="dash-table-wrap">
+        <div class="dash-table-head">
+          <span class="dash-table-title">Clientes registrados</span>
+        </div>
+        <div style="overflow-x:auto">
+          <table class="dash-table">
+            <thead>
+              <tr>
+                <th>Nombre</th>
+                <th>Email</th>
+                <th>Rol</th>
+                <th>ID</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="clientsTbody">
+              <tr><td colspan="5" class="dash-empty"><span class="loading-spinner"></span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ====== CLIENT OVERVIEW ============================== -->
+    <div id="section-overview" style="display:none">
+      <div class="dash-page-header">
+        <div>
+          <h1 class="dash-page-title">Resumen de cliente</h1>
+          <p class="dash-page-sub">Gastos e historial de un usuario específico</p>
+        </div>
+        <button class="btn btn-outline-secondary btn-sm" onclick="showSection('clients',null)">
+          <i class="bi bi-arrow-left me-1"></i> Volver
+        </button>
+      </div>
+
+      <div class="dash-panel mb-3">
+        <p class="dash-panel-title">Seleccionar cliente</p>
+        <div class="row g-2">
+          <div class="col-sm-8">
+            <input type="number" id="clientIdInput" class="dash-input" placeholder="ID de usuario" min="1" />
+          </div>
+          <div class="col-sm-4">
+            <button class="btn btn-primary w-100" onclick="loadClientOverview()">Ver resumen</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="clientOverviewResult">
+        <p style="color:var(--k-muted);font-size:.9rem">Introduce un ID de usuario para ver su resumen.</p>
+      </div>
+    </div>
+
+    <!-- ====== PATTERNS ===================================== -->
+    <div id="section-patterns" style="display:none">
+      <div class="dash-page-header">
+        <div>
+          <h1 class="dash-page-title">Patrones de gasto</h1>
+          <p class="dash-page-sub">Análisis de comportamiento financiero por usuario</p>
+        </div>
+        <button class="btn btn-outline-secondary btn-sm" onclick="showSection('clients',null)">
+          <i class="bi bi-arrow-left me-1"></i> Volver
+        </button>
+      </div>
+
+      <div class="dash-panel mb-3">
+        <p class="dash-panel-title">Seleccionar cliente</p>
+        <div class="row g-2">
+          <div class="col-sm-8">
+            <input type="number" id="patternClientId" class="dash-input" placeholder="ID de usuario" min="1" />
+          </div>
+          <div class="col-sm-4">
+            <button class="btn btn-primary w-100" onclick="loadPatterns()">Ver patrones</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="patternsResult">
+        <p style="color:var(--k-muted);font-size:.9rem">Introduce un ID para ver análisis de patrones.</p>
+      </div>
+    </div>
+
+    <!-- ====== RECOMMEND ==================================== -->
+    <div id="section-recommend" style="display:none">
+      <div class="dash-page-header">
+        <div>
+          <h1 class="dash-page-title">Recomendaciones IA</h1>
+          <p class="dash-page-sub">Genera sugerencias personalizadas de ahorro</p>
+        </div>
+      </div>
+
+      <div class="row g-3">
+        <div class="col-12 col-md-5">
+          <div class="dash-panel">
+            <p class="dash-panel-title">Parámetros</p>
+            <div class="mb-3">
+              <label class="dash-label" for="recClientId">ID de cliente</label>
+              <input id="recClientId" type="number" class="dash-input" placeholder="ID de usuario" min="1" />
+            </div>
+            <div class="mb-3">
+              <label class="dash-label" for="recProvider">Proveedor IA</label>
+              <select id="recProvider" class="dash-input">
+                <option value="openai">OpenAI (ChatGPT)</option>
+                <option value="anthropic">Anthropic (Claude)</option>
+              </select>
+            </div>
+            <div class="mb-3">
+              <label class="dash-label" for="recKey">API Key</label>
+              <input id="recKey" type="password" class="dash-input" placeholder="sk-..." />
+            </div>
+            <button class="btn btn-primary w-100" onclick="loadRecommendations()">
+              <i class="bi bi-stars me-1"></i> Generar recomendaciones
+            </button>
+          </div>
+        </div>
+        <div class="col-12 col-md-7">
+          <div class="dash-panel h-100">
+            <p class="dash-panel-title">Resultado</p>
+            <div id="recOutput" style="font-size:.9rem;color:var(--k-text2);min-height:180px;line-height:1.65">
+              Selecciona un cliente y genera recomendaciones.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ====== PROFILE ====================================== -->
+    <div id="section-profile" style="display:none">
+      <div class="dash-page-header">
+        <div>
+          <h1 class="dash-page-title">Mi perfil</h1>
+          <p class="dash-page-sub">Datos de tu cuenta de asesor</p>
+        </div>
+      </div>
+      <div class="dash-panel" style="max-width:480px">
+        <div style="display:flex;flex-direction:column;gap:.75rem;font-size:.9rem">
+          <div><span style="color:var(--k-muted)">Nombre:</span> <strong id="profName">—</strong></div>
+          <div><span style="color:var(--k-muted)">Email:</span> <strong id="profEmail">—</strong></div>
+          <div><span style="color:var(--k-muted)">Rol:</span> <span class="role-chip rc-advisor ms-1">Asesor</span></div>
+        </div>
+        <hr style="border-color:var(--k-border);margin:1rem 0" />
+        <button class="btn btn-sm" style="border:1px solid var(--k-danger,#ef4444);color:var(--k-danger,#ef4444);background:transparent" onclick="logout()">
+          <i class="bi bi-box-arrow-right me-1"></i> Cerrar sesión
+        </button>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<button id="sidebarOverlay" type="button" aria-label="Cerrar menú lateral"
+  style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:998;border:0;padding:0;cursor:pointer"></button>
+
+<script src="/src/js/config.js"></script>
+<script src="/src/js/theme.js"></script>
+<script>
+const API = window.WISEPOCKET_API_BASE_URL || 'https://wisepocket-production.up.railway.app/api';
+
+function getToken() { return localStorage.getItem('klarity_token') || sessionStorage.getItem('klarity_token'); }
+function getUserData() {
+  try { const r = localStorage.getItem('klarity_user')||sessionStorage.getItem('klarity_user'); return r?JSON.parse(r):null; }
+  catch { return null; }
+}
+function authHeaders() { return {'Content-Type':'application/json','Authorization':'Bearer '+getToken()}; }
+function escHtml(s){ return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+// Guard
+(function() {
+  const token = getToken();
+  if (!token) { window.location.href = '/login'; return; }
+  const user = getUserData();
+  if (user) {
+    const role = (user.role||'').toLowerCase();
+    if (role === 'user')  { window.location.href = '/dashboard'; return; }
+    if (role === 'admin') { window.location.href = '/admin';     return; }
+    document.getElementById('avatarInitials').textContent = (user.name||user.email||'A').slice(0,1).toUpperCase();
+    if(document.getElementById('profName')) document.getElementById('profName').textContent = user.name || '—';
+    if(document.getElementById('profEmail')) document.getElementById('profEmail').textContent = user.email || '—';
+  }
+})();
+
+// Nav
+const SECTIONS = ['clients','overview','patterns','recommend','profile'];
+function showSection(name, linkEl) {
+  SECTIONS.forEach(id => {
+    const el = document.getElementById('section-' + id);
+    if(el) el.style.display = id === name ? '' : 'none';
+  });
+  document.querySelectorAll('.dash-nav-link').forEach(a => a.classList.remove('active'));
+  if(linkEl) linkEl.classList.add('active');
+  if(name === 'clients') loadClients();
+  closeSidebar();
+}
+
+function toggleSidebar() {
+  const sb = document.getElementById('sidebar');
+  const ov = document.getElementById('sidebarOverlay');
+  sb.classList.toggle('open');
+  ov.style.display = sb.classList.contains('open') ? 'block' : 'none';
+}
+function closeSidebar() {
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sidebarOverlay').style.display = 'none';
+}
+
+document.getElementById('sidebarOverlay').addEventListener('click', closeSidebar);
+
+// Load clients
+async function loadClients() {
+  const tb = document.getElementById('clientsTbody');
+  tb.innerHTML = '<tr><td colspan="5" class="dash-empty"><span class="loading-spinner"></span></td></tr>';
+  try {
+    const res = await fetch(API + '/users', { headers: authHeaders() });
+    if (res.status === 401) { logout(); return; }
+    const users = await res.json();
+    const clients = Array.isArray(users) ? users : (users.data || []);
+    document.getElementById('kpiClients').textContent = clients.length;
+    document.getElementById('kpiActive').textContent = clients.filter(u => (u.role||'').toLowerCase() === 'user').length;
+    document.getElementById('kpiAvg').textContent = '—';
+
+    if (!clients.length) { tb.innerHTML = '<tr><td colspan="5" class="dash-empty">Sin clientes</td></tr>'; return; }
+    tb.innerHTML = clients.map(u => `
+      <tr>
+        <td><strong>${escHtml(u.name||u.username||'—')}</strong></td>
+        <td>${escHtml(u.email||'—')}</td>
+        <td><span class="role-chip rc-${(u.role||'user').toLowerCase()}">${escHtml(u.role||'user')}</span></td>
+        <td><code style="font-size:.8rem">${u.id||'—'}</code></td>
+        <td>
+          <button class="dash-btn-icon" title="Ver resumen" onclick="quickView(${u.id})"><i class="bi bi-eye"></i></button>
+          <button class="dash-btn-icon ms-1" title="Patrones" onclick="quickPatterns(${u.id})"><i class="bi bi-graph-up-arrow"></i></button>
+        </td>
+      </tr>`).join('');
+  } catch(e) {
+    tb.innerHTML = `<tr><td colspan="5" class="dash-empty text-danger">Error: ${escHtml(e.message)}</td></tr>`;
+  }
+}
+
+function quickView(id) {
+  document.getElementById('clientIdInput').value = id;
+  showSection('overview', null);
+  loadClientOverview();
+}
+
+function quickPatterns(id) {
+  document.getElementById('patternClientId').value = id;
+  showSection('patterns', null);
+  loadPatterns();
+}
+
+async function loadClientOverview() {
+  const id = document.getElementById('clientIdInput').value;
+  const out = document.getElementById('clientOverviewResult');
+  if (!id) { out.innerHTML = '<p style="color:var(--k-muted)">Introduce un ID.</p>'; return; }
+  out.innerHTML = '<span class="loading-spinner"></span>';
+  try {
+    const res = await fetch(API + '/advisor/overview/' + id, { headers: authHeaders() });
+    if (res.status === 401) { logout(); return; }
+    const data = await res.json();
+    out.innerHTML = `<div class="dash-panel"><pre style="font-size:.82rem;white-space:pre-wrap;color:var(--k-text2)">${escHtml(JSON.stringify(data, null, 2))}</pre></div>`;
+  } catch(e) {
+    out.innerHTML = `<p style="color:var(--k-danger,#ef4444)">Error: ${escHtml(e.message)}</p>`;
+  }
+}
+
+async function loadPatterns() {
+  const id = document.getElementById('patternClientId').value;
+  const out = document.getElementById('patternsResult');
+  if (!id) { out.innerHTML = '<p style="color:var(--k-muted)">Introduce un ID.</p>'; return; }
+  out.innerHTML = '<span class="loading-spinner"></span>';
+  try {
+    const res = await fetch(API + '/advisor/patterns/' + id, { headers: authHeaders() });
+    if (res.status === 401) { logout(); return; }
+    const data = await res.json();
+    out.innerHTML = `<div class="dash-panel"><pre style="font-size:.82rem;white-space:pre-wrap;color:var(--k-text2)">${escHtml(JSON.stringify(data, null, 2))}</pre></div>`;
+  } catch(e) {
+    out.innerHTML = `<p style="color:var(--k-danger,#ef4444)">Error: ${escHtml(e.message)}</p>`;
+  }
+}
+
+async function loadRecommendations() {
+  const id = document.getElementById('recClientId').value;
+  const out = document.getElementById('recOutput');
+  if (!id) { out.innerHTML = '<p style="color:var(--k-muted)">Introduce un ID de cliente.</p>'; return; }
+  out.innerHTML = '<span class="loading-spinner"></span>';
+  try {
+    const res = await fetch(API + '/advisor/ask', {
+      method: 'POST',
+      headers: authHeaders(),
+      body: JSON.stringify({
+        provider: document.getElementById('recProvider').value,
+        apiKey:   document.getElementById('recKey').value,
+        userId: parseInt(id),
+        question: 'Genera recomendaciones personalizadas de ahorro para este usuario basándote en sus gastos.'
+      })
+    });
+    if (res.status === 401) { logout(); return; }
+    const data = await res.json();
+    out.textContent = data.answer || data.result || JSON.stringify(data, null, 2);
+  } catch(e) {
+    out.innerHTML = `<span style="color:var(--k-danger,#ef4444)">Error: ${escHtml(e.message)}</span>`;
+  }
+}
+
+function logout() {
+  localStorage.removeItem('klarity_token'); localStorage.removeItem('klarity_user');
+  sessionStorage.removeItem('klarity_token'); sessionStorage.removeItem('klarity_user');
+  window.location.href = '/login';
+}
+
+// Init
+loadClients();
+</script>
+</body>
+</html>

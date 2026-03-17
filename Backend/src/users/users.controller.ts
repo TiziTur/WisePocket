@@ -11,7 +11,7 @@ export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Get()
-  @Roles(Role.ADVISOR)
+  @Roles(Role.ADVISOR, Role.ADMIN)
   async listUsers() {
     const users = await this.usersService.listAll();
     return users.map((user) => ({

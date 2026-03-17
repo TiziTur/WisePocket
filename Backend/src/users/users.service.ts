@@ -13,19 +13,19 @@ export class UsersService implements OnModuleInit {
   ) {}
 
   async onModuleInit() {
-    const advisorEmail = 'advisor@wisepocket.com';
-    const existing = await this.findByEmail(advisorEmail);
-    if (existing) {
-      return;
-    }
+    const seeds = [
+      { email: 'advisor@klarity.app', name: 'Sofia Asesor', password: 'Klarity2026!', role: Role.ADVISOR },
+      { email: 'admin@klarity.app',   name: 'Admin Klarity', password: 'Admin2026!',   role: Role.ADMIN },
+      { email: 'demo@klarity.app',    name: 'Demo User',    password: 'Demo2026!',    role: Role.USER },
+    ];
 
-    const passwordHash = await bcrypt.hash('123456', 10);
-    await this.create({
-      email: advisorEmail,
-      name: 'Asesor Demo',
-      passwordHash,
-      role: Role.ADVISOR,
-    });
+    for (const seed of seeds) {
+      const existing = await this.findByEmail(seed.email);
+      if (!existing) {
+        const passwordHash = await bcrypt.hash(seed.password, 10);
+        await this.create({ email: seed.email, name: seed.name, passwordHash, role: seed.role });
+      }
+    }
   }
 
   findByEmail(email: string): Promise<User | null> {

@@ -1,421 +1,739 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" data-theme="light">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WisePocket | Tu billetera de gastos</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
-    <link rel="stylesheet" href="/src/css/styles.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Klarity — Know where it goes.</title>
+  <meta name="description" content="Klarity te ayuda a entender y controlar tus gastos con inteligencia. Registra tickets, analiza categorias y recibe asesoramiento financiero personalizado.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="/src/css/styles.css">
 </head>
 <body>
-    <header class="navbar navbar-expand-lg sticky-top app-navbar py-3">
-        <div class="container">
-            <a class="navbar-brand fw-bold" href="#">WisePocket</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#menuPrincipal" aria-controls="menuPrincipal" aria-expanded="false" aria-label="Abrir navegacion">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="menuPrincipal">
-                <ul class="navbar-nav ms-auto align-items-lg-center gap-lg-2">
-                    <li class="nav-item"><a class="nav-link" href="#beneficios">Beneficios</a></li>
-                    <li class="nav-item"><a class="nav-link" href="#beneficios-detalle">Como funciona</a></li>
-                    <li class="nav-item"><a class="nav-link" href="#demo">Demo</a></li>
-                    <li class="nav-item"><a class="nav-link" href="#funcionalidades-avanzadas">Funciones pro</a></li>
-                    <li class="nav-item ms-lg-2"><a class="btn btn-light rounded-pill px-4" href="/login">Ingresar</a></li>
-                </ul>
-            </div>
+
+<!-- ═══════════ NAVBAR ═══════════════════════════════════════ -->
+<nav class="navbar navbar-expand-lg k-navbar">
+  <div class="container">
+    <a class="navbar-brand d-flex align-items-center gap-2" href="/">
+      <span class="logo-icon">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-4H9l3-7 3 7h-2v4z"/></svg>
+      </span>
+      Klarity
+    </a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav" aria-controls="mainNav" aria-expanded="false" aria-label="Abrir menú">
+      <i class="bi bi-list fs-4"></i>
+    </button>
+    <div class="collapse navbar-collapse" id="mainNav">
+      <ul class="navbar-nav mx-auto align-items-lg-center gap-lg-1" data-i18n-nav>
+        <li class="nav-item"><a class="nav-link" href="#como-funciona" data-i18n="nav.how">Como funciona</a></li>
+        <li class="nav-item"><a class="nav-link" href="#funciones" data-i18n="nav.features">Funciones</a></li>
+        <li class="nav-item"><a class="nav-link" href="#precios" data-i18n="nav.pricing">Precios</a></li>
+        <li class="nav-item"><a class="nav-link" href="#funcionalidades-avanzadas" data-i18n="nav.demo">Demo</a></li>
+      </ul>
+      <div class="d-flex align-items-center gap-2 mt-3 mt-lg-0">
+        <button class="k-lang-btn active" id="btnES" onclick="setLang('es')" title="Español">ES</button>
+        <button class="k-lang-btn" id="btnEN" onclick="setLang('en')" title="English">EN</button>
+        <button class="k-theme-btn" id="themeToggle" title="Cambiar tema" aria-label="Toggle theme">
+          <i class="bi bi-moon-stars-fill" id="themeIcon"></i>
+        </button>
+        <a class="btn-k btn-k-primary btn-k-sm" href="/login" data-i18n="nav.login">Ingresar</a>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- ═══════════ HERO ══════════════════════════════════════════ -->
+<section class="k-hero" id="inicio">
+  <div class="container position-relative">
+    <div class="row align-items-center g-5">
+
+      <div class="col-lg-6">
+        <div class="k-hero-eyebrow">
+          <span data-i18n="hero.eyebrow">Gestion financiera inteligente</span>
         </div>
-    </header>
-
-    <main>
-        <section class="hero py-5" id="ingreso">
-            <div class="container">
-                <div class="row g-4 g-lg-5 align-items-center">
-                    <div class="col-lg-7">
-                        <span class="hero-chip">Gestion de gastos simple y clara</span>
-                        <h1 class="display-5 fw-bold mt-3 mb-3">Tu plata ordenada en una sola app, sin vueltas.</h1>
-                        <p class="hero-lead mb-4">
-                            Guarda tickets, clasifica tus consumos y recibe recomendaciones practicas de tu asesor financiero.
-                            Todo en una experiencia cotidiana y facil de usar.
-                        </p>
-                        <div class="d-flex flex-wrap gap-2">
-                            <a class="btn btn-primary app-btn px-4 py-2 rounded-pill" href="/login">Comenzar ahora</a>
-                            <a class="btn btn-outline-light px-4 py-2 rounded-pill" href="#beneficios">Ver beneficios</a>
-                        </div>
-                    </div>
-                    <div class="col-lg-5">
-                        <aside class="wallet-card">
-                            <p class="mb-2 text-light-emphasis small">Resumen rapido</p>
-                            <h2 class="h4 fw-bold mb-3">Tu mes en un vistazo</h2>
-                            <div class="stat-row"><span>Gastos registrados</span><strong>126</strong></div>
-                            <div class="stat-row"><span>Presupuesto disponible</span><strong>$ 241.300</strong></div>
-                            <div class="stat-row"><span>Alertas activas</span><strong>3</strong></div>
-                        </aside>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <section class="py-5" id="beneficios">
-            <div class="container">
-                <div class="row g-3 g-lg-4">
-                    <div class="col-md-6 col-lg-4">
-                        <article class="feature-card h-100">
-                            <h3 class="h5 fw-bold mb-2">Registro rapido</h3>
-                            <p class="mb-0">Subi comprobantes desde tu celu en segundos.</p>
-                        </article>
-                    </div>
-                    <div class="col-md-6 col-lg-4">
-                        <article class="feature-card h-100">
-                            <h3 class="h5 fw-bold mb-2">Categorias automaticas</h3>
-                            <p class="mb-0">Ordena tus gastos para entender mejor tus habitos.</p>
-                        </article>
-                    </div>
-                    <div class="col-md-6 col-lg-4">
-                        <article class="feature-card h-100">
-                            <h3 class="h5 fw-bold mb-2">Acompanamiento real</h3>
-                            <p class="mb-0">Tu asesor te propone mejoras concretas y alcanzables.</p>
-                        </article>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <section class="py-5" id="beneficios-detalle">
-            <div class="container">
-                <div class="section-heading mb-4">
-                    <p class="kicker">Experiencia completa</p>
-                    <h2 class="h2 fw-bold mb-2">Una entrada completa a tu app de gastos</h2>
-                    <p class="text-muted mb-0">Cuadros informativos, visualizaciones y flujo de uso real.</p>
-                </div>
-
-                <div class="row g-3 g-lg-4">
-                    <div class="col-md-6">
-                        <article class="info-card h-100">
-                            <h3 class="h5 fw-bold">Panel de movimientos</h3>
-                            <p>Filtra por fecha, categoria o medio de pago en tiempo real.</p>
-                            <ul class="mb-0">
-                                <li>Busqueda por texto y monto.</li>
-                                <li>Vista mensual y semanal.</li>
-                                <li>Etiquetas personalizadas.</li>
-                            </ul>
-                        </article>
-                    </div>
-                    <div class="col-md-6">
-                        <article class="info-card h-100">
-                            <h3 class="h5 fw-bold">Control de presupuesto</h3>
-                            <p>Configura limites por rubro y activa alertas preventivas.</p>
-                            <ul class="mb-0">
-                                <li>Reglas por categoria.</li>
-                                <li>Semaforo de avance.</li>
-                                <li>Recordatorios automáticos.</li>
-                            </ul>
-                        </article>
-                    </div>
-                    <div class="col-md-6">
-                        <article class="info-card h-100">
-                            <h3 class="h5 fw-bold">Asesor financiero</h3>
-                            <p>Analisis de patrones de consumo y plan de mejora mensual.</p>
-                            <ul class="mb-0">
-                                <li>Resumen de habitos.</li>
-                                <li>Recomendaciones priorizadas.</li>
-                                <li>Seguimiento mensual.</li>
-                            </ul>
-                        </article>
-                    </div>
-                    <div class="col-md-6">
-                        <article class="info-card h-100">
-                            <h3 class="h5 fw-bold">Carga de comprobantes</h3>
-                            <p>Sube ticket o PDF y acelera cada registro de gasto.</p>
-                            <ul class="mb-0">
-                                <li>Imagen o PDF.</li>
-                                <li>Lectura asistida de texto.</li>
-                                <li>Categorizacion sugerida.</li>
-                            </ul>
-                        </article>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <section class="py-5" id="demo">
-            <div class="container">
-                <div class="section-heading mb-4">
-                    <p class="kicker">Demostracion</p>
-                    <h2 class="h2 fw-bold mb-2">Visualiza el valor de la plataforma</h2>
-                </div>
-
-                <div class="row g-3 g-lg-4">
-                    <div class="col-lg-4">
-                        <article class="demo-card h-100">
-                            <h3 class="h5 fw-bold">Indicadores</h3>
-                            <div class="stat-list mt-3">
-                                <div><span class="stat-number" data-target="126">0</span><small>tickets cargados</small></div>
-                                <div><span class="stat-number" data-target="18">0</span><small>categorias analizadas</small></div>
-                                <div><span class="stat-number" data-target="92">0</span><small>recomendaciones aplicadas</small></div>
-                            </div>
-                        </article>
-                    </div>
-                    <div class="col-lg-8">
-                        <article class="demo-card h-100">
-                            <h3 class="h5 fw-bold">Flujo reciente de gastos</h3>
-                            <div class="table-responsive mt-3">
-                                <table class="table align-middle mb-0">
-                                    <thead>
-                                        <tr>
-                                            <th>Fecha</th>
-                                            <th>Concepto</th>
-                                            <th>Categoria</th>
-                                            <th>Monto</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr><td>10/03</td><td>Supermercado</td><td>Alimentacion</td><td>$43.200</td></tr>
-                                        <tr><td>11/03</td><td>Combustible</td><td>Transporte</td><td>$28.500</td></tr>
-                                        <tr><td>12/03</td><td>Streaming</td><td>Suscripciones</td><td>$8.700</td></tr>
-                                        <tr><td>12/03</td><td>Farmacia</td><td>Salud</td><td>$12.900</td></tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </article>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <section class="py-5" id="funcionalidades-avanzadas">
-            <div class="container">
-                <div class="section-heading mb-4">
-                    <p class="kicker">Laboratorio financiero</p>
-                    <h2 class="h2 fw-bold mb-2">Funciones avanzadas de la consigna</h2>
-                    <p class="text-muted mb-0">Modulo de prueba con divisas, suscripciones, gastos compartidos, asesor y gamificacion.</p>
-                </div>
-
-                <div class="row g-3 g-lg-4 mb-1">
-                    <div class="col-lg-6">
-                        <article class="info-card h-100">
-                            <h3 class="h5 fw-bold mb-3">Sesion y perfil</h3>
-                            <div id="authStatus" class="small text-muted mb-3">Sin sesion iniciada.</div>
-                            <form id="profileForm" class="row g-2">
-                                <div class="col-md-6">
-                                    <label for="profileName" class="form-label">Nombre</label>
-                                    <input id="profileName" name="name" class="form-control" placeholder="Nombre completo">
-                                </div>
-                                <div class="col-md-6">
-                                    <label for="profileEmail" class="form-label">Email</label>
-                                    <input id="profileEmail" name="email" type="email" class="form-control" placeholder="correo@dominio.com">
-                                </div>
-                                <div class="col-12 d-flex flex-wrap gap-2">
-                                    <button class="btn btn-outline-light" type="submit">Guardar perfil</button>
-                                    <button class="btn btn-outline-danger" type="button" id="logoutBtn">Cerrar sesion</button>
-                                </div>
-                            </form>
-                            <p id="profileMessage" class="small mb-0 mt-2"></p>
-                        </article>
-                    </div>
-
-                    <div class="col-lg-6">
-                        <article class="info-card h-100">
-                            <h3 class="h5 fw-bold mb-3">Carga de ticket con OCR (IA)</h3>
-                            <form id="ticketForm" class="row g-2" enctype="multipart/form-data">
-                                <div class="col-md-8">
-                                    <label for="ticketImage" class="form-label">Imagen del ticket</label>
-                                    <input id="ticketImage" name="ticket" class="form-control" type="file" accept="image/*" required>
-                                </div>
-                                <div class="col-md-4 d-grid align-items-end">
-                                    <button class="btn btn-primary app-btn" type="submit">Interpretar ticket</button>
-                                </div>
-                            </form>
-                            <p id="ticketMessage" class="small mb-0 mt-2"></p>
-                        </article>
-                    </div>
-                </div>
-
-                <div class="row g-3 g-lg-4">
-                    <div class="col-lg-6">
-                        <article class="info-card h-100">
-                            <h3 class="h5 fw-bold mb-3">1) Registro de gasto multi-divisa</h3>
-                            <form id="expenseForm" class="row g-2">
-                                <div class="col-md-6">
-                                    <label for="expenseConcept" class="form-label">Concepto</label>
-                                    <input id="expenseConcept" name="concept" class="form-control" required placeholder="Cena, alquiler, gimnasio">
-                                </div>
-                                <div class="col-md-6">
-                                    <label for="expenseCategory" class="form-label">Categoria</label>
-                                    <select id="expenseCategory" name="category" class="form-select" required>
-                                        <option value="Alimentacion">Alimentacion</option>
-                                        <option value="Transporte">Transporte</option>
-                                        <option value="Ocio">Ocio</option>
-                                        <option value="Suscripciones">Suscripciones</option>
-                                        <option value="Salud">Salud</option>
-                                        <option value="Vivienda">Vivienda</option>
-                                        <option value="Otros">Otros</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-4">
-                                    <label for="expenseAmount" class="form-label">Monto</label>
-                                    <input id="expenseAmount" name="amount" class="form-control" type="number" min="0.01" step="0.01" required>
-                                </div>
-                                <div class="col-md-4">
-                                    <label for="expenseCurrency" class="form-label">Moneda</label>
-                                    <select id="expenseCurrency" name="currency" class="form-select" required>
-                                        <option value="ARS">ARS</option>
-                                        <option value="USD">USD</option>
-                                        <option value="EUR">EUR</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-4">
-                                    <label for="expenseDate" class="form-label">Fecha</label>
-                                    <input id="expenseDate" name="date" class="form-control" type="date" required>
-                                </div>
-                                <div class="col-md-8">
-                                    <label for="expenseSplit" class="form-label">Personas adicionales para dividir</label>
-                                    <input id="expenseSplit" name="splitWith" class="form-control" type="number" min="0" step="1" value="0">
-                                </div>
-                                <div class="col-md-4 d-grid align-items-end">
-                                    <button class="btn btn-primary app-btn" type="submit">Guardar gasto</button>
-                                </div>
-                            </form>
-
-                            <div class="mt-3 small text-muted" id="ratesInfo">Cargando cotizaciones...</div>
-                            <div class="d-flex flex-wrap gap-2 mt-2" id="kpiSummary"></div>
-                        </article>
-                    </div>
-
-                    <div class="col-lg-6">
-                        <article class="info-card h-100">
-                            <h3 class="h5 fw-bold mb-3">2) Suscripciones y gastos recurrentes</h3>
-                            <form id="subscriptionForm" class="row g-2">
-                                <div class="col-md-5">
-                                    <label for="subName" class="form-label">Servicio</label>
-                                    <input id="subName" name="name" class="form-control" required placeholder="Netflix, alquiler">
-                                </div>
-                                <div class="col-md-3">
-                                    <label for="subAmount" class="form-label">Monto</label>
-                                    <input id="subAmount" name="amount" class="form-control" type="number" min="0.01" step="0.01" required>
-                                </div>
-                                <div class="col-md-2">
-                                    <label for="subCurrency" class="form-label">Moneda</label>
-                                    <select id="subCurrency" name="currency" class="form-select">
-                                        <option value="ARS">ARS</option>
-                                        <option value="USD">USD</option>
-                                        <option value="EUR">EUR</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-2">
-                                    <label for="subDay" class="form-label">Dia</label>
-                                    <input id="subDay" name="day" class="form-control" type="number" min="1" max="31" required>
-                                </div>
-                                <div class="col-12 d-grid">
-                                    <button class="btn btn-outline-light" type="submit">Agregar suscripcion</button>
-                                </div>
-                            </form>
-
-                            <div class="mt-3" id="subscriptionCommitted"></div>
-                            <ul class="list-group mt-2" id="subscriptionList"></ul>
-                            <div class="small text-muted mt-2" id="recurrentHint"></div>
-                        </article>
-                    </div>
-
-                    <div class="col-lg-6">
-                        <article class="info-card h-100">
-                            <h3 class="h5 fw-bold mb-3">3) Chatbot asesor financiero</h3>
-                            <div class="row g-2">
-                                <div class="col-md-4">
-                                    <label for="advisorProvider" class="form-label">Modo</label>
-                                    <select id="advisorProvider" class="form-select">
-                                        <option value="local">Asesor local</option>
-                                        <option value="openai">OpenAI</option>
-                                        <option value="gemini">Gemini</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-8">
-                                    <label for="advisorApiKey" class="form-label">API Key (opcional)</label>
-                                    <input id="advisorApiKey" class="form-control" placeholder="Solo para pruebas en cliente">
-                                </div>
-                            </div>
-
-                            <form id="advisorForm" class="mt-3 d-grid gap-2">
-                                <label for="advisorQuestion" class="form-label mb-0">Tu consulta</label>
-                                <textarea id="advisorQuestion" class="form-control" rows="3" placeholder="En que gaste mas esta semana?" required></textarea>
-                                <button class="btn btn-primary app-btn" type="submit">Consultar</button>
-                            </form>
-                            <div class="chat-answer mt-3" id="advisorAnswer">Escribe una pregunta para obtener recomendaciones.</div>
-                        </article>
-                    </div>
-
-                    <div class="col-lg-6">
-                        <article class="info-card h-100">
-                            <h3 class="h5 fw-bold mb-3">4) Gamificacion de metas</h3>
-                            <form id="budgetForm" class="row g-2">
-                                <div class="col-md-6">
-                                    <label for="budgetCategory" class="form-label">Categoria</label>
-                                    <select id="budgetCategory" name="category" class="form-select">
-                                        <option value="Ocio">Ocio</option>
-                                        <option value="Alimentacion">Alimentacion</option>
-                                        <option value="Transporte">Transporte</option>
-                                        <option value="Suscripciones">Suscripciones</option>
-                                        <option value="Salud">Salud</option>
-                                        <option value="Vivienda">Vivienda</option>
-                                        <option value="Otros">Otros</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-4">
-                                    <label for="budgetAmount" class="form-label">Tope ARS/mes</label>
-                                    <input id="budgetAmount" name="amount" class="form-control" type="number" min="1" step="1" required>
-                                </div>
-                                <div class="col-md-2 d-grid align-items-end">
-                                    <button class="btn btn-outline-light" type="submit">OK</button>
-                                </div>
-                            </form>
-                            <div class="small text-muted mt-2">Medalla al cumplir 3 meses seguidos por debajo del tope.</div>
-                            <div id="badgeList" class="d-flex flex-wrap gap-2 mt-3"></div>
-                            <ul id="expenseList" class="list-group mt-3"></ul>
-                        </article>
-                    </div>
-
-                    <div class="col-lg-12">
-                        <article class="info-card h-100" id="advisorPanelCard">
-                            <h3 class="h5 fw-bold mb-3">5) Panel de asesor financiero</h3>
-                            <div class="row g-2">
-                                <div class="col-md-4">
-                                    <label for="advisorUserId" class="form-label">User ID a analizar</label>
-                                    <input id="advisorUserId" class="form-control" placeholder="UUID del usuario">
-                                </div>
-                                <div class="col-md-8 d-flex gap-2 align-items-end">
-                                    <button class="btn btn-outline-light" id="advisorOverviewBtn" type="button">Ver overview global</button>
-                                    <button class="btn btn-primary app-btn" id="advisorPatternsBtn" type="button">Ver patrones del usuario</button>
-                                </div>
-                            </div>
-                            <pre class="chat-answer mt-3 mb-0" id="advisorPanelOutput">Disponible para cuentas con rol asesor.</pre>
-                        </article>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <section class="py-5">
-            <div class="container">
-                <div class="cta-final text-center">
-                    <h2 class="h3 fw-bold mb-2">Empieza ahora y convierte tus gastos en decisiones inteligentes</h2>
-                    <p class="text-muted mb-3">Accede a tu cuenta y continua con tu panel personal.</p>
-                    <a class="btn btn-primary app-btn px-4 py-2 rounded-pill" href="/login">Ir a inicio de sesion</a>
-                </div>
-            </div>
-        </section>
-    </main>
-
-    <footer class="py-4">
-        <div class="container text-center text-muted">
-            <p class="mb-0">WisePocket | Tu entrada a una administracion financiera mas clara.</p>
+        <h1 class="anim-fade-up">
+          <span data-i18n="hero.headline1">Sabe exactamente</span><br>
+          <span class="gradient-text" data-i18n="hero.headline2">a donde va tu dinero.</span>
+        </h1>
+        <p class="hero-lead anim-fade-up anim-delay-1" data-i18n="hero.desc">
+          Klarity unifica tus gastos, tickets y presupuestos en un solo lugar. Obtene recomendaciones de un asesor financiero real y convierte tus numeros en decisiones claras.
+        </p>
+        <div class="d-flex flex-wrap gap-3 anim-fade-up anim-delay-2">
+          <a href="/login" class="btn-k btn-k-primary btn-k-lg anim-pulse" data-i18n="hero.cta">
+            <i class="bi bi-rocket-takeoff-fill"></i> Empezar gratis
+          </a>
+          <a href="#como-funciona" class="btn-k btn-k-outline btn-k-lg" data-i18n="hero.secondary">
+            <i class="bi bi-play-circle"></i> Ver demo
+          </a>
         </div>
-    </footer>
+        <div class="k-hero-trust anim-fade-up anim-delay-3">
+          <span class="k-hero-trust-item"><i class="bi bi-check-circle-fill"></i><span data-i18n="hero.trust1">Sin tarjeta requerida</span></span>
+          <span class="k-hero-trust-item"><i class="bi bi-check-circle-fill"></i><span data-i18n="hero.trust2">Gratis para siempre</span></span>
+          <span class="k-hero-trust-item"><i class="bi bi-check-circle-fill"></i><span data-i18n="hero.trust3">Datos 100% seguros</span></span>
+        </div>
+      </div>
 
-    <script src="/src/js/config.js"></script>
-    <script src="/src/js/main.js"></script>
-    <script src="/src/js/advanced-features.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+      <!-- App mockup -->
+      <div class="col-lg-6 d-none d-lg-block anim-fade-up anim-delay-2">
+        <div class="k-mockup">
+          <div class="k-mockup-inner">
+            <div class="k-mockup-bar">
+              <span class="k-mockup-dot" style="background:#ef4444"></span>
+              <span class="k-mockup-dot" style="background:#f59e0b"></span>
+              <span class="k-mockup-dot" style="background:#10b981"></span>
+              <span class="ms-auto small" style="color:var(--k-muted);font-size:.72rem">app.klarity.app/dashboard</span>
+            </div>
+            <div class="k-mockup-body">
+              <div class="d-flex justify-content-between align-items-center mb-3">
+                <span style="font-weight:700;font-size:.9rem;color:var(--k-text)" data-i18n="mock.title">Resumen del mes</span>
+                <span class="k-badge k-badge-blue">Marzo 2026</span>
+              </div>
+              <div class="k-mockup-stat-row">
+                <div class="k-mockup-stat">
+                  <div class="label" data-i18n="mock.expenses">Gastos</div>
+                  <div class="value">$84.200</div>
+                </div>
+                <div class="k-mockup-stat">
+                  <div class="label" data-i18n="mock.budget">Presup.</div>
+                  <div class="value" style="color:var(--k-success)">$120k</div>
+                </div>
+                <div class="k-mockup-stat">
+                  <div class="label" data-i18n="mock.saved">Ahorrado</div>
+                  <div class="value" style="color:var(--k-accent)">29%</div>
+                </div>
+              </div>
+              <div class="k-mockup-chart">
+                <div class="k-mockup-bar-chart" style="height:38%"></div>
+                <div class="k-mockup-bar-chart" style="height:55%"></div>
+                <div class="k-mockup-bar-chart" style="height:42%"></div>
+                <div class="k-mockup-bar-chart hi" style="height:78%"></div>
+                <div class="k-mockup-bar-chart" style="height:61%"></div>
+                <div class="k-mockup-bar-chart" style="height:48%"></div>
+                <div class="k-mockup-bar-chart" style="height:35%"></div>
+                <div class="k-mockup-bar-chart hi" style="height:90%"></div>
+                <div class="k-mockup-bar-chart" style="height:53%"></div>
+                <div class="k-mockup-bar-chart" style="height:44%"></div>
+                <div class="k-mockup-bar-chart" style="height:68%"></div>
+                <div class="k-mockup-bar-chart" style="height:57%"></div>
+              </div>
+              <div class="k-mockup-expense-row"><span><span class="k-mockup-cat" style="background:#3b82f6"></span><span data-i18n="mock.exp1">Supermercado</span></span><span style="font-weight:700">$43.200</span></div>
+              <div class="k-mockup-expense-row"><span><span class="k-mockup-cat" style="background:#06b6d4"></span><span data-i18n="mock.exp2">Streaming</span></span><span style="font-weight:700">$8.700</span></div>
+              <div class="k-mockup-expense-row" style="border:none"><span><span class="k-mockup-cat" style="background:#10b981"></span><span data-i18n="mock.exp3">Farmacia</span></span><span style="font-weight:700">$12.900</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ STATS STRIP ═══════════════════════════════════ -->
+<section class="k-stats-strip">
+  <div class="container">
+    <div class="row g-4 text-center">
+      <div class="col-6 col-md-3 k-stat-item reveal">
+        <span class="k-stat-value" data-target="12400">0</span>
+        <p class="k-stat-label" data-i18n="stats.users">usuarios activos</p>
+      </div>
+      <div class="col-6 col-md-3 k-stat-item reveal reveal-delay">
+        <span class="k-stat-value" data-target="540000">0</span>
+        <p class="k-stat-label" data-i18n="stats.expenses">gastos registrados</p>
+      </div>
+      <div class="col-6 col-md-3 k-stat-item reveal reveal-delay-2">
+        <span class="k-stat-value" data-target="98">0</span>
+        <p class="k-stat-label" data-i18n="stats.satisfaction">% satisfaccion</p>
+      </div>
+      <div class="col-6 col-md-3 k-stat-item reveal reveal-delay-3">
+        <span class="k-stat-value" data-target="320">0</span>
+        <p class="k-stat-label" data-i18n="stats.advisors">asesores certificados</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ COMO FUNCIONA ══════════════════════════════════ -->
+<section class="k-section" id="como-funciona" style="background:var(--k-surface)">
+  <div class="container">
+    <div class="k-section-heading reveal">
+      <span class="k-badge k-badge-blue mb-3" data-i18n="steps.pill">Proceso simple</span>
+      <h2 data-i18n="steps.title">Tres pasos para tener claridad total</h2>
+      <p data-i18n="steps.desc">Sin configuraciones complicadas. Empeza en minutos y ve resultados desde el primer dia.</p>
+    </div>
+    <div class="row align-items-center g-5">
+      <div class="col-lg-6 reveal">
+        <div class="k-steps d-grid gap-5">
+          <div class="k-step">
+            <div class="k-step-num">1</div>
+            <div class="k-step-body">
+              <h3 data-i18n="steps.s1.title">Crea tu cuenta gratis</h3>
+              <p data-i18n="steps.s1.desc">Registro en 30 segundos. Solo email y contraseña, sin datos bancarios. La seguridad es nuestra prioridad.</p>
+            </div>
+          </div>
+          <div class="k-step">
+            <div class="k-step-num">2</div>
+            <div class="k-step-body">
+              <h3 data-i18n="steps.s2.title">Registra tus gastos y tickets</h3>
+              <p data-i18n="steps.s2.desc">Ingrasa manualmente o fotografia tu ticket y la IA extrae los datos automaticamente con OCR. Multidivisa incluido.</p>
+            </div>
+          </div>
+          <div class="k-step">
+            <div class="k-step-num">3</div>
+            <div class="k-step-body">
+              <h3 data-i18n="steps.s3.title">Optimiza con tu asesor financiero</h3>
+              <p data-i18n="steps.s3.desc">Accede al panel del asesor, consulta el chatbot financiero personalizado y cumple tus metas con gamificacion.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-lg-6 reveal reveal-delay">
+        <div class="k-card" style="border-color:var(--k-primary)">
+          <div class="d-flex align-items-center gap-3 mb-4">
+            <div class="k-feature-icon fi-blue"><i class="bi bi-lightning-charge-fill"></i></div>
+            <div>
+              <div class="fw-700" style="font-weight:700;font-family:'Plus Jakarta Sans',sans-serif" data-i18n="steps.highlight.title">Empieza en minutos, no dias</div>
+              <div class="small" style="color:var(--k-muted)" data-i18n="steps.highlight.desc">Sin integraciones bancarias complejas ni migraciones manuales.</div>
+            </div>
+          </div>
+          <div class="d-grid gap-2">
+            <div class="d-flex align-items-center gap-2 py-2" style="border-bottom:1px solid var(--k-border)">
+              <i class="bi bi-check-circle-fill" style="color:var(--k-success)"></i>
+              <span class="small" data-i18n="steps.li1">Ingreso rapido de gastos</span>
+            </div>
+            <div class="d-flex align-items-center gap-2 py-2" style="border-bottom:1px solid var(--k-border)">
+              <i class="bi bi-check-circle-fill" style="color:var(--k-success)"></i>
+              <span class="small" data-i18n="steps.li2">OCR para tickets fisicos y digitales</span>
+            </div>
+            <div class="d-flex align-items-center gap-2 py-2" style="border-bottom:1px solid var(--k-border)">
+              <i class="bi bi-check-circle-fill" style="color:var(--k-success)"></i>
+              <span class="small" data-i18n="steps.li3">Asesor financiero incluido</span>
+            </div>
+            <div class="d-flex align-items-center gap-2 py-2">
+              <i class="bi bi-check-circle-fill" style="color:var(--k-success)"></i>
+              <span class="small" data-i18n="steps.li4">Gamificacion y metas mensuales</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ FEATURES ═══════════════════════════════════════ -->
+<section class="k-section" id="funciones">
+  <div class="container">
+    <div class="k-section-heading reveal">
+      <span class="k-badge k-badge-cyan mb-3" data-i18n="feat.pill">Todo incluido</span>
+      <h2 data-i18n="feat.title">Funciones que hacen la diferencia</h2>
+      <p data-i18n="feat.desc">Cada herramienta fue diseñada para que entiendas tus finanzas, no para que las compliques.</p>
+    </div>
+    <div class="row g-4">
+      <div class="col-sm-6 col-lg-4 reveal">
+        <div class="k-card k-card-hover h-100">
+          <div class="k-feature-icon fi-blue"><i class="bi bi-camera-fill"></i></div>
+          <h3 data-i18n="feat.f1.title">OCR de tickets</h3>
+          <p data-i18n="feat.f1.desc">Fotografia cualquier comprobante y la inteligencia artificial extrae monto, fecha y categoria automaticamente.</p>
+        </div>
+      </div>
+      <div class="col-sm-6 col-lg-4 reveal reveal-delay">
+        <div class="k-card k-card-hover h-100">
+          <div class="k-feature-icon fi-cyan"><i class="bi bi-currency-exchange"></i></div>
+          <h3 data-i18n="feat.f2.title">Multi-divisa</h3>
+          <p data-i18n="feat.f2.desc">Registra en ARS, USD o EUR. Klarity convierte en tiempo real y unifica tu vision financiera sin importar la moneda.</p>
+        </div>
+      </div>
+      <div class="col-sm-6 col-lg-4 reveal reveal-delay-2">
+        <div class="k-card k-card-hover h-100">
+          <div class="k-feature-icon fi-purple"><i class="bi bi-robot"></i></div>
+          <h3 data-i18n="feat.f3.title">Chatbot asesor</h3>
+          <p data-i18n="feat.f3.desc">Preguntale al chatbot sobre tus patrones de consumo, proyecciones y estrategias de ahorro. Disponible 24/7.</p>
+        </div>
+      </div>
+      <div class="col-sm-6 col-lg-4 reveal">
+        <div class="k-card k-card-hover h-100">
+          <div class="k-feature-icon fi-green"><i class="bi bi-arrow-repeat"></i></div>
+          <h3 data-i18n="feat.f4.title">Suscripciones</h3>
+          <p data-i18n="feat.f4.desc">Gestiona tus gastos recurrentes. Klarity te avisa antes de cada vencimiento y calcula el total mensual comprometido.</p>
+        </div>
+      </div>
+      <div class="col-sm-6 col-lg-4 reveal reveal-delay">
+        <div class="k-card k-card-hover h-100">
+          <div class="k-feature-icon fi-amber"><i class="bi bi-people-fill"></i></div>
+          <h3 data-i18n="feat.f5.title">Gastos compartidos</h3>
+          <p data-i18n="feat.f5.desc">Divide cualquier gasto entre varias personas. Klarity calcula cuanto le corresponde a cada uno automaticamente.</p>
+        </div>
+      </div>
+      <div class="col-sm-6 col-lg-4 reveal reveal-delay-2">
+        <div class="k-card k-card-hover h-100">
+          <div class="k-feature-icon fi-rose"><i class="bi bi-trophy-fill"></i></div>
+          <h3 data-i18n="feat.f6.title">Gamificacion</h3>
+          <p data-i18n="feat.f6.desc">Cumple metas de gasto mensual y gana medallas. La motivacion hace que ahorrar sea algo que quieras hacer.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ TESTIMONIALS ═══════════════════════════════════ -->
+<section class="k-section" id="testimonios" style="background:var(--k-surface)">
+  <div class="container">
+    <div class="k-section-heading reveal">
+      <span class="k-badge k-badge-blue mb-3" data-i18n="test.pill">Lo que dicen</span>
+      <h2 data-i18n="test.title">Personas reales, resultados reales</h2>
+      <p data-i18n="test.desc">Miles de usuarios ya controlan sus finanzas con Klarity. Estas son sus historias.</p>
+    </div>
+    <div class="row g-4">
+      <div class="col-md-4 reveal">
+        <div class="k-card h-100">
+          <div class="k-stars">★★★★★</div>
+          <p class="k-testimonial-quote" data-i18n="test.t1.quote">"Antes no tenia idea a donde se iba mi sueldo. Desde que uso Klarity organice mis gastos por primera vez y llegue a fin de mes con plata."</p>
+          <div class="k-testimonial-author">
+            <img src="https://ui-avatars.com/api/?name=Maria+Gonzalez&background=3b82f6&color=fff&size=44&bold=true" alt="Maria G." class="k-testimonial-avatar">
+            <div>
+              <div class="k-testimonial-name">María González</div>
+              <div class="k-testimonial-role" data-i18n="test.t1.role">Diseñadora · Córdoba</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4 reveal reveal-delay">
+        <div class="k-card h-100">
+          <div class="k-stars">★★★★★</div>
+          <p class="k-testimonial-quote" data-i18n="test.t2.quote">"La funcion de OCR es un cambio total. Saco foto al ticket del super y ya esta categorizado. Ahorro 15 minutos por dia facil."</p>
+          <div class="k-testimonial-author">
+            <img src="https://ui-avatars.com/api/?name=Lucas+Ramirez&background=06b6d4&color=fff&size=44&bold=true" alt="Lucas R." class="k-testimonial-avatar">
+            <div>
+              <div class="k-testimonial-name">Lucas Ramírez</div>
+              <div class="k-testimonial-role" data-i18n="test.t2.role">Emprendedor · Buenos Aires</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4 reveal reveal-delay-2">
+        <div class="k-card h-100">
+          <div class="k-stars">★★★★★</div>
+          <p class="k-testimonial-quote" data-i18n="test.t3.quote">"Uso Klarity para gestionar las finanzas de mis clientes. El panel de asesor es increible. Mis clientes ven su progreso en tiempo real."</p>
+          <div class="k-testimonial-author">
+            <img src="https://ui-avatars.com/api/?name=Sofia+Perez&background=10b981&color=fff&size=44&bold=true" alt="Sofia P." class="k-testimonial-avatar">
+            <div>
+              <div class="k-testimonial-name">Sofía Pérez</div>
+              <div class="k-testimonial-role" data-i18n="test.t3.role">Asesora Financiera · Rosario</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ PRICING ════════════════════════════════════════ -->
+<section class="k-section" id="precios">
+  <div class="container">
+    <div class="k-section-heading reveal">
+      <span class="k-badge k-badge-cyan mb-3" data-i18n="price.pill">Planes</span>
+      <h2 data-i18n="price.title">Simple y transparente</h2>
+      <p data-i18n="price.desc">Comenza gratis, actualiza cuando quieras. Sin compromisos, sin letras chicas.</p>
+    </div>
+    <div class="row g-4 justify-content-center">
+      <div class="col-md-5 reveal">
+        <div class="k-card k-price-card h-100">
+          <h3 class="mb-1 fs-5 fw-800" style="font-family:'Plus Jakarta Sans',sans-serif" data-i18n="price.free.name">Free</h3>
+          <p class="small mb-4" style="color:var(--k-muted)" data-i18n="price.free.tagline">Para empezar a tomar control</p>
+          <div class="d-flex align-items-end gap-1 mb-4">
+            <span class="price-amount">$0</span>
+            <span class="price-period pb-1" data-i18n="price.free.period">/ siempre</span>
+          </div>
+          <div class="d-grid gap-0 mb-4">
+            <div class="price-feature"><i class="bi bi-check-lg"></i><span data-i18n="price.free.f1">Hasta 100 gastos por mes</span></div>
+            <div class="price-feature"><i class="bi bi-check-lg"></i><span data-i18n="price.free.f2">Categorias automaticas</span></div>
+            <div class="price-feature"><i class="bi bi-check-lg"></i><span data-i18n="price.free.f3">OCR de tickets (5/mes)</span></div>
+            <div class="price-feature"><i class="bi bi-check-lg"></i><span data-i18n="price.free.f4">Chatbot financiero basico</span></div>
+            <div class="price-feature" style="opacity:.4"><i class="bi bi-x-lg" style="color:var(--k-muted)"></i><span data-i18n="price.free.f5">Asesor financiero personal</span></div>
+            <div class="price-feature" style="opacity:.4"><i class="bi bi-x-lg" style="color:var(--k-muted)"></i><span data-i18n="price.free.f6">Reportes avanzados</span></div>
+          </div>
+          <a href="/login" class="btn-k btn-k-outline w-100 justify-content-center" data-i18n="price.free.cta">Comenzar gratis</a>
+        </div>
+      </div>
+      <div class="col-md-5 reveal reveal-delay">
+        <div class="k-card k-price-card featured h-100">
+          <span class="k-price-badge" data-i18n="price.pro.badge">MAS POPULAR</span>
+          <h3 class="mb-1 fs-5 fw-800" style="font-family:'Plus Jakarta Sans',sans-serif" data-i18n="price.pro.name">Pro</h3>
+          <p class="small mb-4" data-i18n="price.pro.tagline">Para quienes toman en serio sus finanzas</p>
+          <div class="d-flex align-items-end gap-1 mb-4">
+            <span class="price-amount">$4.99</span>
+            <span class="price-period pb-1" data-i18n="price.pro.period">USD / mes</span>
+          </div>
+          <div class="d-grid gap-0 mb-4">
+            <div class="price-feature"><i class="bi bi-check-lg"></i><span data-i18n="price.pro.f1">Gastos ilimitados</span></div>
+            <div class="price-feature"><i class="bi bi-check-lg"></i><span data-i18n="price.pro.f2">OCR ilimitado</span></div>
+            <div class="price-feature"><i class="bi bi-check-lg"></i><span data-i18n="price.pro.f3">Asesor financiero personal</span></div>
+            <div class="price-feature"><i class="bi bi-check-lg"></i><span data-i18n="price.pro.f4">Reportes y visualizaciones avanzadas</span></div>
+            <div class="price-feature"><i class="bi bi-check-lg"></i><span data-i18n="price.pro.f5">Multi-divisa avanzado</span></div>
+            <div class="price-feature"><i class="bi bi-check-lg"></i><span data-i18n="price.pro.f6">Soporte prioritario</span></div>
+          </div>
+          <a href="/login" class="btn-k w-100 justify-content-center" style="background:#fff;color:var(--k-primary);font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;border-radius:999px;padding:.7rem 1.4rem;display:flex;align-items:center" data-i18n="price.pro.cta">Probar Pro gratis 30 dias</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ FAQ ════════════════════════════════════════════ -->
+<section class="k-section" id="faq" style="background:var(--k-surface)">
+  <div class="container">
+    <div class="k-section-heading reveal">
+      <span class="k-badge k-badge-blue mb-3" data-i18n="faq.pill">Preguntas frecuentes</span>
+      <h2 data-i18n="faq.title">¿Tenes dudas? Nosotros las respondemos.</h2>
+    </div>
+    <div class="row justify-content-center">
+      <div class="col-lg-8 reveal">
+        <div class="accordion k-faq" id="faqAccordion">
+          <div class="accordion-item">
+            <h2 class="accordion-header"><button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#faq1" data-i18n="faq.q1">¿Es seguro guardar mis datos financieros en Klarity?</button></h2>
+            <div id="faq1" class="accordion-collapse collapse show" data-bs-parent="#faqAccordion">
+              <div class="accordion-body" data-i18n="faq.a1">Absolutamente. Todos los datos se transmiten con cifrado TLS y se almacenan en servidores seguros. Nunca pedimos datos bancarios ni acceso a tus cuentas. Solo registras lo que vos queres.</div>
+            </div>
+          </div>
+          <div class="accordion-item">
+            <h2 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq2" data-i18n="faq.q2">¿Puedo usar Klarity sin tarjeta de credito?</button></h2>
+            <div id="faq2" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+              <div class="accordion-body" data-i18n="faq.a2">Si, el plan Free es completamente gratuito y no requiere tarjeta. Solo necesitas un email para registrarte. El plan Pro tiene 30 dias de prueba gratuita.</div>
+            </div>
+          </div>
+          <div class="accordion-item">
+            <h2 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq3" data-i18n="faq.q3">¿Como funciona el OCR de tickets?</button></h2>
+            <div id="faq3" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+              <div class="accordion-body" data-i18n="faq.a3">Subis una foto o PDF del comprobante y nuestra IA (Tesseract.js) extrae automaticamente el monto, la fecha y sugiere una categoria. En el plan Free tenes 5 escaneos por mes, ilimitados en Pro.</div>
+            </div>
+          </div>
+          <div class="accordion-item">
+            <h2 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq4" data-i18n="faq.q4">¿Que diferencia hay entre usuario, asesor y admin?</button></h2>
+            <div id="faq4" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+              <div class="accordion-body" data-i18n="faq.a4">Los usuarios registran sus gastos y consultan el chatbot. Los asesores financieros certificados pueden ver y analizar los gastos de sus clientes. Los administradores gestionan la plataforma completa.</div>
+            </div>
+          </div>
+          <div class="accordion-item">
+            <h2 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq5" data-i18n="faq.q5">¿Puedo exportar mis datos?</button></h2>
+            <div id="faq5" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+              <div class="accordion-body" data-i18n="faq.a5">Si. Podes exportar todos tus gastos en formato CSV o PDF en cualquier momento. Tus datos son tuyos y siempre podes llevartelos.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ ADVANCED FEATURES (LAB) ══════════════════════════ -->
+<section class="k-section" id="funcionalidades-avanzadas" style="background:var(--k-bg2)">
+  <div class="container">
+    <div class="k-section-heading reveal">
+      <span class="k-badge k-badge-cyan mb-3" data-i18n="lab.pill">Lab financiero</span>
+      <h2 data-i18n="lab.title">Demo interactiva completa</h2>
+      <p data-i18n="lab.desc">Proba el sistema en vivo: multi-divisa, suscripciones, gastos compartidos, asesor y gamificacion.</p>
+    </div>
+
+    <div class="row g-3 g-lg-4 mb-4">
+      <div class="col-lg-6">
+        <div class="k-card h-100">
+          <h3 class="h5 fw-bold mb-3" data-i18n="lab.session">Sesion y perfil</h3>
+          <div id="authStatus" class="small mb-3" style="color:var(--k-muted)" data-i18n="lab.nosession">Sin sesion iniciada.</div>
+          <form id="profileForm" class="row g-2">
+            <div class="col-md-6">
+              <label for="profileName" class="form-label" data-i18n="lab.name">Nombre</label>
+              <input id="profileName" name="name" class="form-control" placeholder="Nombre completo">
+            </div>
+            <div class="col-md-6">
+              <label for="profileEmail" class="form-label" data-i18n="lab.email">Email</label>
+              <input id="profileEmail" name="email" type="email" class="form-control" placeholder="correo@dominio.com">
+            </div>
+            <div class="col-12 d-flex flex-wrap gap-2">
+              <button class="btn-k btn-k-outline btn-k-sm" type="submit" data-i18n="lab.saveProfile">Guardar perfil</button>
+              <button class="btn btn-sm btn-outline-danger rounded-pill" type="button" id="logoutBtn" data-i18n="lab.logout">Cerrar sesion</button>
+            </div>
+          </form>
+          <p id="profileMessage" class="small mb-0 mt-2"></p>
+        </div>
+      </div>
+
+      <div class="col-lg-6">
+        <div class="k-card h-100">
+          <h3 class="h5 fw-bold mb-3" data-i18n="lab.ocr">Carga de ticket con OCR (IA)</h3>
+          <form id="ticketForm" class="row g-2" enctype="multipart/form-data">
+            <div class="col-md-8">
+              <label for="ticketImage" class="form-label" data-i18n="lab.ticketImg">Imagen del ticket</label>
+              <input id="ticketImage" name="ticket" class="form-control" type="file" accept="image/*" required>
+            </div>
+            <div class="col-md-4 d-grid align-items-end">
+              <button class="btn-k btn-k-primary btn-k-sm" type="submit" data-i18n="lab.interpret">Interpretar</button>
+            </div>
+          </form>
+          <p id="ticketMessage" class="small mb-0 mt-2"></p>
+        </div>
+      </div>
+    </div>
+
+    <div class="row g-3 g-lg-4">
+      <div class="col-lg-6">
+        <div class="k-card h-100">
+          <h3 class="h5 fw-bold mb-3" data-i18n="lab.multicurrency">1) Registro multi-divisa</h3>
+          <form id="expenseForm" class="row g-2">
+            <div class="col-md-6">
+              <label for="expenseConcept" class="form-label" data-i18n="lab.concept">Concepto</label>
+              <input id="expenseConcept" name="concept" class="form-control" required placeholder="Cena, alquiler, gimnasio">
+            </div>
+            <div class="col-md-6">
+              <label for="expenseCategory" class="form-label" data-i18n="lab.category">Categoria</label>
+              <select id="expenseCategory" name="category" class="form-select" required>
+                <option value="Alimentacion" data-i18n="cat.food">Alimentacion</option>
+                <option value="Transporte" data-i18n="cat.transport">Transporte</option>
+                <option value="Ocio" data-i18n="cat.leisure">Ocio</option>
+                <option value="Suscripciones" data-i18n="cat.subs">Suscripciones</option>
+                <option value="Salud" data-i18n="cat.health">Salud</option>
+                <option value="Vivienda" data-i18n="cat.housing">Vivienda</option>
+                <option value="Otros" data-i18n="cat.other">Otros</option>
+              </select>
+            </div>
+            <div class="col-md-4">
+              <label for="expenseAmount" class="form-label" data-i18n="lab.amount">Monto</label>
+              <input id="expenseAmount" name="amount" class="form-control" type="number" min="0.01" step="0.01" required>
+            </div>
+            <div class="col-md-4">
+              <label for="expenseCurrency" class="form-label" data-i18n="lab.currency">Moneda</label>
+              <select id="expenseCurrency" name="currency" class="form-select" required>
+                <option value="ARS">ARS</option>
+                <option value="USD">USD</option>
+                <option value="EUR">EUR</option>
+              </select>
+            </div>
+            <div class="col-md-4">
+              <label for="expenseDate" class="form-label" data-i18n="lab.date">Fecha</label>
+              <input id="expenseDate" name="date" class="form-control" type="date" required>
+            </div>
+            <div class="col-md-8">
+              <label for="expenseSplit" class="form-label" data-i18n="lab.split">Personas para dividir</label>
+              <input id="expenseSplit" name="splitWith" class="form-control" type="number" min="0" step="1" value="0">
+            </div>
+            <div class="col-md-4 d-grid align-items-end">
+              <button class="btn-k btn-k-primary btn-k-sm" type="submit" data-i18n="lab.saveExpense">Guardar gasto</button>
+            </div>
+          </form>
+          <div class="mt-3 small" style="color:var(--k-muted)" id="ratesInfo" data-i18n="lab.loadingRates">Cargando cotizaciones...</div>
+          <div class="d-flex flex-wrap gap-2 mt-2" id="kpiSummary"></div>
+        </div>
+      </div>
+
+      <div class="col-lg-6">
+        <div class="k-card h-100">
+          <h3 class="h5 fw-bold mb-3" data-i18n="lab.subs">2) Suscripciones recurrentes</h3>
+          <form id="subscriptionForm" class="row g-2">
+            <div class="col-md-5">
+              <label for="subName" class="form-label" data-i18n="lab.service">Servicio</label>
+              <input id="subName" name="name" class="form-control" required placeholder="Netflix, alquiler">
+            </div>
+            <div class="col-md-3">
+              <label for="subAmount" class="form-label" data-i18n="lab.amount">Monto</label>
+              <input id="subAmount" name="amount" class="form-control" type="number" min="0.01" step="0.01" required>
+            </div>
+            <div class="col-md-2">
+              <label for="subCurrency" class="form-label" data-i18n="lab.currency">Moneda</label>
+              <select id="subCurrency" name="currency" class="form-select">
+                <option value="ARS">ARS</option>
+                <option value="USD">USD</option>
+                <option value="EUR">EUR</option>
+              </select>
+            </div>
+            <div class="col-md-2">
+              <label for="subDay" class="form-label" data-i18n="lab.day">Dia</label>
+              <input id="subDay" name="day" class="form-control" type="number" min="1" max="31" required>
+            </div>
+            <div class="col-12 d-grid">
+              <button class="btn-k btn-k-outline btn-k-sm" type="submit" data-i18n="lab.addSub">Agregar suscripcion</button>
+            </div>
+          </form>
+          <div class="mt-3" id="subscriptionCommitted"></div>
+          <ul class="list-group mt-2" id="subscriptionList"></ul>
+          <div class="small mt-2" style="color:var(--k-muted)" id="recurrentHint"></div>
+        </div>
+      </div>
+
+      <div class="col-lg-6">
+        <div class="k-card h-100">
+          <h3 class="h5 fw-bold mb-3" data-i18n="lab.chatbot">3) Chatbot asesor financiero</h3>
+          <div class="row g-2">
+            <div class="col-md-4">
+              <label for="advisorProvider" class="form-label" data-i18n="lab.mode">Modo</label>
+              <select id="advisorProvider" class="form-select">
+                <option value="local" data-i18n="lab.localAdvisor">Asesor local</option>
+                <option value="openai">OpenAI</option>
+                <option value="gemini">Gemini</option>
+              </select>
+            </div>
+            <div class="col-md-8">
+              <label for="advisorApiKey" class="form-label" data-i18n="lab.apiKey">API Key (opcional)</label>
+              <input id="advisorApiKey" class="form-control" placeholder="Solo para pruebas en cliente">
+            </div>
+          </div>
+          <form id="advisorForm" class="mt-3 d-grid gap-2">
+            <label for="advisorQuestion" class="form-label mb-0" data-i18n="lab.question">Tu consulta</label>
+            <textarea id="advisorQuestion" class="form-control" rows="3" placeholder="¿En que gaste mas esta semana?" required></textarea>
+            <button class="btn-k btn-k-primary btn-k-sm" type="submit" data-i18n="lab.ask">Consultar</button>
+          </form>
+          <div class="chat-answer mt-3" id="advisorAnswer" data-i18n="lab.advisorInit">Escribe una pregunta para obtener recomendaciones.</div>
+        </div>
+      </div>
+
+      <div class="col-lg-6">
+        <div class="k-card h-100">
+          <h3 class="h5 fw-bold mb-3" data-i18n="lab.gamification">4) Gamificacion de metas</h3>
+          <form id="budgetForm" class="row g-2">
+            <div class="col-md-6">
+              <label for="budgetCategory" class="form-label" data-i18n="lab.category">Categoria</label>
+              <select id="budgetCategory" name="category" class="form-select">
+                <option value="Ocio">Ocio</option>
+                <option value="Alimentacion">Alimentacion</option>
+                <option value="Transporte">Transporte</option>
+                <option value="Suscripciones">Suscripciones</option>
+                <option value="Salud">Salud</option>
+                <option value="Vivienda">Vivienda</option>
+                <option value="Otros">Otros</option>
+              </select>
+            </div>
+            <div class="col-md-4">
+              <label for="budgetAmount" class="form-label" data-i18n="lab.topARS">Tope ARS/mes</label>
+              <input id="budgetAmount" name="amount" class="form-control" type="number" min="1" step="1" required>
+            </div>
+            <div class="col-md-2 d-grid align-items-end">
+              <button class="btn-k btn-k-outline btn-k-sm" type="submit">OK</button>
+            </div>
+          </form>
+          <div class="small mt-2" style="color:var(--k-muted)" data-i18n="lab.medalHint">Medalla al cumplir 3 meses seguidos por debajo del tope.</div>
+          <div id="badgeList" class="d-flex flex-wrap gap-2 mt-3"></div>
+          <ul id="expenseList" class="list-group mt-3"></ul>
+        </div>
+      </div>
+
+      <div class="col-lg-12">
+        <div class="k-card" id="advisorPanelCard">
+          <h3 class="h5 fw-bold mb-3" data-i18n="lab.advisorPanel">5) Panel de asesor financiero</h3>
+          <div class="row g-2">
+            <div class="col-md-4">
+              <label for="advisorUserId" class="form-label" data-i18n="lab.userIdLabel">User ID a analizar</label>
+              <input id="advisorUserId" class="form-control" placeholder="UUID del usuario">
+            </div>
+            <div class="col-md-8 d-flex gap-2 align-items-end">
+              <button class="btn-k btn-k-outline btn-k-sm" id="advisorOverviewBtn" type="button" data-i18n="lab.globalOverview">Ver overview global</button>
+              <button class="btn-k btn-k-primary btn-k-sm" id="advisorPatternsBtn" type="button" data-i18n="lab.patterns">Ver patrones del usuario</button>
+            </div>
+          </div>
+          <pre class="chat-answer mt-3 mb-0" id="advisorPanelOutput" data-i18n="lab.advisorAvailable">Disponible para cuentas con rol asesor.</pre>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ CTA FINAL ════════════════════════════════════════ -->
+<section class="k-section">
+  <div class="container">
+    <div class="k-cta-banner reveal">
+      <div class="position-relative">
+        <h2 data-i18n="cta.title">Empieza gratis hoy mismo</h2>
+        <p data-i18n="cta.desc">Unete a miles de personas que ya conocen exactamente a donde va su dinero. Sin tarjeta, sin compromisos.</p>
+        <a href="/login" class="btn-k" style="background:#fff;color:var(--k-primary);font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;border-radius:999px;padding:.85rem 2.5rem;display:inline-flex;align-items:center;gap:.5rem" data-i18n="cta.btn">
+          <i class="bi bi-arrow-right-circle-fill"></i> Crear cuenta gratis
+        </a>
+        <p class="mt-3 mb-0" style="font-size:.85rem;color:rgba(255,255,255,.75)" data-i18n="cta.sub">Ya son +12.000 usuarios. Plan gratuito para siempre disponible.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ FOOTER ════════════════════════════════════════════ -->
+<footer class="k-footer">
+  <div class="container">
+    <div class="row g-4 mb-4">
+      <div class="col-lg-4">
+        <div class="d-flex align-items-center gap-2 mb-2">
+          <span class="logo-icon"><svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-4H9l3-7 3 7h-2v4z"/></svg></span>
+          <span style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;font-size:1.1rem;color:var(--k-text)">Klarity</span>
+        </div>
+        <p class="small mb-3" style="color:var(--k-muted)" data-i18n="footer.tagline">Know where it goes. Tu claridad financiera, cada dia.</p>
+        <div class="k-social d-flex gap-2">
+          <a href="#" title="Twitter/X"><i class="bi bi-twitter-x"></i></a>
+          <a href="#" title="Instagram"><i class="bi bi-instagram"></i></a>
+          <a href="#" title="LinkedIn"><i class="bi bi-linkedin"></i></a>
+          <a href="#" title="GitHub"><i class="bi bi-github"></i></a>
+        </div>
+      </div>
+      <div class="col-6 col-lg-2">
+        <h6 data-i18n="footer.product">Producto</h6>
+        <a href="#funciones" class="k-footer-link" data-i18n="footer.features">Funciones</a>
+        <a href="#precios" class="k-footer-link" data-i18n="footer.pricing">Precios</a>
+        <a href="#faq" class="k-footer-link" data-i18n="footer.faq">FAQ</a>
+        <a href="#funcionalidades-avanzadas" class="k-footer-link" data-i18n="footer.demo">Demo</a>
+      </div>
+      <div class="col-6 col-lg-2">
+        <h6 data-i18n="footer.company">Empresa</h6>
+        <a href="#" class="k-footer-link" data-i18n="footer.about">Nosotros</a>
+        <a href="#" class="k-footer-link" data-i18n="footer.blog">Blog</a>
+        <a href="#" class="k-footer-link" data-i18n="footer.careers">Empleos</a>
+        <a href="#" class="k-footer-link" data-i18n="footer.press">Prensa</a>
+      </div>
+      <div class="col-6 col-lg-2">
+        <h6 data-i18n="footer.legal">Legal</h6>
+        <a href="#" class="k-footer-link" data-i18n="footer.privacy">Privacidad</a>
+        <a href="#" class="k-footer-link" data-i18n="footer.terms">Terminos</a>
+        <a href="#" class="k-footer-link" data-i18n="footer.security">Seguridad</a>
+      </div>
+      <div class="col-6 col-lg-2">
+        <h6 data-i18n="footer.access">Acceso</h6>
+        <a href="/login" class="k-footer-link" data-i18n="footer.login">Iniciar sesion</a>
+        <a href="/login" class="k-footer-link" data-i18n="footer.register">Registrarse</a>
+        <a href="/dashboard" class="k-footer-link" data-i18n="footer.dashboard">Mi panel</a>
+      </div>
+    </div>
+    <div class="k-footer-bottom">
+      <span>&copy; 2026 Klarity. <span data-i18n="footer.rights">Todos los derechos reservados.</span></span>
+      <span style="font-size:.78rem" data-i18n="footer.project">Proyecto Ingeniería Web II · Universidad</span>
+    </div>
+  </div>
+</footer>
+
+<script src="/src/js/config.js"></script>
+<script src="/src/js/theme.js"></script>
+<script src="/src/js/i18n.js"></script>
+<script src="/src/js/main.js"></script>
+<script src="/src/js/advanced-features.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+<script>
+// Scroll reveal
+const revealEls = document.querySelectorAll('.reveal');
+const revealObs = new IntersectionObserver((entries) => {
+  entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); revealObs.unobserve(e.target); } });
+}, { threshold: 0.12 });
+revealEls.forEach(el => revealObs.observe(el));
+
+// Counter animation on stats
+const counters = document.querySelectorAll('[data-target]');
+const cntObs = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (!e.isIntersecting) return;
+    const el = e.target;
+    const target = +el.dataset.target;
+    let cur = 0;
+    const step = Math.ceil(target / 60);
+    const timer = setInterval(() => {
+      cur = Math.min(cur + step, target);
+      el.textContent = target >= 1000 ? (cur >= 1000 ? (cur/1000).toFixed(cur % 1000 === 0 ? 0 : 1) + 'K' : cur) : cur;
+      if (cur >= target) clearInterval(timer);
+    }, 25);
+    cntObs.unobserve(el);
+  });
+}, { threshold: 0.5 });
+counters.forEach(el => cntObs.observe(el));
+</script>
 </body>
 </html>

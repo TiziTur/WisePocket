@@ -1,0 +1,794 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard — Klarity</title>
+  <link rel="icon" type="image/svg+xml"
+        href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%233b82f6'><path d='M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5'/></svg>" />
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <!-- Bootstrap + Icons -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+  <!-- Klarity styles -->
+  <link rel="stylesheet" href="/src/css/styles.css" />
+  <link rel="stylesheet" href="/src/css/dashboard.css" />
+</head>
+<body>
+<div class="dash-layout" id="dashLayout">
+
+  <!-- ── Top bar ─────────────────────────────────────────── -->
+  <header class="dash-topbar">
+    <button class="dash-menu-btn" id="menuBtn" onclick="toggleSidebar()">
+      <i class="bi bi-list"></i>
+    </button>
+    <a href="/" class="dash-topbar-brand">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--k-primary)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+      Klarity
+    </a>
+
+    <div class="dash-topbar-search">
+      <i class="bi bi-search" style="color:var(--k-muted)"></i>
+      <input type="text" placeholder="Buscar gastos..." aria-label="Buscar" />
+    </div>
+
+    <div class="dash-topbar-right">
+      <button class="dash-btn-icon" title="Notificaciones" aria-label="Notificaciones">
+        <i class="bi bi-bell"></i>
+      </button>
+      <button class="dash-btn-icon" id="themeToggle" title="Cambiar tema" aria-label="Cambiar tema" data-theme-toggle>
+        <i class="bi bi-moon-stars-fill" id="themeIcon"></i>
+      </button>
+      <div class="dash-avatar" id="avatarInitials" title="Mi perfil">U</div>
+    </div>
+  </header>
+
+  <!-- ── Sidebar ─────────────────────────────────────────── -->
+  <aside class="dash-sidebar" id="sidebar">
+    <nav class="dash-nav-section" aria-label="Principal">
+      <p class="dash-nav-label">Principal</p>
+      <a href="#section-overview" class="dash-nav-link active" onclick="showSection('overview', this)">
+        <i class="bi bi-grid-1x2-fill"></i> Resumen
+      </a>
+      <a href="#section-expenses" class="dash-nav-link" onclick="showSection('expenses', this)">
+        <i class="bi bi-receipt"></i> Mis gastos
+        <span class="nav-badge" id="expensesBadge">—</span>
+      </a>
+      <a href="#section-add" class="dash-nav-link" onclick="showSection('add', this)">
+        <i class="bi bi-plus-circle"></i> Añadir gasto
+      </a>
+      <a href="#section-ocr" class="dash-nav-link" onclick="showSection('ocr', this)">
+        <i class="bi bi-camera"></i> Subir ticket
+      </a>
+      <a href="#section-budgets" class="dash-nav-link" onclick="showSection('budgets', this)">
+        <i class="bi bi-bar-chart-line"></i> Presupuestos
+      </a>
+    </nav>
+
+    <nav class="dash-nav-section" aria-label="Herramientas">
+      <p class="dash-nav-label">Herramientas</p>
+      <a href="#section-advisor" class="dash-nav-link" onclick="showSection('advisor', this)">
+        <i class="bi bi-stars"></i> Asesor IA
+      </a>
+      <a href="#section-profile" class="dash-nav-link" onclick="showSection('profile', this)">
+        <i class="bi bi-person-circle"></i> Mi perfil
+      </a>
+    </nav>
+
+    <div class="dash-sidebar-footer">
+      <button class="dash-nav-link w-100 border-0 bg-transparent text-start" onclick="logout()">
+        <i class="bi bi-box-arrow-right"></i> Cerrar sesión
+      </button>
+    </div>
+  </aside>
+
+  <!-- ── Main ────────────────────────────────────────────── -->
+  <main class="dash-main" id="dashMain">
+
+    <!-- ====== OVERVIEW ===================================== -->
+    <div id="section-overview">
+      <div class="dash-page-header">
+        <div>
+          <h1 class="dash-page-title">Resumen</h1>
+          <p class="dash-page-sub" id="greetingText">Hola — cargando...</p>
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="showSection('add', null)">
+          <i class="bi bi-plus-lg me-1"></i> Añadir gasto
+        </button>
+      </div>
+
+      <!-- KPI row -->
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <div class="kpi-icon" style="background:#dbeafe;color:#3b82f6"><i class="bi bi-cash-stack"></i></div>
+          <span class="kpi-label">Total este mes</span>
+          <span class="kpi-value" id="kpiTotal">—</span>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon" style="background:#dcfce7;color:#16a34a"><i class="bi bi-graph-down-arrow"></i></div>
+          <span class="kpi-label">Mayor categoría</span>
+          <span class="kpi-value" id="kpiTop">—</span>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon" style="background:#fef9c3;color:#ca8a04"><i class="bi bi-receipt"></i></div>
+          <span class="kpi-label">Gastos totales</span>
+          <span class="kpi-value" id="kpiCount">—</span>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon" style="background:#ede9fe;color:#7c3aed"><i class="bi bi-calendar3"></i></div>
+          <span class="kpi-label">Último gasto</span>
+          <span class="kpi-value" id="kpiLast" style="font-size:1rem">—</span>
+        </div>
+      </div>
+
+      <!-- Chart + recent table side by side -->
+      <div class="row g-3">
+        <div class="col-12 col-lg-5">
+          <div class="dash-panel h-100">
+            <p class="dash-panel-title">Gasto por categoría</p>
+            <div id="barChartWrap" class="dash-chart-placeholder"></div>
+            <div id="chartLegend" class="d-flex flex-wrap gap-2 mt-2" style="font-size:.76rem"></div>
+          </div>
+        </div>
+        <div class="col-12 col-lg-7">
+          <div class="dash-table-wrap">
+            <div class="dash-table-head">
+              <span class="dash-table-title">Últimos gastos</span>
+              <button class="dash-btn-icon" onclick="loadExpenses()" title="Actualizar"><i class="bi bi-arrow-clockwise"></i></button>
+            </div>
+            <div style="overflow-x:auto">
+              <table class="dash-table">
+                <thead>
+                  <tr>
+                    <th>Concepto</th>
+                    <th>Categoría</th>
+                    <th>Importe</th>
+                    <th>Fecha</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody id="recentExpensesTbody">
+                  <tr><td colspan="5" class="dash-empty"><span class="loading-spinner"></span></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ====== EXPENSES LIST ================================ -->
+    <div id="section-expenses" style="display:none">
+      <div class="dash-page-header">
+        <div>
+          <h1 class="dash-page-title">Mis gastos</h1>
+          <p class="dash-page-sub">Historial completo</p>
+        </div>
+        <div class="d-flex gap-2">
+          <select class="dash-input" id="filterCategory" onchange="filterExpenses()" style="width:auto;padding:.45rem .75rem">
+            <option value="">Todas las categorías</option>
+            <option value="Alimentación">Alimentación</option>
+            <option value="Transporte">Transporte</option>
+            <option value="Ocio">Ocio</option>
+            <option value="Suscripciones">Suscripciones</option>
+            <option value="Salud">Salud</option>
+            <option value="Vivienda">Vivienda</option>
+            <option value="Otro">Otro</option>
+          </select>
+          <button class="btn btn-primary btn-sm" onclick="showSection('add', null)">
+            <i class="bi bi-plus-lg me-1"></i> Nuevo
+          </button>
+        </div>
+      </div>
+
+      <div class="dash-table-wrap">
+        <div style="overflow-x:auto">
+          <table class="dash-table">
+            <thead>
+              <tr>
+                <th>Concepto</th>
+                <th>Categoría</th>
+                <th>Importe</th>
+                <th>Moneda</th>
+                <th>Fecha</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="allExpensesTbody">
+              <tr><td colspan="6" class="dash-empty"><span class="loading-spinner"></span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ====== ADD EXPENSE ================================== -->
+    <div id="section-add" style="display:none">
+      <div class="dash-page-header">
+        <div>
+          <h1 class="dash-page-title">Añadir gasto</h1>
+          <p class="dash-page-sub">Registra un nuevo gasto manualmente</p>
+        </div>
+      </div>
+
+      <div class="row g-3">
+        <div class="col-12 col-md-7">
+          <div class="dash-panel">
+            <p class="dash-panel-title">Nuevo gasto</p>
+            <form id="dashExpenseForm" onsubmit="submitExpense(event)">
+              <div class="row g-3">
+                <div class="col-12">
+                  <label class="dash-label" for="dConcept">Concepto *</label>
+                  <input id="dConcept" type="text" class="dash-input" placeholder="ej. Supermercado" required />
+                </div>
+                <div class="col-sm-6">
+                  <label class="dash-label" for="dCategory">Categoría</label>
+                  <select id="dCategory" class="dash-input">
+                    <option value="Otro">Otro</option>
+                    <option value="Alimentación">Alimentación</option>
+                    <option value="Transporte">Transporte</option>
+                    <option value="Ocio">Ocio</option>
+                    <option value="Suscripciones">Suscripciones</option>
+                    <option value="Salud">Salud</option>
+                    <option value="Vivienda">Vivienda</option>
+                  </select>
+                </div>
+                <div class="col-sm-6">
+                  <label class="dash-label" for="dAmount">Importe *</label>
+                  <input id="dAmount" type="number" min="0" step="0.01" class="dash-input" placeholder="0.00" required />
+                </div>
+                <div class="col-sm-6">
+                  <label class="dash-label" for="dCurrency">Moneda</label>
+                  <select id="dCurrency" class="dash-input">
+                    <option value="EUR">EUR</option>
+                    <option value="USD">USD</option>
+                    <option value="GBP">GBP</option>
+                    <option value="ARS">ARS</option>
+                    <option value="MXN">MXN</option>
+                  </select>
+                </div>
+                <div class="col-sm-6">
+                  <label class="dash-label" for="dDate">Fecha</label>
+                  <input id="dDate" type="date" class="dash-input" />
+                </div>
+                <div class="col-12">
+                  <div id="dashExpenseMsg" class="mt-1" style="font-size:.87rem;min-height:1.5rem"></div>
+                  <button type="submit" class="btn btn-primary w-100 mt-1" id="dashExpenseBtn">
+                    Guardar gasto
+                  </button>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+        <div class="col-12 col-md-5">
+          <div class="dash-panel h-100" style="background:var(--k-bg)">
+            <p class="dash-panel-title">Consejos rápidos</p>
+            <ul style="list-style:none;padding:0;margin:0;font-size:.88rem;color:var(--k-text2);display:flex;flex-direction:column;gap:.85rem">
+              <li><i class="bi bi-lightbulb-fill text-warning me-2"></i>Registra los gastos el mismo día para no olvidarlos.</li>
+              <li><i class="bi bi-tag-fill text-primary me-2"></i>Usar la misma categoría te ayuda a ver patrones.</li>
+              <li><i class="bi bi-camera-fill text-primary me-2"></i>¿Tienes ticket? Súbelo en la sección OCR y se añade solo.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ====== OCR ========================================== -->
+    <div id="section-ocr" style="display:none">
+      <div class="dash-page-header">
+        <div>
+          <h1 class="dash-page-title">Subir ticket</h1>
+          <p class="dash-page-sub">Extracción automática de texto con OCR</p>
+        </div>
+      </div>
+
+      <div class="row g-3">
+        <div class="col-12 col-md-6">
+          <div class="dash-panel">
+            <p class="dash-panel-title">Fotografía o archivo</p>
+            <form id="ocrForm" onsubmit="submitOcr(event)">
+              <label class="dash-label" for="ocrFile">Imagen del ticket (JPG, PNG, PDF)</label>
+              <input id="ocrFile" type="file" class="dash-input mb-3" accept="image/*,.pdf" required />
+              <div id="ocrPreviewWrap" style="display:none;margin-bottom:1rem">
+                <img id="ocrPreview" src="" alt="preview" style="max-width:100%;border-radius:.6rem;border:1px solid var(--k-border)" />
+              </div>
+              <button type="submit" class="btn btn-primary w-100" id="ocrBtn">
+                <i class="bi bi-camera-fill me-1"></i> Procesar ticket
+              </button>
+              <div id="ocrMsg" class="mt-2" style="font-size:.87rem;min-height:1.5rem"></div>
+            </form>
+          </div>
+        </div>
+        <div class="col-12 col-md-6">
+          <div class="dash-panel h-100">
+            <p class="dash-panel-title">Texto extraído</p>
+            <pre id="ocrOutput" style="font-size:.8rem;color:var(--k-text2);white-space:pre-wrap;min-height:120px;background:var(--k-bg);padding:.75rem;border-radius:.6rem;border:1px solid var(--k-border)">Aquí aparecerá el texto extraído del ticket...</pre>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ====== BUDGETS ====================================== -->
+    <div id="section-budgets" style="display:none">
+      <div class="dash-page-header">
+        <div>
+          <h1 class="dash-page-title">Presupuestos</h1>
+          <p class="dash-page-sub">Controla cuánto gastas por categoría</p>
+        </div>
+      </div>
+
+      <div class="row g-3" id="budgetGrid">
+        <!-- Injected via JS -->
+      </div>
+    </div>
+
+    <!-- ====== ADVISOR ====================================== -->
+    <div id="section-advisor" style="display:none">
+      <div class="dash-page-header">
+        <div>
+          <h1 class="dash-page-title">Asesor IA</h1>
+          <p class="dash-page-sub">Análisis personalizado de tus finanzas</p>
+        </div>
+      </div>
+
+      <div class="row g-3">
+        <div class="col-12 col-lg-5">
+          <div class="dash-panel">
+            <p class="dash-panel-title">Configuración</p>
+            <form id="aiAdvisorForm" onsubmit="submitAdvisor(event)">
+              <div class="mb-3">
+                <label class="dash-label" for="aiProvider">Proveedor</label>
+                <select id="aiProvider" class="dash-input">
+                  <option value="openai">OpenAI (ChatGPT)</option>
+                  <option value="anthropic">Anthropic (Claude)</option>
+                </select>
+              </div>
+              <div class="mb-3">
+                <label class="dash-label" for="aiKey">API Key</label>
+                <input id="aiKey" type="password" class="dash-input" placeholder="sk-..." />
+              </div>
+              <div class="mb-3">
+                <label class="dash-label" for="aiQuestion">Pregunta</label>
+                <textarea id="aiQuestion" class="dash-input" rows="3" style="resize:vertical" placeholder="ej. ¿Dónde puedo ahorrar más?"></textarea>
+              </div>
+              <button type="submit" class="btn btn-primary w-100">
+                <i class="bi bi-stars me-1"></i> Consultar asesor
+              </button>
+            </form>
+          </div>
+        </div>
+        <div class="col-12 col-lg-7">
+          <div class="dash-panel h-100">
+            <p class="dash-panel-title">Respuesta</p>
+            <div id="aiAnswer" style="font-size:.9rem;color:var(--k-text2);min-height:180px;line-height:1.65">
+              Haz una consulta al asesor para obtener análisis personalizados de tus gastos.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ====== PROFILE ====================================== -->
+    <div id="section-profile" style="display:none">
+      <div class="dash-page-header">
+        <div>
+          <h1 class="dash-page-title">Mi perfil</h1>
+          <p class="dash-page-sub">Gestiona tu cuenta</p>
+        </div>
+      </div>
+
+      <div class="row g-3">
+        <div class="col-12 col-md-6">
+          <div class="dash-panel">
+            <p class="dash-panel-title">Datos de cuenta</p>
+            <form id="profileUpdateForm" onsubmit="updateProfile(event)">
+              <div class="mb-3">
+                <label class="dash-label" for="profName">Nombre</label>
+                <input id="profName" type="text" class="dash-input" placeholder="Tu nombre" />
+              </div>
+              <div class="mb-3">
+                <label class="dash-label" for="profEmail">Correo electrónico</label>
+                <input id="profEmail" type="email" class="dash-input" placeholder="tu@email.com" readonly style="opacity:.7" />
+              </div>
+              <div id="profileUpdateMsg" class="mb-2" style="font-size:.87rem;min-height:1.5rem"></div>
+              <button type="submit" class="btn btn-primary">Guardar cambios</button>
+            </form>
+          </div>
+        </div>
+        <div class="col-12 col-md-6">
+          <div class="dash-panel" style="background:var(--k-bg)">
+            <p class="dash-panel-title">Información de sesión</p>
+            <div style="display:flex;flex-direction:column;gap:.75rem;font-size:.88rem">
+              <div><span style="color:var(--k-muted)">Rol:</span> <span id="sessionRole" class="role-chip rc-user ms-1">—</span></div>
+              <div><span style="color:var(--k-muted)">ID:</span> <code id="sessionId" style="font-size:.8rem">—</code></div>
+              <div><span style="color:var(--k-muted)">Sesión iniciada:</span> <span id="sessionTime" style="color:var(--k-text2)">—</span></div>
+            </div>
+            <hr style="border-color:var(--k-border);margin:1rem 0" />
+            <button class="btn btn-sm" style="border:1px solid var(--k-danger,#ef4444);color:var(--k-danger,#ef4444);background:transparent" onclick="logout()">
+              <i class="bi bi-box-arrow-right me-1"></i> Cerrar sesión
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div><!-- /dash-layout -->
+
+<!-- ── Overlay for mobile sidebar ──────────────────────── -->
+<button id="sidebarOverlay" type="button" aria-label="Cerrar menú lateral"
+  style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:998;border:0;padding:0;cursor:pointer"></button>
+
+<!-- ── Scripts ────────────────────────────────────────── -->
+<script src="/src/js/config.js"></script>
+<script src="/src/js/theme.js"></script>
+<script>
+// ============================================================
+// DASHBOARD — core logic
+// ============================================================
+
+const API = window.WISEPOCKET_API_BASE_URL || 'https://wisepocket-production.up.railway.app/api';
+
+// ── Auth guard ────────────────────────────────────────────
+function getToken() {
+  return localStorage.getItem('klarity_token') || sessionStorage.getItem('klarity_token');
+}
+function getUserData() {
+  try {
+    const raw = localStorage.getItem('klarity_user') || sessionStorage.getItem('klarity_user');
+    return raw ? JSON.parse(raw) : null;
+  } catch {return null;}
+}
+(function guardAuth() {
+  const token = getToken();
+  if (!token) { window.location.href = '/login'; return; }
+  const user = getUserData();
+  if (user) {
+    const hour = new Date().getHours();
+    const greet = hour < 12 ? 'Buenos días' : hour < 18 ? 'Buenas tardes' : 'Buenas noches';
+    document.getElementById('greetingText').textContent = greet + ', ' + (user.name || user.email || 'usuario') + '.';
+    const initials = (user.name || user.email || 'U').slice(0,1).toUpperCase();
+    document.getElementById('avatarInitials').textContent = initials;
+    // redirect by role
+    const role = (user.role || '').toLowerCase();
+    if (role === 'advisor') { window.location.href = '/advisor'; return; }
+    if (role === 'admin')   { window.location.href = '/admin';   return; }
+    // profile section
+    if(document.getElementById('profName')) document.getElementById('profName').value = user.name || '';
+    if(document.getElementById('profEmail')) document.getElementById('profEmail').value = user.email || '';
+    const roleMap = {user:'rc-user',advisor:'rc-advisor',admin:'rc-admin'};
+    const roleEl = document.getElementById('sessionRole');
+    if(roleEl){ roleEl.textContent = role || 'user'; roleEl.className = 'role-chip ms-1 ' + (roleMap[role]||'rc-user'); }
+    if(document.getElementById('sessionId')) document.getElementById('sessionId').textContent = user.id || user.sub || '—';
+    if(document.getElementById('sessionTime')) document.getElementById('sessionTime').textContent = new Date().toLocaleString();
+  }
+})();
+
+// ── Navigation ────────────────────────────────────────────
+const SECTIONS = ['overview','expenses','add','ocr','budgets','advisor','profile'];
+function showSection(name, linkEl) {
+  SECTIONS.forEach(id => {
+    const el = document.getElementById('section-' + id);
+    if(el) el.style.display = id === name ? '' : 'none';
+  });
+  document.querySelectorAll('.dash-nav-link').forEach(a => a.classList.remove('active'));
+  if (linkEl) linkEl.classList.add('active');
+  if (name === 'expenses') loadExpenses();
+  if (name === 'budgets') loadBudgets();
+  closeSidebar();
+}
+
+// ── Sidebar mobile ────────────────────────────────────────
+function toggleSidebar() {
+  const sb = document.getElementById('sidebar');
+  const ov = document.getElementById('sidebarOverlay');
+  sb.classList.toggle('open');
+  ov.style.display = sb.classList.contains('open') ? 'block' : 'none';
+}
+function closeSidebar() {
+  const sb = document.getElementById('sidebar');
+  const ov = document.getElementById('sidebarOverlay');
+  sb.classList.remove('open');
+  ov.style.display = 'none';
+}
+
+document.getElementById('sidebarOverlay').addEventListener('click', closeSidebar);
+
+// ── Auth header ───────────────────────────────────────────
+function authHeaders() {
+  return { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + getToken() };
+}
+
+// ── Load expenses (overview + full list) ──────────────────
+let allExpenses = [];
+async function loadExpenses() {
+  try {
+    const res = await fetch(API + '/expenses', { headers: authHeaders() });
+    if (res.status === 401) { logout(); return; }
+    allExpenses = await res.json();
+    renderKPIs(allExpenses);
+    renderRecentTable(allExpenses.slice(0, 6));
+    renderChart(allExpenses);
+    renderFullTable(allExpenses);
+    const badge = document.getElementById('expensesBadge');
+    if(badge) badge.textContent = allExpenses.length;
+  } catch(e) {
+    console.error('Error loading expenses', e);
+  }
+}
+loadExpenses();
+
+// ── KPIs ──────────────────────────────────────────────────
+function renderKPIs(data) {
+  const now = new Date();
+  const thisMonth = data.filter(e => {
+    const d = new Date(e.date || e.createdAt);
+    return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+  });
+  const total = thisMonth.reduce((s, e) => s + (+e.amount || 0), 0);
+  document.getElementById('kpiTotal').textContent = '€' + total.toFixed(2);
+  document.getElementById('kpiCount').textContent = data.length;
+
+  // Top category this month
+  const catMap = {};
+  thisMonth.forEach(e => { catMap[e.category||'Otro'] = (catMap[e.category||'Otro']||0) + (+e.amount||0); });
+  const topCat = Object.keys(catMap).sort((a,b) => catMap[b]-catMap[a])[0] || '—';
+  document.getElementById('kpiTop').textContent = topCat;
+
+  // Last expense date
+  const sorted = [...data].sort((a,b) => new Date(b.date||b.createdAt) - new Date(a.date||a.createdAt));
+  if (sorted.length) {
+    const d = new Date(sorted[0].date || sorted[0].createdAt);
+    document.getElementById('kpiLast').textContent = d.toLocaleDateString('es-ES', {day:'2-digit',month:'short'});
+  }
+}
+
+// ── Table helpers ─────────────────────────────────────────
+const CAT_COLORS = {
+  'Alimentación':'cat-food','Transporte':'cat-transport','Ocio':'cat-leisure',
+  'Suscripciones':'cat-subs','Salud':'cat-health','Vivienda':'cat-housing','Otro':'cat-other'
+};
+function catDot(cat) {
+  return `<span class="exp-category"><span class="exp-cat-dot ${CAT_COLORS[cat]||'cat-other'}"></span>${escHtml(cat||'Otro')}</span>`;
+}
+function escHtml(s){ return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function fmtDate(d){ if(!d) return '—'; const dt=new Date(d); return isNaN(dt)?d:dt.toLocaleDateString('es-ES',{day:'2-digit',month:'short',year:'numeric'}); }
+
+function renderRecentTable(data) {
+  const tb = document.getElementById('recentExpensesTbody');
+  if (!tb) return;
+  if (!data.length) { tb.innerHTML = '<tr><td colspan="5" class="dash-empty"><i class="bi bi-inbox d-block"></i>Sin gastos aún</td></tr>'; return; }
+  tb.innerHTML = data.map(e => `
+    <tr>
+      <td><strong>${escHtml(e.concept||e.description||'Sin concepto')}</strong></td>
+      <td>${catDot(e.category)}</td>
+      <td><strong>€${(+e.amount||0).toFixed(2)}</strong></td>
+      <td>${fmtDate(e.date||e.createdAt)}</td>
+      <td><button class="dash-btn-icon" onclick="deleteExpense(${e.id})" title="Eliminar"><i class="bi bi-trash3"></i></button></td>
+    </tr>`).join('');
+}
+
+function renderFullTable(data) {
+  const tb = document.getElementById('allExpensesTbody');
+  if (!tb) return;
+  if (!data.length) { tb.innerHTML = '<tr><td colspan="6" class="dash-empty"><i class="bi bi-inbox d-block"></i>Sin gastos aún</td></tr>'; return; }
+  tb.innerHTML = data.map(e => `
+    <tr>
+      <td><strong>${escHtml(e.concept||e.description||'Sin concepto')}</strong></td>
+      <td>${catDot(e.category)}</td>
+      <td><strong>${(+e.amount||0).toFixed(2)}</strong></td>
+      <td>${escHtml(e.currency||'EUR')}</td>
+      <td>${fmtDate(e.date||e.createdAt)}</td>
+      <td><button class="dash-btn-icon" onclick="deleteExpense(${e.id})" title="Eliminar"><i class="bi bi-trash3"></i></button></td>
+    </tr>`).join('');
+}
+
+function filterExpenses() {
+  const cat = document.getElementById('filterCategory').value;
+  const filtered = cat ? allExpenses.filter(e => e.category === cat) : allExpenses;
+  renderFullTable(filtered);
+}
+
+// ── Bar chart ─────────────────────────────────────────────
+function renderChart(data) {
+  const wrap = document.getElementById('barChartWrap');
+  const legend = document.getElementById('chartLegend');
+  if (!wrap) return;
+  const catTotals = {};
+  data.forEach(e => { catTotals[e.category||'Otro'] = (catTotals[e.category||'Otro']||0) + (+e.amount||0); });
+  const entries = Object.entries(catTotals).sort((a,b)=>b[1]-a[1]).slice(0,7);
+  if (!entries.length) { wrap.innerHTML = '<div class="dash-empty w-100"><i class="bi bi-bar-chart d-block"></i>Sin datos</div>'; return; }
+  const maxVal = Math.max(...entries.map(e=>e[1]));
+  const COLORS = ['#3b82f6','#06b6d4','#f59e0b','#7c3aed','#10b981','#ef4444','#94a3b8'];
+  wrap.innerHTML = entries.map(([cat, val], i) => `
+    <div class="bar-item" style="height:${Math.max(12, (val/maxVal)*100)}%;background:${COLORS[i%COLORS.length]}" title="${cat}: €${val.toFixed(2)}"></div>
+  `).join('');
+  if(legend) legend.innerHTML = entries.map(([cat,val],i)=>`
+    <span style="display:flex;align-items:center;gap:.3rem"><span style="width:9px;height:9px;border-radius:50%;background:${COLORS[i%COLORS.length]};flex-shrink:0"></span>${escHtml(cat)}</span>
+  `).join('');
+}
+
+// ── Add expense ───────────────────────────────────────────
+async function submitExpense(e) {
+  e.preventDefault();
+  const btn = document.getElementById('dashExpenseBtn');
+  const msg = document.getElementById('dashExpenseMsg');
+  btn.disabled = true; btn.textContent = 'Guardando...';
+  msg.textContent = '';
+  const today = new Date().toISOString().split('T')[0];
+  const body = {
+    concept:   document.getElementById('dConcept').value.trim(),
+    category:  document.getElementById('dCategory').value,
+    amount:    parseFloat(document.getElementById('dAmount').value),
+    currency:  document.getElementById('dCurrency').value,
+    date:      document.getElementById('dDate').value || today,
+  };
+  try {
+    const res = await fetch(API + '/expenses', { method:'POST', headers: authHeaders(), body: JSON.stringify(body) });
+    if (res.status === 401) { logout(); return; }
+    if (!res.ok) throw new Error((await res.json()).message || 'Error');
+    msg.innerHTML = '<span style="color:var(--k-success)"><i class="bi bi-check-circle me-1"></i>Gasto guardado correctamente.</span>';
+    document.getElementById('dashExpenseForm').reset();
+    await loadExpenses();
+  } catch(err) {
+    msg.innerHTML = `<span style="color:var(--k-danger,#ef4444)"><i class="bi bi-exclamation-circle me-1"></i>${escHtml(err.message)}</span>`;
+  } finally {
+    btn.disabled = false; btn.textContent = 'Guardar gasto';
+  }
+}
+
+// ── Delete expense ────────────────────────────────────────
+async function deleteExpense(id) {
+  if (!confirm('¿Eliminar este gasto?')) return;
+  try {
+    const res = await fetch(API + '/expenses/' + id, { method:'DELETE', headers: authHeaders() });
+    if (res.status === 401) { logout(); return; }
+    await loadExpenses();
+  } catch(err) { alert('Error: ' + err.message); }
+}
+
+// ── OCR ───────────────────────────────────────────────────
+document.getElementById('ocrFile').addEventListener('change', function() {
+  const file = this.files[0];
+  if (!file) return;
+  if (file.type.startsWith('image/')) {
+    const reader = new FileReader();
+    reader.onload = ev => {
+      document.getElementById('ocrPreview').src = ev.target.result;
+      document.getElementById('ocrPreviewWrap').style.display = '';
+    };
+    reader.readAsDataURL(file);
+  }
+});
+async function submitOcr(e) {
+  e.preventDefault();
+  const btn = document.getElementById('ocrBtn');
+  const msg = document.getElementById('ocrMsg');
+  const file = document.getElementById('ocrFile').files[0];
+  if (!file) return;
+  btn.disabled = true; btn.innerHTML = '<span class="loading-spinner me-2"></span>Procesando...';
+  msg.textContent = ''; document.getElementById('ocrOutput').textContent = 'Procesando imagen...';
+  const formData = new FormData();
+  formData.append('image', file);
+  try {
+    const res = await fetch(API + '/tickets/ocr', {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + getToken() },
+      body: formData
+    });
+    if (res.status === 401) { logout(); return; }
+    const data = await res.json();
+    document.getElementById('ocrOutput').textContent = data.text || data.result || JSON.stringify(data, null, 2);
+    msg.innerHTML = '<span style="color:var(--k-success)"><i class="bi bi-check-circle me-1"></i>Listo.</span>';
+  } catch(err) {
+    document.getElementById('ocrOutput').textContent = 'Error: ' + err.message;
+    msg.innerHTML = `<span style="color:var(--k-danger,#ef4444)"><i class="bi bi-exclamation-circle me-1"></i>${escHtml(err.message)}</span>`;
+  } finally {
+    btn.disabled = false; btn.innerHTML = '<i class="bi bi-camera-fill me-1"></i> Procesar ticket';
+  }
+}
+
+// ── Budgets ───────────────────────────────────────────────
+const DEFAULT_BUDGETS = {
+  'Alimentación': 300, 'Transporte': 100, 'Ocio': 80,
+  'Suscripciones': 50, 'Salud': 100, 'Vivienda': 600, 'Otro': 150
+};
+function loadBudgets() {
+  const grid = document.getElementById('budgetGrid');
+  if (!grid) return;
+  const saved = JSON.parse(localStorage.getItem('klarity_budgets') || '{}');
+  const budgets = Object.assign({}, DEFAULT_BUDGETS, saved);
+  const now = new Date();
+  const monthExpenses = allExpenses.filter(e => {
+    const d = new Date(e.date || e.createdAt);
+    return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+  });
+  grid.innerHTML = Object.entries(budgets).map(([cat, limit]) => {
+    const spent = monthExpenses.filter(e => (e.category||'Otro') === cat).reduce((s,e) => s+(+e.amount||0), 0);
+    const pct = Math.min(100, (spent / limit) * 100);
+    const color = pct >= 90 ? '#ef4444' : pct >= 70 ? '#f59e0b' : 'var(--k-primary)';
+    return `<div class="col-12 col-sm-6 col-xl-4">
+      <div class="dash-panel">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.75rem">
+          <strong style="font-size:.92rem">${escHtml(cat)}</strong>
+          <span style="font-size:.8rem;color:var(--k-muted)">€${spent.toFixed(0)} / €${limit}</span>
+        </div>
+        <div style="background:var(--k-bg);border-radius:999px;height:8px;overflow:hidden">
+          <div style="width:${pct}%;height:100%;background:${color};border-radius:999px;transition:width .4s"></div>
+        </div>
+        <div style="font-size:.76rem;margin-top:.4rem;color:${color}">
+          ${pct >= 90 ? '⚠️ Límite casi alcanzado' : pct >= 70 ? '⚡ Gasto elevado' : pct === 0 ? 'Sin gastos' : Math.round(pct) + '% usado'}
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── AI Advisor ────────────────────────────────────────────
+async function submitAdvisor(e) {
+  e.preventDefault();
+  const answer = document.getElementById('aiAnswer');
+  const question = document.getElementById('aiQuestion').value.trim();
+  if (!question) return;
+  answer.innerHTML = '<span class="loading-spinner me-2"></span>Consultando al asesor...';
+  const body = {
+    provider: document.getElementById('aiProvider').value,
+    apiKey:   document.getElementById('aiKey').value,
+    question,
+    expenses: allExpenses.slice(0, 20)
+  };
+  try {
+    const res = await fetch(API + '/advisor/ask', {
+      method: 'POST',
+      headers: authHeaders(),
+      body: JSON.stringify(body)
+    });
+    if (res.status === 401) { logout(); return; }
+    const data = await res.json();
+    answer.textContent = data.answer || data.result || JSON.stringify(data);
+  } catch(err) {
+    answer.innerHTML = `<span style="color:var(--k-danger,#ef4444)">Error: ${escHtml(err.message)}</span>`;
+  }
+}
+
+// ── Profile update ────────────────────────────────────────
+async function updateProfile(e) {
+  e.preventDefault();
+  const msg = document.getElementById('profileUpdateMsg');
+  const name = document.getElementById('profName').value.trim();
+  try {
+    const res = await fetch(API + '/auth/profile', {
+      method: 'PATCH',
+      headers: authHeaders(),
+      body: JSON.stringify({ name })
+    });
+    if (!res.ok) throw new Error((await res.json()).message || 'Error');
+    const updated = await res.json();
+    // update stored user
+    const stored = getUserData() || {};
+    stored.name = updated.name || name;
+    const isLocal = !!localStorage.getItem('klarity_token');
+    (isLocal ? localStorage : sessionStorage).setItem('klarity_user', JSON.stringify(stored));
+    msg.innerHTML = '<span style="color:var(--k-success)"><i class="bi bi-check-circle me-1"></i>Perfil actualizado.</span>';
+  } catch(err) {
+    msg.innerHTML = `<span style="color:var(--k-danger,#ef4444)"><i class="bi bi-exclamation-circle me-1"></i>${escHtml(err.message)}</span>`;
+  }
+}
+
+// ── Logout ────────────────────────────────────────────────
+function logout() {
+  localStorage.removeItem('klarity_token');
+  localStorage.removeItem('klarity_user');
+  sessionStorage.removeItem('klarity_token');
+  sessionStorage.removeItem('klarity_user');
+  window.location.href = '/login';
+}
+
+// ── Set today as default date ─────────────────────────────
+document.getElementById('dDate').value = new Date().toISOString().split('T')[0];
+</script>
+</body>
+</html>

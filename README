@@ -113,6 +113,8 @@ DATABASE_URL=postgresql://...
 JWT_SECRET=tu_secret_fuerte
 NODE_ENV=development
 PORT=3000
+OCR_PROVIDER=ocrspace
+OCR_SPACE_API_KEY=tu_api_key_ocr_space
 ```
 
 El API estará disponible en `http://localhost:3000/api`
@@ -164,6 +166,8 @@ POST   /tickets/upload       - Endpoint compatible legacy (campo multipart: tick
 ```
 
 Notas de OCR:
+- Se puede usar OCR externo con `OCR_PROVIDER=ocrspace` y `OCR_SPACE_API_KEY`.
+- Si OCR.space falla o no esta configurado, backend usa Tesseract local como fallback.
 - La extracción de importe prioriza líneas con "TOTAL"/"A PAGAR".
 - Se ignoran líneas típicas de dirección para evitar tomar números de calle como monto.
 

@@ -189,6 +189,8 @@ Recomendaciones adicionales para siguiente etapa:
 - POST /api/tickets/ocr
 - POST /api/tickets/upload (compat legacy)
 - Regla de importe OCR: prioridad a lineas con TOTAL/A PAGAR, descartando ruido de direccion.
+- OCR configurable por entorno: OCR_PROVIDER=ocrspace + OCR_SPACE_API_KEY.
+- Fallback automatico a Tesseract local si OCR externo no responde.
 
 ====================================================================
 8) DECISIONES TECNICAS Y MOTIVACION

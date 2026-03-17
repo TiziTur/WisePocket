@@ -25,11 +25,7 @@ export class TicketsController {
       throw new BadRequestException('Debes enviar un archivo de imagen en el campo ticket o image.');
     }
 
-    const worker = await createWorker('spa+eng');
-    const result = await worker.recognize(file.buffer);
-    await worker.terminate();
-
-    const text = result.data.text || '';
+    const text = await this.performOcr(file);
     const lines = text
       .split('\n')
       .map((line: string) => line.trim())
@@ -51,7 +47,82 @@ export class TicketsController {
     };
   }
 
+  private async performOcr(file: Express.Multer.File): Promise<string> {
+    const provider = String(process.env.OCR_PROVIDER || 'ocrspace').toLowerCase();
+
+    if (provider === 'ocrspace' && process.env.OCR_SPACE_API_KEY) {
+      try {
+        return await this.performOcrWithOcrSpace(file);
+      } catch (error) {
+        // Fallback to local OCR when external service is unavailable.
+        console.warn('OCR.space failed, using local OCR fallback:', error);
+      }
+    }
+
+    const worker = await createWorker('spa+eng');
+    const result = await worker.recognize(file.buffer);
+    await worker.terminate();
+    return String(result?.data?.text || '');
+  }
+
+  private async performOcrWithOcrSpace(file: Express.Multer.File): Promise<string> {
+    const formData = new FormData();
+    const blob = new Blob([new Uint8Array(file.buffer)], { type: file.mimetype || 'image/jpeg' });
+
+    formData.append('file', blob, file.originalname || 'ticket.jpg');
+    formData.append('language', 'spa');
+    formData.append('isOverlayRequired', 'false');
+    formData.append('OCREngine', '2');
+    formData.append('scale', 'true');
+
+    const res = await fetch('https://api.ocr.space/parse/image', {
+      method: 'POST',
+      headers: {
+        apikey: String(process.env.OCR_SPACE_API_KEY),
+      },
+      body: formData,
+    });
+
+    if (!res.ok) {
+      throw new Error(`OCR.space HTTP ${res.status}`);
+    }
+
+    const data = (await res.json()) as {
+      IsErroredOnProcessing?: boolean;
+      ErrorMessage?: string[];
+      ParsedResults?: Array<{ ParsedText?: string }>;
+    };
+
+    if (data.IsErroredOnProcessing) {
+      throw new Error((data.ErrorMessage || ['OCR.space processing error']).join(' | '));
+    }
+
+    const parsed = data.ParsedResults?.[0]?.ParsedText || '';
+    if (!parsed.trim()) {
+      throw new Error('OCR.space returned empty text');
+    }
+
+    return parsed;
+  }
+
   private extractCommerce(lines: string[]): string {
+    const knownBrands = ['zara', 'carrefour', 'mercadona', 'dia', 'lidl', 'ikea', 'netflix', 'spotify'];
+    const brandHit = lines.find((line) => knownBrands.some((brand) => line.toLowerCase().includes(brand)));
+    if (brandHit) {
+      return brandHit.replace(/[^A-Za-z0-9 ]/g, ' ').replace(/\s+/g, ' ').trim();
+    }
+
+    const headerLine = lines.slice(0, 8).find((line) => {
+      const clean = line.replace(/[^A-Za-z0-9 ]/g, ' ').replace(/\s+/g, ' ').trim();
+      if (clean.length < 2 || clean.length > 40) return false;
+      if (/\d/.test(clean)) return false;
+      if (/ticket|factura|compra|caja|hora|fecha/i.test(clean)) return false;
+      return /[A-Za-z]/.test(clean);
+    });
+    if (headerLine) {
+      return headerLine;
+    }
+
     const preferred = lines.find((line) => {
       const clean = line.replace(/[^A-Za-z0-9 ]/g, '').trim();
       if (clean.length < 3) return false;

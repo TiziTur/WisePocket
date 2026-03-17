@@ -38,10 +38,10 @@ form.addEventListener('submit', async (event) => {
         message.textContent = `Bienvenido, ${data.user.name}. Login correcto.`;
         form.reset();
         setTimeout(() => {
-            window.location.href = 'index.html#funcionalidades-avanzadas';
+            window.location.href = '/#funcionalidades-avanzadas';
         }, 500);
     } catch (error) {
-        message.textContent = 'No se pudo conectar con el backend. Ejecuta la API en localhost:3000.';
+        message.textContent = 'No se pudo conectar con el backend. Verifica que la API de Railway este activa.';
     }
 });
 
@@ -74,9 +74,9 @@ registerForm.addEventListener('submit', async (event) => {
         registerMessage.textContent = `Cuenta creada. Bienvenido/a, ${data.user.name}.`;
         registerForm.reset();
         setTimeout(() => {
-            window.location.href = 'index.html#funcionalidades-avanzadas';
+            window.location.href = '/#funcionalidades-avanzadas';
         }, 500);
     } catch (error) {
-        registerMessage.textContent = 'No se pudo conectar con el backend. Ejecuta la API en localhost:3000.';
+        registerMessage.textContent = 'No se pudo conectar con el backend. Verifica que la API de Railway este activa.';
     }
 });

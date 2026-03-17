@@ -1,171 +1,118 @@
-Ing-Web-II | Plataforma Inteligente de Gestion de Gastos Personales
+WisePocket | Plataforma Inteligente de Gestion de Gastos Personales
 
 Proyecto de Ingenieria Web II (2026) con arquitectura cliente-servidor.
 
-Incluye:
+Tecnologias
 
-- Frontend web responsive (HTML, CSS, JavaScript).
-- Backend API REST con NestJS.
-- Persistencia con SQLite (TypeORM).
-- Autenticacion JWT y manejo de roles (usuario/asesor).
-- Carga de tickets con OCR (Tesseract).
-- Modulos extra: multi-divisa, suscripciones, gastos compartidos, chatbot asesor y gamificacion.
+- Frontend: HTML, CSS, JavaScript, Bootstrap.
+- Backend: NestJS, TypeORM, JWT.
+- Base de datos: PostgreSQL (produccion en Railway) / SQLite (local).
+- IA OCR: Tesseract.js.
+- Extras IA: integracion opcional OpenAI/Gemini desde frontend.
 
 Arquitectura
 
-Frontend (HTML/CSS/JS)
+Frontend (Netlify)
 -> HTTP/REST
--> Backend NestJS
--> Base de datos SQLite
+-> Backend NestJS (Railway)
+-> PostgreSQL (Railway)
 
-Estructura del repositorio
+Funcionalidades de la consigna (cumplidas)
 
-- Frontend/public/src/html
-  - index.html
-  - login.html
-- Frontend/public/src/css
-  - styles.css
-  - login.css
-- Frontend/public/src/js
-  - main.js
-  - login.js
-  - advanced-features.js
-- Backend/src
-  - app.module.ts
-  - main.ts
-  - auth/
-  - users/
-  - expenses/
-  - tickets/
-  - advisor/
-  - common/roles/
-
-Roles del sistema
-
-- user: registra y consulta sus gastos.
-- advisor: puede ver usuarios y analitica avanzada.
-
-Cuenta asesor demo
-
-- email: advisor@wisepocket.com
-- password: 123456
-
-Backend API REST (NestJS)
-
-Base URL:
-
-- http://localhost:3000/api
-
-Auth
-
-- POST /auth/register
-- POST /auth/login
-- GET /auth/me
-- PUT /auth/profile
-
-Users (solo asesor)
-
-- GET /users
-
-Expenses
-
-- GET /expenses
-- POST /expenses
-- PUT /expenses/:id
-- DELETE /expenses/:id
-
-Tickets (OCR IA)
-
-- POST /tickets/upload (multipart/form-data, campo: ticket)
-
-Advisor (solo asesor)
-
-- GET /advisor/overview
-- GET /advisor/users/:userId/patterns
-
-Modelo de datos (resumen)
-
-User
-
-- id
-- name
-- email
-- passwordHash
-- role
-
-Expense
-
-- id
-- commerce
-- date
-- amount
-- currency (ARS/USD/EUR)
-- category
-- description
-- participants
-- userId
-
-Funcionalidades implementadas
-
-Requeridas por consigna
-
-- Registro de usuario.
-- Login.
+- Registro de usuarios.
+- Login y autenticacion JWT.
 - Edicion de perfil.
-- Diferenciacion de roles usuario/asesor.
+- Roles: user y advisor.
 - CRUD de gastos.
-- Carga de ticket con OCR para extraer monto/comercio/fecha y precargar formulario.
-- Visualizacion de gastos y estadisticas.
-- Analisis de patrones para asesor.
+- Carga de ticket por imagen y OCR para extraer comercio, monto y fecha.
+- Visualizacion de gastos y resumenes.
+- Analisis de patrones de consumo.
 - Recomendaciones financieras.
 
-Extras implementadas
+Funcionalidades extra (implementadas)
 
-- Manejo de multiples divisas con cotizaciones en tiempo real (DolarAPI + ER-API).
-- Suscripciones y calculo de dinero comprometido del mes siguiente.
-- Gastos compartidos tipo Splitwise (impacto real dividido).
-- Chatbot asesor (modo local y opcion OpenAI/Gemini).
+- Multidivisa (ARS, USD, EUR) con cotizaciones en tiempo real.
+- Suscripciones y gastos recurrentes.
+- Gastos compartidos estilo Splitwise (impacto dividido por participantes).
+- Chatbot asesor financiero (modo local + opcion OpenAI/Gemini).
 - Gamificacion con medallas por cumplimiento de presupuesto.
+
+Roles y credenciales demo
+
+- user: registra y consulta sus gastos.
+- advisor: acceso a panel de analitica global y por usuario.
+- cuenta asesor demo:
+  - email: advisor@wisepocket.com
+  - password: 123456
+
+API REST (base)
+
+- Produccion (Railway): https://wisepocket-production.up.railway.app/api
+- Local: http://localhost:3000/api
+
+Endpoints
+
+- Auth:
+  - POST /auth/register
+  - POST /auth/login
+  - GET /auth/me
+  - PUT /auth/profile
+- Users (advisor):
+  - GET /users
+- Expenses:
+  - GET /expenses
+  - POST /expenses
+  - PUT /expenses/:id
+  - DELETE /expenses/:id
+- Tickets (OCR):
+  - POST /tickets/upload (multipart/form-data, campo: ticket)
+- Advisor:
+  - GET /advisor/overview
+  - GET /advisor/users/:userId/patterns
 
 Ejecucion local
 
-Requisito: Node.js 20+ y npm.
+Requisitos: Node.js 20+ y npm.
 
 Backend
 
 1. cd Backend
 2. npm install
-3. copia .env.example a .env
+3. copiar .env.example a .env
 4. npm run start:dev
 
 Frontend
 
-1. Servir Frontend/public/src/html con Live Server (u otro servidor estatico)
-2. Abrir index.html
+1. Servir Frontend/public con un servidor estatico.
+2. Abrir /src/html/index.html.
 
-Notas tecnicas
+Despliegue
 
-- login.js y advanced-features.js consumen API en http://localhost:3000/api.
-- Si no hay backend disponible, el modulo avanzado conserva fallback local para algunas funciones.
+Backend (Railway)
 
-Despliegue sugerido
+1. Conectar repo GitHub.
+2. Desplegar servicio backend.
+3. Crear PostgreSQL en Railway.
+4. Variables: DATABASE_URL, DB_SSL=true, JWT_SECRET, NODE_ENV=production.
 
-- Frontend: Netlify, Vercel o GitHub Pages.
-- Backend: Render, Railway o Fly.io.
-- Base de datos productiva recomendada: Supabase, Railway Postgres o MongoDB Atlas.
+Frontend (Netlify)
 
-IA utilizada
+1. Conectar repo GitHub.
+2. Netlify usa netlify.toml automaticamente.
+3. Publica desde Frontend/public.
 
-- OCR en backend con Tesseract.js para interpretar tickets.
-- Integracion opcional con LLM (OpenAI/Gemini) desde frontend para respuestas de asesor.
+Rutas de uso en produccion
 
-Entregables cubiertos en este repositorio
+- Home: usa la URL de Netlify (dominio principal).
+- Login: URL-de-Netlify/login
+- Backend API: https://wisepocket-production.up.railway.app/api
 
-- Codigo fuente frontend + backend.
-- README con arquitectura, modelo de datos, endpoints y uso de IA.
+Nota importante para ver la web completa
 
-Pendiente para entrega final
+- Debes navegar siempre desde la URL principal de Netlify y su ruta /login.
+- El frontend ya esta configurado para consumir Railway con:
+  - Frontend/public/src/js/config.js
 
-- Publicar URL del frontend.
-- Publicar URL del backend.
-- Preparar demo final del flujo completo.
+Repositorio
+
+- GitHub: https://github.com/TiziTur/WisePocket

@@ -640,7 +640,7 @@ if (formExpense && formSub && formBudget && formAdvisor) {
         logoutBtn.addEventListener('click', () => {
             localStorage.removeItem(AUTH_TOKEN_KEY);
             localStorage.removeItem(AUTH_USER_KEY);
-            window.location.href = 'login.html';
+            window.location.href = '/login';
         });
     }
 

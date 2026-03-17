@@ -1,103 +1,314 @@
-WisePocket | Plataforma Inteligente de Gestion de Gastos Personales
+# Klarity - Plataforma Inteligente de Gestión de Gastos Personales
 
-Proyecto de Ingenieria Web II (2026) con arquitectura cliente-servidor.
+Aplicación web full-stack para la gestión financiera personal con dashboards rol-basados, análisis de gastos en tiempo real y recomendaciones impulsadas por IA.
 
-Tecnologias
+**Proyecto:** Ingeniería Web II (2026)  
+**Estado:** Completado ✅  
+**Última actualización:** Marzo 2026
 
-- Frontend: HTML, CSS, JavaScript, Bootstrap.
-- Backend: NestJS, TypeORM, JWT.
-- Base de datos: PostgreSQL (produccion en Railway) / SQLite (local).
-- IA OCR: Tesseract.js.
-- Extras IA: integracion opcional OpenAI/Gemini desde frontend.
+---
 
-Arquitectura
+## 🎯 Descripción General
 
-Frontend (Netlify)
--> HTTP/REST
--> Backend NestJS (Railway)
--> PostgreSQL (Railway)
+Klarity es una plataforma moderna de gestión financiera que empodera a usuarios para rastrear, analizar y optimizar sus gastos personales. Con arquitectura cliente-servidor escalable, soporte multi-moneda y paneles especializados por rol (usuario, asesor, administrador), ofrece una experiencia integral de control financiero.
 
-Funcionalidades de la consigna (cumplidas)
+---
 
-- Registro de usuarios.
-- Login y autenticacion JWT.
-- Edicion de perfil.
-- Roles: user y advisor.
-- CRUD de gastos.
-- Carga de ticket por imagen y OCR para extraer comercio, monto y fecha.
-- Visualizacion de gastos y resumenes.
-- Analisis de patrones de consumo.
-- Recomendaciones financieras.
+## 🛠️ Stack Tecnológico
 
-Funcionalidades extra (implementadas)
+| Capa | Tecnologías |
+|------|-------------|
+| **Frontend** | HTML5, CSS3, JavaScript ES6+, Bootstrap Icons |
+| **Diseño** | Sistema de diseño Klarity personalizado, responsive (mobile-first) |
+| **Backend** | NestJS, TypeORM, PostgreSQL, JWT Authentication |
+| **Autenticación** | JWT Bearer tokens, Role-Based Access Control (RBAC) |
+| **OCR & IA** | Tesseract.js (local), OpenAI/Anthropic (opcional) |
+| **Hosting** | Netlify (Frontend), Railway (Backend + DB) |
+| **Internacionalización** | ES/EN (sistema i18n completo) |
 
-- Multidivisa (ARS, USD, EUR) con cotizaciones en tiempo real.
-- Suscripciones y gastos recurrentes.
-- Gastos compartidos estilo Splitwise (impacto dividido por participantes).
-- Chatbot asesor financiero (modo local + opcion OpenAI/Gemini).
-- Gamificacion con medallas por cumplimiento de presupuesto.
+---
 
-Roles y credenciales demo
+## 🏗️ Arquitectura del Sistema
 
-- user: registra y consulta sus gastos.
-- advisor: acceso a panel de analitica global y por usuario.
-- cuenta asesor demo:
-  - email: advisor@wisepocket.com
-  - password: 123456
+```
+┌─────────────────────────────────────────────────────────┐
+│                    NAVEGADOR (Frontend)                  │
+│  ┌──────────────┬──────────────┬──────────────────────┐  │
+│  │   Dashboard  │   Advisor    │      Admin Panel     │  │
+│  │   (Usuario)  │   (Asesor)   │  (Administrador)     │  │
+│  └──────────────┴──────────────┴──────────────────────┘  │
+│              (Hosted en Netlify)                         │
+└──────────────────────┬──────────────────────────────────┘
+                       │ REST API / JWT Auth
+                       ↓
+┌─────────────────────────────────────────────────────────┐
+│    BACKEND NestJS (Hosted en Railway)                   │
+│  ┌─────────────────────────────────────────────────────┐│
+│  │ Auth | Users | Expenses | Advisor | Tickets/OCR     ││
+│  └─────────────────────────────────────────────────────┘│
+└──────────────────────┬──────────────────────────────────┘
+                       │ SQL
+                       ↓
+            ┌──────────────────────┐
+            │  PostgreSQL (Railway) │
+            └──────────────────────┘
+```
 
-API REST (base)
+---
 
-- Produccion (Railway): https://wisepocket-production.up.railway.app/api
-- Local: http://localhost:3000/api
+## 👥 Roles y Permisos
 
-Endpoints
+| Rol | Acceso | Funcionalidades |
+|-----|--------|-----------------|
+| **Usuario** | `/dashboard` | Registrar gastos, visualizar análisis personal, suscripciones, chatbot asesor |
+| **Asesor** | `/advisor` | Dashboard de clientes, análisis de patrones, recomendaciones personalizadas |
+| **Administrador** | `/admin` | Gestión de usuarios, roles, vista global de gastos, salud del sistema |
 
-- Auth:
-  - POST /auth/register
-  - POST /auth/login
-  - GET /auth/me
-  - PUT /auth/profile
-- Users (advisor):
-  - GET /users
-- Expenses:
-  - GET /expenses
-  - POST /expenses
-  - PUT /expenses/:id
-  - DELETE /expenses/:id
-- Tickets (OCR):
-  - POST /tickets/upload (multipart/form-data, campo: ticket)
-- Advisor:
-  - GET /advisor/overview
-  - GET /advisor/users/:userId/patterns
+---
 
-Ejecucion local
+## ✨ Funcionalidades Principales
 
-Requisitos: Node.js 20+ y npm.
+### Cumplidas (Requisitos)
+- ✅ Autenticación JWT con registro y login seguro
+- ✅ Gestión de perfiles con edición
+- ✅ CRUD completo de gastos
+- ✅ Carga de tickets (imagen) con OCR para extracción automática
+- ✅ Visualización de gastos y dashboards análiticos
+- ✅ Análisis de patrones de consumo
+- ✅ Recomendaciones financieras automáticas
+- ✅ Sistema de roles (usuario, asesor, administrador)
 
-Backend
+### Extras Implementados
+- 🌍 Soporte multi-moneda (ARS, USD, EUR) con conversión
+- 💰 Presupuestos y límites de gasto con visualización de progreso
+- 🎨 Sistema de temas (modo oscuro/claro) persistente
+- 🌐 Internacionalización completo (ES/EN)
+- 🤖 Chatbot asesor financiero integrado
+- 📊 Gráficos interactivos de gasto por categoría
+- 🔐 RBAC (Control de Acceso Basado en Roles) avanzado
+- ♿ Accesibilidad WCAG completa (aria-labels, navegación por teclado)
 
-1. cd Backend
-2. npm install
-3. copiar .env.example a .env
-4. npm run start:dev
+---
 
-Frontend
+## 🚀 Ejecución Local
 
-1. Servir Frontend/public con un servidor estatico.
-2. Abrir /src/html/index.html.
+### Requisitos Previos
+- Node.js 18+ y npm 8+
+- PostgreSQL 12+ (o SQLite para desarrollo local)
+- Git
 
-Despliegue
+### Backend
 
-Backend (Railway)
+```bash
+cd Backend
+npm install
+cp .env.example .env  # Configurar variables
+npm run start:dev
+```
 
-1. Conectar repo GitHub.
-2. Desplegar servicio backend.
-3. Crear PostgreSQL en Railway.
-4. Variables: DATABASE_URL, DB_SSL=true, JWT_SECRET, NODE_ENV=production.
+**Variables de entorno necesarias:**
+```
+DATABASE_URL=postgresql://...
+JWT_SECRET=tu_secret_fuerte
+NODE_ENV=development
+PORT=3000
+```
 
-Frontend (Netlify)
+El API estará disponible en `http://localhost:3000/api`
 
-1. Conectar repo GitHub.
+### Frontend
+
+```bash
+cd Frontend/public
+# Servir con servidor estático (ej: Live Server, http-server, etc)
+open src/html/index.html
+```
+
+O usando `http-server`:
+```bash
+npm install -g http-server
+http-server Frontend/public -p 8080
+```
+
+---
+
+## 📡 API REST Endpoints
+
+### Autenticación
+```
+POST   /auth/register        - Crear cuenta
+POST   /auth/login           - Iniciar sesión
+GET    /auth/profile         - Obtener perfil
+PATCH  /auth/profile         - Actualizar perfil
+```
+
+### Usuarios (Asesor/Admin)
+```
+GET    /users                - Listar todos los usuarios
+PATCH  /users/:id            - Actualizar rol de usuario
+```
+
+### Gastos
+```
+GET    /expenses             - Obtener gastos del usuario
+POST   /expenses             - Crear novo gasto
+PUT    /expenses/:id         - Actualizar gasto
+DELETE /expenses/:id         - Eliminar gasto
+```
+
+### OCR y Tickets
+```
+POST   /tickets/ocr          - Procesar imagen de ticket
+```
+
+### Asesor (Análisis)
+```
+GET    /advisor/overview/:id     - Overview del cliente
+GET    /advisor/patterns/:id     - Patrones de consumo
+POST   /advisor/ask              - Obtener recomendación IA
+```
+
+---
+
+## 🌐 Despliegue en Producción
+
+### Backend en Railway
+
+1. Conectar repositorio GitHub a Railway
+2. Crear aplicación Node.js
+3. Crear complemento PostgreSQL
+4. Variables de entorno:
+   - `DATABASE_URL` (auto-generada)
+   - `JWT_SECRET` (generar secret fuerte)
+   - `NODE_ENV=production`
+   - `DB_SSL=true`
+
+API Base: `https://wisepocket-production.up.railway.app/api`
+
+### Frontend en Netlify
+
+1. Conectar repositorio GitHub a Netlify
+2. Build command: (no aplica - frontend estático)
+3. Publish directory: `Frontend/public`
+4. Redirecciones configuradas en `netlify.toml`:
+   - `/` → `index.html`
+   - `/login` → `login.html`
+   - `/dashboard` → `dashboard.html`
+   - `/advisor` → `advisor.html`
+   - `/admin` → `admin.html`
+
+---
+
+## 📁 Estructura del Proyecto
+
+```
+Proyecto_IngWeb_2/
+├── Backend/
+│   ├── src/
+│   │   ├── auth/        # Autenticación JWT
+│   │   ├── users/       # Gestión de usuarios
+│   │   ├── expenses/    # CRUD de gastos
+│   │   ├── tickets/     # OCR y procesamiento
+│   │   ├── advisor/     # Análisis y recomendaciones
+│   │   └── main.ts      # Entry point
+│   ├── package.json
+│   └── tsconfig.json
+│
+├── Frontend/
+│   └── public/
+│       └── src/
+│           ├── html/
+│           │   ├── index.html      # Landing page
+│           │   ├── login.html      # Autenticación
+│           │   ├── dashboard.html  # Panel usuario
+│           │   ├── advisor.html    # Panel asesor
+│           │   └── admin.html      # Panel admin
+│           ├── css/
+│           │   ├── styles.css      # Estilos globales
+│           │   ├── dashboard.css   # Estilos dashboards
+│           │   └── login.css       # Estilos login
+│           └── js/
+│               ├── config.js       # Configuración
+│               ├── login.js        # Lógica autenticación
+│               ├── theme.js        # Toggle tema
+│               ├── i18n.js         # Internacionalización
+│               └── main.js         # Script general
+│
+├── netlify.toml         # Configuración Netlify
+└── README.md            # Este archivo
+```
+
+---
+
+## 🔐 Seguridad
+
+- ✅ JWT con firma y expiración
+- ✅ Contraseñas hasheadas con bcrypt
+- ✅ CORS configurado en backend
+- ✅ Validación de entrada en DTOs
+- ✅ Rate limiting recomendado para producción
+- ✅ HTTPS obligatorio en Netlify/Railway
+
+---
+
+## 🛑 Pausar Servicios
+
+Para evitar consumo de créditos durante períodos inactivos:
+
+**Railway:**
+1. Dashboard → Proyecto → Settings → Danger Zone → "Pause Project"
+2. Para reactivar: "Resume"
+
+**Netlify:**
+1. Site settings → Build & deploy → Stop builds
+2. Para reactivar: Reconectar repositorio o trigger manual
+
+---
+
+## 📝 Credenciales Demo
+
+```
+Asesor:
+  Email: advisor@wisepocket.com
+  Contraseña: 123456
+```
+
+---
+
+## 👨‍💻 Desarrollo Local
+
+### Hot Reload Backend
+```bash
+npm run start:dev
+```
+
+### Debug Mode
+- Backend: Implementado en `debug` directamente con TypeORM logging
+- Frontend: Console logs en funciones críticas
+
+---
+
+## 📊 Commits Principales
+
+- **903843f** - Feat: Complete Klarity redesign with role dashboards
+- Features: Dashboard HTML5, Advisor panel, Admin panel, CSS completo, i18n, themes
+
+---
+
+## 🤝 Contribuciones
+
+Este es un proyecto de educativo de Ingeniería Web II. Cambios y mejoras son bienvenidas.
+
+---
+
+## 📄 Licencia
+
+Proyecto educativo - Ingeniería Web II, 2026
+
+---
+
+**Última actualización:** Marzo 2026  
+**Versión:** 1.0.0
 2. Netlify usa netlify.toml automaticamente.
 3. Publica desde Frontend/public.
 

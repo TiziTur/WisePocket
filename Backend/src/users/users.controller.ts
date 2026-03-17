@@ -1,4 +1,4 @@
-import { Body, Controller, Get, NotFoundException, Param, Patch, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, NotFoundException, Param, Patch, Query, UseGuards } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/roles/roles.guard';
@@ -13,14 +13,39 @@ export class UsersController {
 
   @Get()
   @Roles(Role.ADVISOR, Role.ADMIN)
-  async listUsers() {
-    const users = await this.usersService.listAll();
-    return users.map((user) => ({
+  async listUsers(
+    @Query('q') q?: string,
+    @Query('role') role?: string,
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+  ) {
+    const normalizedRole = role && Object.values(Role).includes(role as Role) ? (role as Role) : undefined;
+    const pageNum = page ? Number(page) : undefined;
+    const limitNum = limit ? Number(limit) : undefined;
+
+    const result = await this.usersService.listAll({
+      q,
+      role: normalizedRole,
+      page: pageNum,
+      limit: limitNum,
+    });
+
+    const mapUser = (user: { id: string; name: string; email: string; role: Role; createdAt?: Date }) => ({
       id: user.id,
       name: user.name,
       email: user.email,
       role: user.role,
-    }));
+      createdAt: user.createdAt,
+    });
+
+    if (Array.isArray(result)) {
+      return result.map(mapUser);
+    }
+
+    return {
+      data: result.data.map(mapUser),
+      meta: result.meta,
+    };
   }
 
   @Patch(':id')

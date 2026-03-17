@@ -79,7 +79,7 @@ Klarity es una plataforma moderna de gestión financiera que empodera a usuarios
 - ✅ Sistema de roles (usuario, asesor, administrador)
 
 ### Extras Implementados
-- 🌍 Soporte multi-moneda (ARS, USD, EUR) con conversión
+- 🌍 Soporte multi-moneda (ARS, USD, EUR, GBP, MXN)
 - 💰 Presupuestos y límites de gasto con visualización de progreso
 - 🎨 Sistema de temas (modo oscuro/claro) persistente
 - 🌐 Internacionalización completo (ES/EN)
@@ -144,13 +144,13 @@ PATCH  /auth/profile         - Actualizar perfil
 
 ### Usuarios (Asesor/Admin)
 ```
-GET    /users                - Listar todos los usuarios
+GET    /users                - Listar usuarios (filtros opcionales: q, role, page, limit)
 PATCH  /users/:id            - Actualizar rol de usuario
 ```
 
 ### Gastos
 ```
-GET    /expenses             - Obtener gastos del usuario
+GET    /expenses             - Obtener gastos (filtros opcionales: q, category, dateFrom, dateTo, userId, page, limit)
 POST   /expenses             - Crear novo gasto
 PUT    /expenses/:id         - Actualizar gasto
 DELETE /expenses/:id         - Eliminar gasto
@@ -163,10 +163,47 @@ POST   /tickets/ocr          - Procesar imagen de ticket
 
 ### Asesor (Análisis)
 ```
-GET    /advisor/overview/:id     - Overview del cliente
-GET    /advisor/patterns/:id     - Patrones de consumo
+GET    /advisor/overview/:id     - Overview visualizable del cliente
+GET    /advisor/patterns/:id     - Patrones y timeline de consumo
 POST   /advisor/ask              - Obtener recomendación IA
+GET    /advisor/recommendations/:id - Historial de recomendaciones guardadas
+GET    /advisor/clients/health   - Semáforo financiero de clientes
 ```
+
+---
+
+## ✅ Checklist de Validación (Railway + Netlify)
+
+Cuando levantes ambos servicios, valida esto en orden:
+
+1. Login por rol
+- `demo@klarity.app` entra a `/dashboard`
+- `advisor@klarity.app` entra a `/advisor`
+- `admin@klarity.app` entra a `/admin`
+
+2. Dashboard usuario
+- Crear gasto manual con `Concepto` y moneda `GBP` o `MXN`
+- Ver que aparece en tabla y KPIs
+- Probar botón flotante mobile (FAB)
+
+3. Advisor
+- Ver clientes con estado financiero (semáforo)
+- Abrir `Resumen` y `Patrones` de un cliente
+- Generar recomendación y confirmar que aparece en `Historial guardado`
+
+4. Admin
+- Buscar usuarios por nombre/email
+- Cambiar rol con confirmación modal
+- Confirmar gráfico de `Nuevos usuarios (últimos 6 meses)`
+
+5. Mobile
+- Sidebar drawer con botón `Menú`
+- Tabla de gastos sin columna `Moneda` en pantallas chicas
+
+6. Backend API
+- `GET /api/users?q=demo&limit=10&page=1`
+- `GET /api/expenses?category=Ocio&dateFrom=2026-01-01&dateTo=2026-12-31`
+- `GET /api/advisor/recommendations/{userId}`
 
 ---
 

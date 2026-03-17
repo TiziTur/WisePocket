@@ -1,9 +1,10 @@
 import { Injectable, OnModuleInit } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { FindOptionsWhere, ILike, Repository } from 'typeorm';
 import { User } from './user.entity';
 import { Role } from '../common/roles/role.enum';
 import * as bcrypt from 'bcryptjs';
+import { randomBytes } from 'crypto';
 
 @Injectable()
 export class UsersService implements OnModuleInit {
@@ -12,11 +13,64 @@ export class UsersService implements OnModuleInit {
     private readonly usersRepository: Repository<User>,
   ) {}
 
+  async listAll(params?: {
+    q?: string;
+    role?: Role;
+    page?: number;
+    limit?: number;
+  }): Promise<User[] | { data: User[]; meta: { total: number; page: number; limit: number; pages: number } }> {
+    const q = params?.q?.trim();
+    const role = params?.role;
+    const page = Math.max(1, Number(params?.page || 1));
+    const limit = Math.min(100, Math.max(1, Number(params?.limit || 0)));
+    const hasPagination = limit > 0;
+
+    const where: FindOptionsWhere<User>[] = [];
+    if (q) {
+      if (role) {
+        where.push({ name: ILike(`%${q}%`), role });
+        where.push({ email: ILike(`%${q}%`), role });
+      } else {
+        where.push({ name: ILike(`%${q}%`) });
+        where.push({ email: ILike(`%${q}%`) });
+      }
+    }
+
+    if (!q && role) {
+      where.push({ role });
+    }
+
+    if (!hasPagination) {
+      return this.usersRepository.find({
+        where: where.length ? where : undefined,
+        order: { name: 'ASC' },
+      });
+    }
+
+    const [data, total] = await this.usersRepository.findAndCount({
+      where: where.length ? where : undefined,
+      order: { name: 'ASC' },
+      skip: (page - 1) * limit,
+      take: limit,
+    });
+
+    return {
+      data,
+      meta: {
+        total,
+        page,
+        limit,
+        pages: Math.max(1, Math.ceil(total / limit)),
+      },
+    };
+  }
+
   async onModuleInit() {
+    const seedDefaultPassword = process.env.SEED_DEFAULT_PASSWORD || randomBytes(12).toString('hex');
     const seeds = [
-      { email: 'advisor@klarity.app', name: 'Sofia Asesor', password: 'Klarity2026!', role: Role.ADVISOR },
-      { email: 'admin@klarity.app',   name: 'Admin Klarity', password: 'Admin2026!',   role: Role.ADMIN },
-      { email: 'demo@klarity.app',    name: 'Demo User',    password: 'Demo2026!',    role: Role.USER },
+      { email: 'advisor@klarity.app', name: 'Sofia Asesor', password: process.env.SEED_ADVISOR_PASSWORD || seedDefaultPassword, role: Role.ADVISOR },
+      { email: 'admin@klarity.app',   name: 'Admin Klarity', password: process.env.SEED_ADMIN_PASSWORD || seedDefaultPassword, role: Role.ADMIN },
+      { email: 'demo@klarity.app',    name: 'Demo User',    password: process.env.SEED_DEMO_PASSWORD || seedDefaultPassword, role: Role.USER },
     ];
 
     for (const seed of seeds) {
@@ -79,7 +133,4 @@ export class UsersService implements OnModuleInit {
     return this.usersRepository.save(user);
   }
 
-  listAll(): Promise<User[]> {
-    return this.usersRepository.find({ order: { name: 'ASC' } });
-  }
 }

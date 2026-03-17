@@ -1,0 +1,212 @@
+MATRIZ QA - KLARITY
+Version: 2026-03-17
+Objetivo: validar end-to-end frontend + backend luego de encender Railway y Netlify.
+
+====================================================================
+0) PRE-CHECK
+====================================================================
+Estado requerido:
+- Backend deployado y en estado healthy.
+- Frontend deployado en Netlify.
+- Variables de entorno cargadas en Railway.
+
+Variables minimas backend:
+- DATABASE_URL
+- JWT_SECRET
+- NODE_ENV=production
+- DB_SSL=true (si Railway lo requiere)
+- CORS_ORIGIN=https://TU-SITIO-NETLIFY
+
+Variables opcionales (seed users):
+- SEED_ADMIN_PASSWORD
+- SEED_ADVISOR_PASSWORD
+- SEED_DEMO_PASSWORD
+- SEED_DEFAULT_PASSWORD
+
+Resultado esperado:
+- /api responde.
+- Login y secciones cargan sin errores JS en consola.
+
+====================================================================
+1) AUTENTICACION Y RBAC
+====================================================================
+Caso A: login usuario
+Pasos:
+1. Ir a /login.
+2. Iniciar con demo@klarity.app.
+3. Confirmar redireccion a /dashboard.
+Esperado:
+- Token guardado en storage.
+- No acceso a /advisor ni /admin.
+
+Caso B: login advisor
+Pasos:
+1. Login advisor@klarity.app.
+2. Confirmar redireccion a /advisor.
+Esperado:
+- Puede ver /advisor.
+- No puede entrar a /admin.
+
+Caso C: login admin
+Pasos:
+1. Login admin@klarity.app.
+2. Confirmar redireccion a /admin.
+Esperado:
+- Puede gestionar usuarios y ver gastos globales.
+
+====================================================================
+2) DASHBOARD USUARIO
+====================================================================
+Caso A: alta de gasto manual
+Pasos:
+1. Ir a "Anadir gasto".
+2. Cargar concepto, categoria, monto, moneda GBP o MXN.
+3. Guardar.
+Esperado:
+- Registro exitoso.
+- Aparece en tabla y KPI.
+
+Caso B: sugerencia de categoria
+Pasos:
+1. Escribir concepto: Netflix.
+Esperado:
+- Sugiere/aplica categoria Suscripciones.
+
+Caso C: insights y recurrentes
+Pasos:
+1. Ver panel "Insights rapidos".
+2. Ver bloque "Comprometido del proximo mes".
+Esperado:
+- Muestra delta mes actual vs anterior.
+- Muestra comercio frecuente.
+- Si hay recurrencia, estima total proximo mes.
+
+Caso D: mobile UX
+Pasos:
+1. Abrir en viewport movil.
+2. Probar boton Menu y FAB.
+Esperado:
+- Sidebar funciona como drawer.
+- FAB abre "Anadir gasto".
+- Columna Moneda oculta en tabla mobile.
+
+====================================================================
+3) PANEL ASESOR
+====================================================================
+Caso A: lista clientes + semaforo
+Pasos:
+1. Entrar a /advisor.
+2. Revisar tabla de clientes.
+Esperado:
+- Columna Estado con Saludable/Atencion/Alto riesgo.
+- Busqueda por nombre/email funcional.
+
+Caso B: resumen cliente
+Pasos:
+1. Seleccionar cliente.
+2. Abrir Resumen.
+Esperado:
+- KPIs visibles (total, cantidad, ticket promedio).
+- Distribucion por categoria en formato visual.
+
+Caso C: patrones cliente
+Pasos:
+1. Abrir Patrones para mismo cliente.
+Esperado:
+- Timeline mensual.
+- Deteccion de picos.
+
+Caso D: recomendaciones + historial
+Pasos:
+1. Ir a Recomendaciones IA.
+2. Cargar userId cliente.
+3. Ejecutar "Generar recomendaciones".
+Esperado:
+- Devuelve respuesta.
+- Queda guardada en historial inferior.
+
+====================================================================
+4) PANEL ADMIN
+====================================================================
+Caso A: gestion usuarios
+Pasos:
+1. Ir a /admin seccion Usuarios.
+2. Buscar por nombre/email.
+3. Filtrar por rol.
+Esperado:
+- Tabla filtra correctamente.
+
+Caso B: cambio de rol
+Pasos:
+1. Elegir usuario.
+2. Cambiar rol.
+3. Confirmar modal.
+Esperado:
+- PATCH exitoso.
+- Rol actualizado en tabla.
+
+Caso C: metricas
+Pasos:
+1. Ir a Vision general.
+Esperado:
+- KPIs con datos.
+- Grafico de nuevos usuarios 6 meses.
+
+====================================================================
+5) API BACKEND - PRUEBAS MANUALES RAPIDAS
+====================================================================
+Usar token Bearer en Authorization.
+
+5.1 Usuarios
+- GET /api/users
+- GET /api/users?q=demo
+- GET /api/users?role=user
+- GET /api/users?limit=10&page=1
+Esperado:
+- Sin limit/page => array simple.
+- Con limit/page => objeto con data + meta.
+
+5.2 Gastos
+- GET /api/expenses
+- GET /api/expenses?category=Ocio
+- GET /api/expenses?q=netflix
+- GET /api/expenses?dateFrom=2026-01-01&dateTo=2026-12-31
+- GET /api/expenses?limit=10&page=1
+Esperado:
+- Compatible con comportamiento anterior.
+- Si hay paginacion => data + meta.
+
+5.3 Advisor
+- GET /api/advisor/clients/health
+- GET /api/advisor/overview/{userId}
+- GET /api/advisor/patterns/{userId}
+- POST /api/advisor/ask
+- GET /api/advisor/recommendations/{userId}
+Esperado:
+- Datos coherentes y sin 500.
+
+====================================================================
+6) SEGURIDAD BASICA
+====================================================================
+Checklist:
+- Endpoints protegidos requieren JWT.
+- Roles respetados (RBAC).
+- Passwords en DB hasheadas.
+- CORS restringido por CORS_ORIGIN en prod.
+- No exponer API keys en frontend.
+
+====================================================================
+7) CRITERIO DE APROBACION
+====================================================================
+Aprobado si:
+- Todos los casos A de cada seccion pasan.
+- No hay errores 500 en flujos principales.
+- No hay bloqueos UX criticos.
+- Login y navegacion por rol funcionan en web y mobile.
+
+Registro QA sugerido:
+- Caso
+- Resultado (PASS/FAIL)
+- Evidencia (captura/log)
+- Observacion
+- Severidad

@@ -1,0 +1,257 @@
+DOCUMENTACION TECNICA Y DE PROCESO - KLARITY
+Version: 2026-03-17
+Repositorio: Proyecto_IngWeb_2
+
+====================================================================
+1) RESUMEN DEL PROYECTO
+====================================================================
+Klarity es una plataforma web full-stack para gestion de gastos personales.
+Incluye paneles por rol (usuario, asesor, admin), OCR de tickets y recomendaciones.
+Arquitectura basada en frontend estatico + backend NestJS REST con JWT.
+
+====================================================================
+2) ARQUITECTURA
+====================================================================
+2.1 Frontend
+- Tecnologias: HTML, CSS, JavaScript.
+- Estructura:
+  - Frontend/public/src/html
+  - Frontend/public/src/css
+  - Frontend/public/src/js
+- Paneles:
+  - dashboard.html (usuario)
+  - advisor.html (asesor)
+  - admin.html (admin)
+- Estilos:
+  - styles.css (design system global)
+  - dashboard.css (estilos de paneles)
+- Librerias visuales:
+  - Bootstrap CSS (CDN)
+  - Bootstrap Icons
+
+2.2 Backend
+- Framework: NestJS.
+- ORM: TypeORM.
+- DB: PostgreSQL en produccion / SQLite local fallback.
+- Modulos:
+  - auth
+  - users
+  - expenses
+  - tickets
+  - advisor
+- Prefijo API: /api
+
+2.3 Despliegue
+- Frontend: Netlify.
+- Backend + DB: Railway.
+
+====================================================================
+3) MODELO DE DATOS
+====================================================================
+3.1 User
+- id (uuid)
+- email (unique)
+- name
+- passwordHash
+- role (user/advisor/admin)
+- createdAt
+- updatedAt
+
+3.2 Expense
+- id (uuid)
+- commerce
+- category
+- description
+- date
+- amount
+- currency (ARS, USD, EUR, GBP, MXN)
+- participants
+- user relation
+- createdAt
+- updatedAt
+
+3.3 AdvisorRecommendation
+- id (uuid)
+- advisorUserId
+- targetUserId
+- provider
+- question
+- answer
+- createdAt
+
+====================================================================
+4) AUTENTICACION Y AUTORIZACION
+====================================================================
+4.1 Metodo de autenticacion
+- JWT Bearer Token.
+- Login y registro via /auth.
+- Estrategia: passport-jwt.
+
+4.2 RBAC
+- Roles definidos en enum.
+- Decorador @Roles.
+- RolesGuard en rutas protegidas.
+
+4.3 Flujo general
+1. Usuario loguea.
+2. Backend valida credenciales (bcrypt compare).
+3. Backend firma JWT.
+4. Frontend guarda token.
+5. Requests posteriores incluyen Authorization: Bearer <token>.
+
+====================================================================
+5) SEGURIDAD IMPLEMENTADA
+====================================================================
+- Passwords hasheadas con bcryptjs.
+- Validacion de payloads con ValidationPipe global:
+  - whitelist
+  - transform
+  - forbidNonWhitelisted
+- CORS configurable por variable CORS_ORIGIN.
+- Helmet activo para headers de seguridad.
+- JWT_SECRET configurable por entorno.
+- Guardias de autenticacion y de roles.
+- DTOs con class-validator.
+
+Recomendaciones adicionales para siguiente etapa:
+- Rate limiting en auth y advisor.
+- Auditoria persistente de cambios criticos.
+- Rotacion de secretos y politicas de expiracion token.
+- Separar seeds de produccion.
+
+====================================================================
+6) FUNCIONALIDADES POR ROL
+====================================================================
+6.1 Usuario
+- CRUD de gastos.
+- KPIs de resumen.
+- Filtros por categoria.
+- OCR ticket.
+- Presupuestos visuales.
+- Insights rapidos:
+  - mes actual vs anterior
+  - comercio mas frecuente
+- Sugerencia de categoria por concepto.
+- Comprometido proximo mes para gastos recurrentes.
+- UX mobile: menu drawer + FAB.
+
+6.2 Asesor
+- Lista de clientes con busqueda.
+- Semaforo financiero por cliente.
+- Resumen visual por cliente.
+- Patrones visuales con timeline y picos.
+- Generacion de recomendaciones.
+- Persistencia e historial de recomendaciones.
+
+6.3 Admin
+- Vista global de usuarios y gastos.
+- Filtro y busqueda de usuarios.
+- Cambio de rol con confirmacion.
+- Grafico de nuevos usuarios (6 meses).
+
+====================================================================
+7) ENDPOINTS PRINCIPALES
+====================================================================
+7.1 Auth
+- POST /api/auth/register
+- POST /api/auth/login
+- GET /api/auth/me
+- PUT /api/auth/profile
+- PATCH /api/auth/profile
+
+7.2 Users
+- GET /api/users
+  - filtros opcionales: q, role, page, limit
+- PATCH /api/users/:id
+
+7.3 Expenses
+- GET /api/expenses
+  - filtros opcionales: q, category, dateFrom, dateTo, userId, page, limit
+- POST /api/expenses
+- PUT /api/expenses/:id
+- DELETE /api/expenses/:id
+
+7.4 Advisor
+- GET /api/advisor/overview
+- GET /api/advisor/overview/:userId
+- GET /api/advisor/patterns/:userId
+- GET /api/advisor/users/:userId/patterns (compat)
+- POST /api/advisor/ask
+- GET /api/advisor/recommendations/:userId
+- GET /api/advisor/clients/health
+
+7.5 Tickets
+- POST /api/tickets/ocr
+
+====================================================================
+8) DECISIONES TECNICAS Y MOTIVACION
+====================================================================
+- Bootstrap CSS agregado en dashboards para corregir render de botones/clases utility.
+- Se mantuvo compatibilidad hacia atras en endpoints:
+  - si no hay paginacion, respuesta simple tipo array
+  - con paginacion, respuesta data + meta
+- Se adapto frontend para ids uuid en onclick y requests.
+- Se incorporo persistencia de recomendaciones para trazabilidad real.
+- Se reforzo UX mobile y consistencia visual con variantes de botones.
+
+====================================================================
+9) CONFIGURACION DE ENTORNO
+====================================================================
+Backend (minimo):
+- DATABASE_URL
+- JWT_SECRET
+- NODE_ENV
+- PORT
+- DB_SSL
+- CORS_ORIGIN
+
+Seeds (opcional):
+- SEED_DEFAULT_PASSWORD
+- SEED_ADMIN_PASSWORD
+- SEED_ADVISOR_PASSWORD
+- SEED_DEMO_PASSWORD
+
+Frontend:
+- Config API base en src/js/config.js
+- Netlify rewrites configuradas para rutas limpias.
+
+====================================================================
+10) PROCESO DE TRABAJO APLICADO
+====================================================================
+- Paso 1: diagnostico de UI (causa raiz de botones sin bootstrap).
+- Paso 2: correccion visual global (CSS + clases).
+- Paso 3: mejora de UX por rol (admin/advisor/user).
+- Paso 4: alineacion backend-frontend (endpoints, DTOs, roles).
+- Paso 5: persistencia de recomendaciones y semaforo advisor.
+- Paso 6: filtros y paginacion opcionales para escalabilidad.
+- Paso 7: hardening basico y documentacion de QA.
+
+====================================================================
+11) RIESGOS Y LIMITES ACTUALES
+====================================================================
+- Recomendaciones advisor usan motor local de reglas, no LLM remoto real.
+- Sin suite automatizada de tests e2e aun.
+- Sin observabilidad completa (metricas/alerts centralizadas).
+- Seeds dependen de variables para passwords controladas.
+
+====================================================================
+12) ROADMAP SUGERIDO
+====================================================================
+- Persistir presupuestos en backend.
+- Exportacion CSV/PDF.
+- Rate limiting y auditoria completa.
+- Tests unitarios y e2e con CI.
+- Dashboard de salud backend con latencia/error rate.
+
+====================================================================
+13) OPERACION DE DEPLOY
+====================================================================
+Secuencia recomendada al validar:
+1. Desplegar backend en Railway.
+2. Verificar variables.
+3. Validar endpoints base /api.
+4. Desplegar frontend en Netlify.
+5. Ejecutar matriz QA completa.
+6. Corregir hallazgos y revalidar.
+
+Fin del documento.

@@ -508,6 +508,7 @@
   outline: 2px solid var(--k-primary);
   outline-offset: 2px;
 }
+.dash-menu-btn:hover { background: var(--k-bg); color: var(--k-text); }
 
 @media (max-width: 991.98px) {
   .dash-menu-btn { display: grid; }

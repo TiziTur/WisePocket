@@ -3,7 +3,7 @@
 // ============================================================
 const API_BASE_URL =
     window.WISEPOCKET_API_BASE_URL ||
-    'https://wisepocket-production.up.railway.app/api';
+    'https://proyectoingweb2-production.up.railway.app/api';
 
 const TOKEN_KEY = 'klarity_token';
 const USER_KEY  = 'klarity_user';

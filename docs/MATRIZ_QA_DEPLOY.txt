@@ -61,10 +61,12 @@ Caso A: alta de gasto manual
 Pasos:
 1. Ir a "Anadir gasto".
 2. Cargar concepto, categoria, monto, moneda GBP o MXN.
-3. Guardar.
+3. Marcar opcion de gasto mensual para un concepto recurrente (ej: alquiler).
+4. Guardar.
 Esperado:
 - Registro exitoso.
 - Aparece en tabla y KPI.
+- Se mantiene flag mensual para ese gasto.
 
 Caso B: sugerencia de categoria
 Pasos:
@@ -192,6 +194,7 @@ Esperado:
 Esperado:
 - Retorna commerce, date, amount, category, rawText.
 - Sin 404 por ruta inexistente en frontend dashboard.
+- En dashboard OCR, ademas se crea gasto automaticamente con los datos extraidos.
 
 ====================================================================
 6) SEGURIDAD BASICA

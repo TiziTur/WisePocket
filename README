@@ -81,6 +81,7 @@ Klarity es una plataforma moderna de gestión financiera que empodera a usuarios
 ### Extras Implementados
 - 🌍 Soporte multi-moneda (ARS, USD, EUR, GBP, MXN)
 - 💰 Presupuestos y límites de gasto con visualización de progreso
+- 🔁 Marcado de gastos mensuales con autodetección por concepto
 - 🎨 Sistema de temas (modo oscuro/claro) persistente
 - 🌐 Internacionalización completo (ES/EN)
 - 🤖 Chatbot asesor financiero integrado
@@ -151,14 +152,14 @@ PATCH  /users/:id            - Actualizar rol de usuario
 ### Gastos
 ```
 GET    /expenses             - Obtener gastos (filtros opcionales: q, category, dateFrom, dateTo, userId, page, limit)
-POST   /expenses             - Crear novo gasto
+POST   /expenses             - Crear nuevo gasto (incluye isMonthly opcional)
 PUT    /expenses/:id         - Actualizar gasto
 DELETE /expenses/:id         - Eliminar gasto
 ```
 
 ### OCR y Tickets
 ```
-POST   /tickets/ocr          - Procesar ticket OCR (campo multipart: image)
+POST   /tickets/ocr          - Procesar ticket OCR (campo multipart: image) y guardar gasto en dashboard
 POST   /tickets/upload       - Endpoint compatible legacy (campo multipart: ticket)
 ```
 
@@ -184,6 +185,7 @@ Cuando levantes ambos servicios, valida esto en orden:
 
 2. Dashboard usuario
 - Crear gasto manual con `Concepto` y moneda `GBP` o `MXN`
+- Marcar gasto como mensual y validar que persiste
 - Ver que aparece en tabla y KPIs
 - Probar botón flotante mobile (FAB)
 

@@ -27,6 +27,9 @@ export class Expense {
   @Column({ type: 'int', default: 1 })
   participants: number;
 
+  @Column({ type: 'boolean', default: false })
+  isMonthly: boolean;
+
   @ManyToOne(() => User, (user) => user.expenses, { eager: true, onDelete: 'CASCADE' })
   user: User;
 

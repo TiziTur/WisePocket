@@ -222,6 +222,10 @@
   gap: 1rem;
 }
 
+.overview-panels-row {
+  margin-top: .9rem;
+}
+
 .kpi-card {
   background: var(--k-surface);
   border: 1px solid var(--k-border);

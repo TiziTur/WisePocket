@@ -1,4 +1,4 @@
-import { IsDateString, IsEnum, IsNumber, IsOptional, IsString, Max, Min } from 'class-validator';
+import { IsBoolean, IsDateString, IsEnum, IsNumber, IsOptional, IsString, Max, Min } from 'class-validator';
 
 export class UpdateExpenseDto {
 	@IsOptional()
@@ -35,4 +35,8 @@ export class UpdateExpenseDto {
 	@Min(1)
 	@Max(50)
 	participants?: number;
+
+	@IsOptional()
+	@IsBoolean()
+	isMonthly?: boolean;
 }

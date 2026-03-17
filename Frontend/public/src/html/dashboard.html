@@ -126,7 +126,7 @@
       </div>
 
       <!-- Chart + recent table side by side -->
-      <div class="row g-3">
+      <div class="row g-3 mt-1 overview-panels-row">
         <div class="col-12 col-lg-5">
           <div class="dash-panel h-100">
             <p class="dash-panel-title">Gasto por categoría</p>
@@ -274,6 +274,12 @@
                 <div class="col-sm-6">
                   <label class="dash-label" for="dDate">Fecha</label>
                   <input id="dDate" type="date" class="dash-input" />
+                </div>
+                <div class="col-12">
+                  <label style="display:flex;align-items:center;gap:.55rem;font-size:.88rem;color:var(--k-text2);cursor:pointer">
+                    <input id="dIsMonthly" type="checkbox" style="width:16px;height:16px" />
+                    Este gasto es mensual (alquiler, suscripción, etc.)
+                  </label>
                 </div>
                 <div class="col-12">
                   <div id="dashExpenseMsg" class="mt-1" style="font-size:.87rem;min-height:1.5rem"></div>
@@ -702,7 +708,7 @@ function renderKPIs(data) {
   if (merchantEl) {
     const freq = {};
     data.forEach(e => {
-      const key = (e.concept || e.description || 'Sin concepto').trim();
+      const key = (e.concept || e.commerce || e.description || 'Sin concepto').trim();
       if (!key) return;
       freq[key] = (freq[key] || 0) + 1;
     });
@@ -721,6 +727,18 @@ function catDot(cat) {
 }
 function escHtml(s){ return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 function fmtDate(d){ if(!d) return '—'; const dt=new Date(d); return isNaN(dt)?d:dt.toLocaleDateString('es-ES',{day:'2-digit',month:'short',year:'numeric'}); }
+function getExpenseConcept(e){ return e?.concept || e?.commerce || e?.description || 'Sin concepto'; }
+
+function isMonthlyConcept(rawConcept) {
+  const raw = String(rawConcept || '').trim().toLowerCase();
+  if (!raw) return false;
+  const keywords = [
+    'alquiler', 'renta', 'hipoteca', 'suscripcion', 'suscripción',
+    'netflix', 'spotify', 'disney', 'hbo', 'prime', 'icloud',
+    'internet', 'luz', 'agua', 'gas', 'colegio', 'seguro', 'cuota'
+  ];
+  return keywords.some((word) => raw.includes(word));
+}
 
 function renderRecentTable(data) {
   const tb = document.getElementById('recentExpensesTbody');
@@ -728,7 +746,7 @@ function renderRecentTable(data) {
   if (!data.length) { tb.innerHTML = '<tr><td colspan="5" class="dash-empty"><i class="bi bi-inbox d-block"></i>Sin gastos aún</td></tr>'; return; }
   tb.innerHTML = data.map(e => `
     <tr>
-      <td><strong>${escHtml(e.concept||e.description||'Sin concepto')}</strong></td>
+      <td><strong>${escHtml(getExpenseConcept(e))}</strong></td>
       <td>${catDot(e.category)}</td>
       <td><strong>${formatMoney(convertAmount(e.amount, e.currency), displayCurrency, 2)}</strong></td>
       <td>${fmtDate(e.date||e.createdAt)}</td>
@@ -742,7 +760,7 @@ function renderFullTable(data) {
   if (!data.length) { tb.innerHTML = '<tr><td colspan="6" class="dash-empty"><i class="bi bi-inbox d-block"></i>Sin gastos aún</td></tr>'; return; }
   tb.innerHTML = data.map(e => `
     <tr>
-      <td><strong>${escHtml(e.concept||e.description||'Sin concepto')}</strong></td>
+      <td><strong>${escHtml(getExpenseConcept(e))}</strong></td>
       <td>${catDot(e.category)}</td>
       <td><strong>${(+e.amount||0).toFixed(2)}</strong></td>
       <td class="col-currency">${escHtml(e.currency||'EUR')}</td>
@@ -756,7 +774,7 @@ function updateConceptSuggestions(data) {
   if (!dl) return;
   const counts = {};
   data.forEach(e => {
-    const key = (e.concept || e.description || '').trim();
+    const key = (e.concept || e.commerce || e.description || '').trim();
     if (!key) return;
     counts[key] = (counts[key] || 0) + 1;
   });
@@ -791,8 +809,18 @@ function suggestCategoryFromConcept() {
   const found = rules.find(rule => rule.match.some(word => raw.includes(word)));
   if (found) {
     categorySelect.value = found.category;
+    const monthlyCheck = document.getElementById('dIsMonthly');
+    if (monthlyCheck && isMonthlyConcept(raw)) {
+      monthlyCheck.checked = true;
+    }
     hint.textContent = 'Categoría sugerida aplicada: ' + found.category;
   } else {
+    const monthlyCheck = document.getElementById('dIsMonthly');
+    if (monthlyCheck && isMonthlyConcept(raw)) {
+      monthlyCheck.checked = true;
+      hint.textContent = 'Detectado como gasto mensual.';
+      return;
+    }
     hint.textContent = 'No se detectó categoría automática para este concepto.';
   }
 }
@@ -838,6 +866,7 @@ async function submitExpense(e) {
     amount:    parseFloat(document.getElementById('dAmount').value),
     currency:  document.getElementById('dCurrency').value,
     date:      document.getElementById('dDate').value || today,
+    isMonthly: document.getElementById('dIsMonthly').checked,
   };
   try {
     const res = await fetch(API + '/expenses', { method:'POST', headers: authHeaders(), body: JSON.stringify(body) });
@@ -845,6 +874,7 @@ async function submitExpense(e) {
     if (!res.ok) throw new Error((await res.json()).message || 'Error');
     msg.innerHTML = '<span style="color:var(--k-success)"><i class="bi bi-check-circle me-1"></i>Gasto guardado correctamente.</span>';
     document.getElementById('dashExpenseForm').reset();
+    document.getElementById('dDate').value = today;
     await loadExpenses();
   } catch(err) {
     msg.innerHTML = `<span style="color:var(--k-danger,#ef4444)"><i class="bi bi-exclamation-circle me-1"></i>${escHtml(err.message)}</span>`;
@@ -893,9 +923,35 @@ async function submitOcr(e) {
       body: formData
     });
     if (res.status === 401) { logout(); return; }
+    if (!res.ok) throw new Error((await res.json()).message || 'Error OCR');
     const data = await res.json();
-    document.getElementById('ocrOutput').textContent = data.text || data.result || JSON.stringify(data, null, 2);
-    msg.innerHTML = '<span style="color:var(--k-success)"><i class="bi bi-check-circle me-1"></i>Listo.</span>';
+    document.getElementById('ocrOutput').textContent = JSON.stringify(data, null, 2);
+
+    const concept = String(data.commerce || 'Ticket OCR').trim();
+    const saveBody = {
+      concept,
+      category: data.category || 'Otro',
+      amount: Number(data.amount || 0),
+      currency: normalizeCurrency(data.currency || 'EUR'),
+      date: data.date || new Date().toISOString().split('T')[0],
+      isMonthly: isMonthlyConcept(concept),
+      description: String(data.rawText || '').slice(0, 500),
+    };
+
+    if (!(Number.isFinite(saveBody.amount) && saveBody.amount > 0)) {
+      throw new Error('No se detectó un importe válido en el ticket.');
+    }
+
+    const saveRes = await fetch(API + '/expenses', {
+      method: 'POST',
+      headers: authHeaders(),
+      body: JSON.stringify(saveBody),
+    });
+    if (saveRes.status === 401) { logout(); return; }
+    if (!saveRes.ok) throw new Error((await saveRes.json()).message || 'No se pudo guardar el gasto desde OCR');
+
+    await loadExpenses();
+    msg.innerHTML = '<span style="color:var(--k-success)"><i class="bi bi-check-circle me-1"></i>Ticket procesado y gasto guardado automáticamente.</span>';
   } catch(err) {
     document.getElementById('ocrOutput').textContent = 'Error: ' + err.message;
     msg.innerHTML = `<span style="color:var(--k-danger,#ef4444)"><i class="bi bi-exclamation-circle me-1"></i>${escHtml(err.message)}</span>`;
@@ -950,9 +1006,9 @@ function renderRecurringCommitments(data) {
   if (!wrap) return;
 
   const recurring = data
-    .filter(e => ['Suscripciones', 'Vivienda'].includes(e.category || ''))
+    .filter(e => e.isMonthly || ['Suscripciones', 'Vivienda'].includes(e.category || ''))
     .reduce((acc, e) => {
-      const concept = (e.concept || e.description || 'Sin concepto').trim();
+      const concept = (e.concept || e.commerce || e.description || 'Sin concepto').trim();
       if (!concept) return acc;
       if (!acc[concept]) acc[concept] = { concept, amount: 0, count: 0 };
       acc[concept].amount += convertAmount(e.amount, e.currency, displayCurrency);

@@ -66,6 +66,7 @@ Arquitectura basada en frontend estatico + backend NestJS REST con JWT.
 - amount
 - currency (ARS, USD, EUR, GBP, MXN)
 - participants
+- isMonthly (boolean)
 - user relation
 - createdAt
 - updatedAt
@@ -124,9 +125,11 @@ Recomendaciones adicionales para siguiente etapa:
 ====================================================================
 6.1 Usuario
 - CRUD de gastos.
+- Marcado de gastos mensuales + autodeteccion por concepto.
 - KPIs de resumen.
 - Filtros por categoria.
 - OCR ticket.
+- OCR ticket con alta automatica de gasto en dashboard.
 - Presupuestos visuales.
 - Insights rapidos:
   - mes actual vs anterior

@@ -81,9 +81,10 @@ export class ExpensesService {
       date: dto.date,
       amount: dto.amount,
       category: dto.category,
-      description: dto.description ?? '',
+      description: dto.description ?? dto.concept ?? '',
       currency: dto.currency,
       participants: dto.participants ?? 1,
+      isMonthly: dto.isMonthly ?? false,
       user: { id: userId } as Expense['user'],
     });
 
@@ -115,6 +116,9 @@ export class ExpensesService {
     const patch: Partial<Expense> = { ...dto };
     if (dto.concept && !dto.commerce) {
       patch.commerce = dto.concept;
+      if (!dto.description) {
+        patch.description = dto.concept;
+      }
     }
 
     Object.assign(expense, patch);

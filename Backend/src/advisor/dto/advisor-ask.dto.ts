@@ -9,8 +9,9 @@ export class AdvisorAskDto {
   @IsString()
   apiKey?: string;
 
+  @IsOptional()
   @IsString()
-  userId: string;
+  userId?: string;
 
   @IsString()
   question: string;

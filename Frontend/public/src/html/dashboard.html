@@ -340,6 +340,15 @@
           <h1 class="dash-page-title">Presupuestos</h1>
           <p class="dash-page-sub">Controla cuánto gastas por categoría</p>
         </div>
+        <div style="min-width:220px">
+          <label class="dash-label mb-1" for="displayCurrencySelect">Moneda de visualización</label>
+          <select id="displayCurrencySelect" class="dash-input" style="padding:.48rem .7rem">
+            <option value="EUR">EUR (€)</option>
+            <option value="USD">USD ($)</option>
+            <option value="ARS">ARS ($)</option>
+          </select>
+          <div id="fxInfo" style="font-size:.74rem;color:var(--k-muted);margin-top:.35rem"></div>
+        </div>
       </div>
 
       <div class="row g-3" id="budgetGrid">
@@ -535,11 +544,91 @@ function authHeaders() {
 
 // ── Load expenses (overview + full list) ──────────────────
 let allExpenses = [];
+const SUPPORTED_CURRENCIES = ['EUR', 'USD', 'ARS'];
+const FX_FALLBACK_FROM_EUR = { EUR: 1, USD: 1.08, ARS: 1200 };
+let ratesFromEur = { ...FX_FALLBACK_FROM_EUR };
+let displayCurrency = String(localStorage.getItem('klarity_display_currency') || 'EUR').toUpperCase();
+if (!SUPPORTED_CURRENCIES.includes(displayCurrency)) displayCurrency = 'EUR';
+
+function normalizeCurrency(currency) {
+  const safe = String(currency || 'EUR').toUpperCase();
+  return SUPPORTED_CURRENCIES.includes(safe) ? safe : 'EUR';
+}
+
+function convertAmount(amount, fromCurrency, toCurrency = displayCurrency) {
+  const numeric = Number(amount || 0);
+  if (!Number.isFinite(numeric)) return 0;
+  const from = normalizeCurrency(fromCurrency);
+  const to = normalizeCurrency(toCurrency);
+  if (from === to) return numeric;
+
+  const fromRate = Number(ratesFromEur[from] || 1);
+  const toRate = Number(ratesFromEur[to] || 1);
+  if (fromRate <= 0 || toRate <= 0) return numeric;
+
+  const inEur = from === 'EUR' ? numeric : numeric / fromRate;
+  return to === 'EUR' ? inEur : inEur * toRate;
+}
+
+function formatMoney(amount, currency = displayCurrency, digits = 2) {
+  return new Intl.NumberFormat('es-ES', {
+    style: 'currency',
+    currency: normalizeCurrency(currency),
+    minimumFractionDigits: digits,
+    maximumFractionDigits: digits,
+  }).format(Number(amount || 0));
+}
+
+async function refreshExchangeRates() {
+  try {
+    const url = 'https://api.frankfurter.app/latest?from=EUR&to=USD,ARS';
+    const res = await fetch(url);
+    if (!res.ok) throw new Error('FX HTTP ' + res.status);
+    const data = await res.json();
+    const apiRates = data && data.rates ? data.rates : {};
+    ratesFromEur = {
+      EUR: 1,
+      USD: Number(apiRates.USD || FX_FALLBACK_FROM_EUR.USD),
+      ARS: Number(apiRates.ARS || FX_FALLBACK_FROM_EUR.ARS),
+    };
+    const info = document.getElementById('fxInfo');
+    if (info) info.textContent = 'Tipo de cambio actualizado: ' + (data.date || 'sin fecha') + ' (Frankfurter)';
+  } catch (error) {
+    ratesFromEur = { ...FX_FALLBACK_FROM_EUR };
+    const info = document.getElementById('fxInfo');
+    if (info) info.textContent = 'No se pudo actualizar cotización en vivo, usando referencia local.';
+    console.warn('FX fallback in use', error);
+  }
+}
+
+function setupDisplayCurrencySelector() {
+  const sel = document.getElementById('displayCurrencySelect');
+  if (!sel) return;
+  sel.value = displayCurrency;
+  sel.addEventListener('change', async () => {
+    displayCurrency = normalizeCurrency(sel.value);
+    localStorage.setItem('klarity_display_currency', displayCurrency);
+    await refreshExchangeRates();
+    renderKPIs(allExpenses);
+    renderRecentTable(allExpenses.slice(0, 6));
+    renderChart(allExpenses);
+    renderFullTable(allExpenses);
+    loadBudgets();
+  });
+}
+
+function normalizeExpenses(list) {
+  return (Array.isArray(list) ? list : []).map((expense) => ({
+    ...expense,
+    currency: normalizeCurrency(expense.currency),
+  }));
+}
+
 async function loadExpenses() {
   try {
     const res = await fetch(API + '/expenses', { headers: authHeaders() });
     if (res.status === 401) { logout(); return; }
-    allExpenses = await res.json();
+    allExpenses = normalizeExpenses(await res.json());
     renderKPIs(allExpenses);
     renderRecentTable(allExpenses.slice(0, 6));
     renderChart(allExpenses);
@@ -552,7 +641,14 @@ async function loadExpenses() {
     console.error('Error loading expenses', e);
   }
 }
-loadExpenses();
+
+async function initDashboard() {
+  setupDisplayCurrencySelector();
+  await refreshExchangeRates();
+  await loadExpenses();
+  loadBudgets();
+}
+initDashboard();
 
 // ── KPIs ──────────────────────────────────────────────────
 function renderKPIs(data) {
@@ -566,14 +662,16 @@ function renderKPIs(data) {
     const pm = new Date(now.getFullYear(), now.getMonth() - 1, 1);
     return d.getMonth() === pm.getMonth() && d.getFullYear() === pm.getFullYear();
   });
-  const total = thisMonth.reduce((s, e) => s + (+e.amount || 0), 0);
-  const prevTotal = prevMonth.reduce((s, e) => s + (+e.amount || 0), 0);
-  document.getElementById('kpiTotal').textContent = '€' + total.toFixed(2);
+  const total = thisMonth.reduce((s, e) => s + convertAmount(e.amount, e.currency), 0);
+  const prevTotal = prevMonth.reduce((s, e) => s + convertAmount(e.amount, e.currency), 0);
+  document.getElementById('kpiTotal').textContent = formatMoney(total, displayCurrency, 2);
   document.getElementById('kpiCount').textContent = data.length;
 
   // Top category this month
   const catMap = {};
-  thisMonth.forEach(e => { catMap[e.category||'Otro'] = (catMap[e.category||'Otro']||0) + (+e.amount||0); });
+  thisMonth.forEach(e => {
+    catMap[e.category||'Otro'] = (catMap[e.category||'Otro']||0) + convertAmount(e.amount, e.currency);
+  });
   const topCat = Object.keys(catMap).sort((a,b) => catMap[b]-catMap[a])[0] || '—';
   document.getElementById('kpiTop').textContent = topCat;
 
@@ -590,12 +688,12 @@ function renderKPIs(data) {
       deltaEl.textContent = 'Sin movimiento en los últimos 2 meses';
       deltaEl.style.color = 'var(--k-muted)';
     } else if (prevTotal <= 0) {
-      deltaEl.textContent = 'Nuevo gasto este mes: €' + total.toFixed(2);
+      deltaEl.textContent = 'Nuevo gasto este mes: ' + formatMoney(total, displayCurrency, 2);
       deltaEl.style.color = 'var(--k-primary)';
     } else {
       const pct = ((total - prevTotal) / prevTotal) * 100;
       const arrow = pct >= 0 ? '▲' : '▼';
-      deltaEl.textContent = arrow + ' ' + Math.abs(pct).toFixed(1) + '% (€' + total.toFixed(2) + ' vs €' + prevTotal.toFixed(2) + ')';
+      deltaEl.textContent = arrow + ' ' + Math.abs(pct).toFixed(1) + '% (' + formatMoney(total, displayCurrency, 2) + ' vs ' + formatMoney(prevTotal, displayCurrency, 2) + ')';
       deltaEl.style.color = pct > 0 ? 'var(--k-danger)' : 'var(--k-success)';
     }
   }
@@ -632,7 +730,7 @@ function renderRecentTable(data) {
     <tr>
       <td><strong>${escHtml(e.concept||e.description||'Sin concepto')}</strong></td>
       <td>${catDot(e.category)}</td>
-      <td><strong>€${(+e.amount||0).toFixed(2)}</strong></td>
+      <td><strong>${formatMoney(convertAmount(e.amount, e.currency), displayCurrency, 2)}</strong></td>
       <td>${fmtDate(e.date||e.createdAt)}</td>
       <td><button class="dash-btn-icon danger" onclick="deleteExpense('${e.id}')" title="Eliminar"><i class="bi bi-trash3"></i></button></td>
     </tr>`).join('');
@@ -711,13 +809,15 @@ function renderChart(data) {
   const legend = document.getElementById('chartLegend');
   if (!wrap) return;
   const catTotals = {};
-  data.forEach(e => { catTotals[e.category||'Otro'] = (catTotals[e.category||'Otro']||0) + (+e.amount||0); });
+  data.forEach(e => {
+    catTotals[e.category||'Otro'] = (catTotals[e.category||'Otro']||0) + convertAmount(e.amount, e.currency);
+  });
   const entries = Object.entries(catTotals).sort((a,b)=>b[1]-a[1]).slice(0,7);
   if (!entries.length) { wrap.innerHTML = '<div class="dash-empty w-100"><i class="bi bi-bar-chart d-block"></i>Sin datos</div>'; return; }
   const maxVal = Math.max(...entries.map(e=>e[1]));
   const COLORS = ['#3b82f6','#06b6d4','#f59e0b','#7c3aed','#10b981','#ef4444','#94a3b8'];
   wrap.innerHTML = entries.map(([cat, val], i) => `
-    <div class="bar-item" style="height:${Math.max(12, (val/maxVal)*100)}%;background:${COLORS[i%COLORS.length]}" title="${cat}: €${val.toFixed(2)}"></div>
+    <div class="bar-item" style="height:${Math.max(12, (val/maxVal)*100)}%;background:${COLORS[i%COLORS.length]}" title="${cat}: ${formatMoney(val, displayCurrency, 2)}"></div>
   `).join('');
   if(legend) legend.innerHTML = entries.map(([cat,val],i)=>`
     <span style="display:flex;align-items:center;gap:.3rem"><span style="width:9px;height:9px;border-radius:50%;background:${COLORS[i%COLORS.length]};flex-shrink:0"></span>${escHtml(cat)}</span>
@@ -805,7 +905,7 @@ async function submitOcr(e) {
 }
 
 // ── Budgets ───────────────────────────────────────────────
-const DEFAULT_BUDGETS = {
+const DEFAULT_BUDGETS_EUR = {
   'Alimentación': 300, 'Transporte': 100, 'Ocio': 80,
   'Suscripciones': 50, 'Salud': 100, 'Vivienda': 600, 'Otro': 150
 };
@@ -813,21 +913,24 @@ function loadBudgets() {
   const grid = document.getElementById('budgetGrid');
   if (!grid) return;
   const saved = JSON.parse(localStorage.getItem('klarity_budgets') || '{}');
-  const budgets = Object.assign({}, DEFAULT_BUDGETS, saved);
+  const budgetsEur = Object.assign({}, DEFAULT_BUDGETS_EUR, saved);
   const now = new Date();
   const monthExpenses = allExpenses.filter(e => {
     const d = new Date(e.date || e.createdAt);
     return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
   });
-  grid.innerHTML = Object.entries(budgets).map(([cat, limit]) => {
-    const spent = monthExpenses.filter(e => (e.category||'Otro') === cat).reduce((s,e) => s+(+e.amount||0), 0);
-    const pct = Math.min(100, (spent / limit) * 100);
+  grid.innerHTML = Object.entries(budgetsEur).map(([cat, limitEur]) => {
+    const spent = monthExpenses
+      .filter(e => (e.category||'Otro') === cat)
+      .reduce((s, e) => s + convertAmount(e.amount, e.currency, displayCurrency), 0);
+    const limit = convertAmount(limitEur, 'EUR', displayCurrency);
+    const pct = Math.min(100, limit > 0 ? (spent / limit) * 100 : 0);
     const color = pct >= 90 ? '#ef4444' : pct >= 70 ? '#f59e0b' : 'var(--k-primary)';
     return `<div class="col-12 col-sm-6 col-xl-4">
       <div class="dash-panel">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.75rem">
           <strong style="font-size:.92rem">${escHtml(cat)}</strong>
-          <span style="font-size:.8rem;color:var(--k-muted)">€${spent.toFixed(0)} / €${limit}</span>
+          <span style="font-size:.8rem;color:var(--k-muted)">${formatMoney(spent, displayCurrency, 0)} / ${formatMoney(limit, displayCurrency, 0)}</span>
         </div>
         <div style="background:var(--k-bg);border-radius:999px;height:8px;overflow:hidden">
           <div style="width:${pct}%;height:100%;background:${color};border-radius:999px;transition:width .4s"></div>
@@ -852,7 +955,7 @@ function renderRecurringCommitments(data) {
       const concept = (e.concept || e.description || 'Sin concepto').trim();
       if (!concept) return acc;
       if (!acc[concept]) acc[concept] = { concept, amount: 0, count: 0 };
-      acc[concept].amount += (+e.amount || 0);
+      acc[concept].amount += convertAmount(e.amount, e.currency, displayCurrency);
       acc[concept].count += 1;
       return acc;
     }, {});
@@ -872,11 +975,11 @@ function renderRecurringCommitments(data) {
   wrap.innerHTML = `<div style="display:flex;flex-direction:column;gap:.55rem">${rows.map(r => `
     <div style="display:flex;justify-content:space-between;gap:.75rem;border-bottom:1px dashed var(--k-border);padding-bottom:.4rem">
       <span>${escHtml(r.concept)} <span style="color:var(--k-muted);font-size:.8rem">(${r.count} registros)</span></span>
-      <strong>€${r.estNext.toFixed(2)}</strong>
+      <strong>${formatMoney(r.estNext, displayCurrency, 2)}</strong>
     </div>`).join('')}
     <div style="display:flex;justify-content:space-between;margin-top:.4rem">
       <span style="color:var(--k-muted)">Total estimado próximo mes</span>
-      <strong style="color:var(--k-primary)">€${total.toFixed(2)}</strong>
+      <strong style="color:var(--k-primary)">${formatMoney(total, displayCurrency, 2)}</strong>
     </div>
   </div>`;
 }

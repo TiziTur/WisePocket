@@ -107,7 +107,7 @@ export class AdvisorService {
   }
 
   async askAdvisor(advisorUserId: string, dto: AdvisorAskDto) {
-    const targetUserId = String(dto.userId);
+    const targetUserId = dto.userId ? String(dto.userId) : advisorUserId;
     const overview = await this.getUserOverview(targetUserId);
     const patterns = await this.getUserPatterns(targetUserId);
 

@@ -116,21 +116,39 @@ export class AdvisorService {
     const monthlyAverage = Number(patterns.monthlyAverage || 0);
     const spikes = Array.isArray(patterns.unusualExpenses) ? patterns.unusualExpenses.length : 0;
 
-    const lines: string[] = [];
-    lines.push(`Analisis para ${overview.user.name || overview.user.email}:`);
-    lines.push(`- Gasto total registrado: $${total.toFixed(2)}.`);
-    lines.push(`- Categoria de mayor impacto: ${topCategory}.`);
-    lines.push(`- Promedio mensual estimado: $${monthlyAverage.toFixed(2)}.`);
-    if (spikes > 0) {
-      lines.push(`- Se detectaron ${spikes} gastos inusuales que conviene revisar.`);
-    }
+    const userLabel = overview.user.name || overview.user.email;
+    const spikesText = spikes > 0
+      ? `Se detectaron ${spikes} gastos inusuales.`
+      : 'No se detectaron picos críticos en el período analizado.';
 
-    lines.push('Recomendaciones accionables:');
-    lines.push(`1) Definir un tope mensual para ${topCategory}.`);
-    lines.push('2) Activar una revision semanal de los gastos de mayor monto.');
-    lines.push('3) Priorizar reducciones en suscripciones y ocio si se supera el promedio mensual.');
+    const sections = {
+      problema: `Tu principal presión de gasto está en ${topCategory}, con un total acumulado de $${total.toFixed(2)}.`,
+      diagnostico: [
+        `Gasto total registrado: $${total.toFixed(2)}.`,
+        `Promedio mensual estimado: $${monthlyAverage.toFixed(2)}.`,
+        spikesText,
+      ],
+      solucionRecomendada: [
+        `Definir un tope mensual específico para ${topCategory}.`,
+        'Activar una revisión semanal de los 3 gastos más altos.',
+        'Aplicar regla 50/30/20 simplificada: recortar primero ocio y suscripciones.',
+      ],
+      proximoPaso: 'Durante los próximos 7 días, registra cada gasto y compara contra el tope semanal para medir mejora.',
+    };
 
-    const answer = lines.join('\n');
+    const answer = [
+      `Analisis para ${userLabel}`,
+      '',
+      `Problema principal: ${sections.problema}`,
+      '',
+      'Diagnostico:',
+      ...sections.diagnostico.map((item) => `- ${item}`),
+      '',
+      'Solucion recomendada:',
+      ...sections.solucionRecomendada.map((item, idx) => `${idx + 1}) ${item}`),
+      '',
+      `Proximo paso: ${sections.proximoPaso}`,
+    ].join('\n');
 
     const created = this.recRepository.create({
       advisorUserId,
@@ -144,6 +162,7 @@ export class AdvisorService {
     return {
       id: created.id,
       answer,
+      sections,
       saved: true,
       createdAt: created.createdAt,
     };

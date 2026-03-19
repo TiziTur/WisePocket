@@ -127,9 +127,11 @@ Recomendaciones adicionales para siguiente etapa:
 - CRUD de gastos.
 - Marcado de gastos mensuales + autodeteccion por concepto.
 - KPIs de resumen.
+- Selector global de moneda de visualizacion (impacta KPIs, tablas y graficos).
 - Filtros por categoria.
 - OCR ticket.
 - OCR ticket con alta automatica de gasto en dashboard.
+- Confirmacion visual de eliminacion de gasto con modal propio.
 - Presupuestos visuales.
 - Insights rapidos:
   - mes actual vs anterior
@@ -144,6 +146,7 @@ Recomendaciones adicionales para siguiente etapa:
 - Resumen visual por cliente.
 - Patrones visuales con timeline y picos.
 - Generacion de recomendaciones.
+- Presentacion de respuesta IA por secciones (Problema, Diagnostico, Solucion, Proximo paso).
 - Persistencia e historial de recomendaciones.
 
 6.3 Admin

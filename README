@@ -80,14 +80,17 @@ Klarity es una plataforma moderna de gestión financiera que empodera a usuarios
 
 ### Extras Implementados
 - 🌍 Soporte multi-moneda (ARS, USD, EUR, GBP, MXN)
+- 🔄 Selector de moneda de visualización global en resumen/presupuestos
 - 💰 Presupuestos y límites de gasto con visualización de progreso
 - 🔁 Marcado de gastos mensuales con autodetección por concepto
 - 🎨 Sistema de temas (modo oscuro/claro) persistente
 - 🌐 Internacionalización completo (ES/EN)
 - 🤖 Chatbot asesor financiero integrado
+- 🧠 Respuesta del asesor en formato seccionado (Problema, Diagnóstico, Solución, Próximo paso)
 - 📊 Gráficos interactivos de gasto por categoría
 - 🔐 RBAC (Control de Acceso Basado en Roles) avanzado
 - ♿ Accesibilidad WCAG completa (aria-labels, navegación por teclado)
+- 🗑️ Confirmación visual personalizada para eliminar gastos (sin popup nativo)
 
 ---
 

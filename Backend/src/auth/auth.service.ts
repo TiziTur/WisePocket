@@ -44,7 +44,7 @@ export class AuthService implements OnModuleInit {
       email,
       name: String(dto.name || '').trim(),
       passwordHash,
-      role: dto.role ?? Role.USER,
+      role: Role.USER,
       emailVerified: true,
       emailVerificationTokenHash: null,
       emailVerificationExpiresAt: null,

@@ -232,7 +232,8 @@ Despliegue full Railway:
 - Se agrego estrategia profesional de idioma con landing separada: ES (`/`) y EN (`/en`).
 - Se agrego selector de idioma persistente en login, dashboard, advisor y admin.
 
-10) CAMBIOS RECIENTES (2026-03-29)
+====================================================================
+10) CAMBIOS RECIENTES (2026-03-29 — Despliegue Railway)
 ====================================================================
 - Se preparo el proyecto para despliegue 100% en Railway (frontend + backend + DB).
 - Se agrego frontend server sin frameworks (`Frontend/server.js`) con rutas limpias y runtime-config.
@@ -245,5 +246,56 @@ Despliegue full Railway:
 - Se ajustaron favicons por contexto (marca en landing, seguridad en login).
 - Se extendio i18n de login para botones, placeholders, recuperacion, Google y mensajes runtime.
 - Se agrego cobertura i18n puntual para textos remanentes en login y seccion presupuestos del dashboard.
+
+====================================================================
+11) CAMBIOS RECIENTES (2026-03-28 — i18n completo ES/EN)
+====================================================================
+Objetivo: internacionalizacion total de la aplicacion. Todo texto visible, aria-label,
+placeholder y title attribute es traducible. Las paginas usan tres capas coordinadas.
+
+11.1 Sistema i18n — arquitectura de tres capas
+- `lang.js`: routing de idioma, localStorage, redireccion (/ = ES, /en = EN). Solo lectura.
+- `i18n.js`: capa primaria. Diccionario ES+EN con ~250 claves. Aplica data-i18n (innerHTML),
+  data-i18n-placeholder, data-i18n-title y data-i18n-aria. Expone window.__klarityI18n y
+  window.setLang / window.getLang.
+- `universal-i18n.js`: capa de seguridad. Reemplaza nodos de texto no cubiertos por data-i18n
+  mediante regex. Solo actua cuando lang === 'en'.
+
+11.2 T() helper — strings renderizadas por JS
+Patron usado en dashboard.html, advisor.html y admin.html para strings inyectadas via innerHTML/textContent:
+  function T(key) {
+    const lang = window.getLang ? window.getLang() : (localStorage.getItem('klarity-lang') || 'es');
+    const dict = window.__klarityI18n && window.__klarityI18n[lang];
+    return (dict && dict[key] !== undefined) ? dict[key] : key;
+  }
+
+11.3 Orden de carga de scripts (todas las paginas de app)
+  runtime-config.js → theme.js → lang.js → i18n.js → universal-i18n.js → script de pagina
+
+11.4 Correcciones criticas aplicadas a i18n.js
+- Objeto TRANSLATIONS tenia ; de cierre faltante — corregido.
+- applyLang() no manejaba data-i18n-title ni data-i18n-aria — agregados.
+- window.__klarityI18n no estaba expuesto — corregido (una linea).
+
+11.5 Paginas completadas
+- login.html: script i18n.js agregado; data-i18n en todos los textos; data-i18n-placeholder
+  en inputs; data-i18n-title y data-i18n-aria en botones de password toggle; claves
+  login.* agregadas al diccionario ES+EN.
+- dashboard.html: tratamiento data-i18n completo en HTML; refactor T() completo en JS
+  (saludos, mensajes FX, estados vacios, tabla, categorias, KPIs, barras de presupuesto,
+  compromisos recurrentes, asesor IA, perfil, modal de borrado); fmtDate() y KPI de fecha
+  usan locale dinamico segun idioma activo.
+- advisor.html: script i18n.js agregado; data-i18n en todos los nodos de texto; T() refactor
+  completo (status labels Alto riesgo/Atencion/Saludable, vacios, KPIs de resumen y patrones,
+  historial de recomendaciones, locale dinamico).
+- admin.html: script i18n.js agregado; data-i18n en todos los nodos de texto; T() refactor
+  completo (tabla de usuarios/gastos, cambio de rol confirm(), checkHealth() strings,
+  fmtDate() y chart locale dinamicos, vacios).
+
+11.6 Claves i18n nuevas — prefijos por pagina/seccion
+- login.*       — pagina de autenticacion
+- dash.*        — dashboard de usuario (incluyendo dash.js.* para runtime)
+- adv.*         — panel asesor (incluyendo adv.js.* para runtime)
+- adm.*         — panel admin (incluyendo adm.js.* para runtime)
 
 Fin del documento.

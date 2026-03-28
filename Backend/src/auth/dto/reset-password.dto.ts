@@ -10,7 +10,7 @@ export class ResetPasswordDto {
   @MinLength(10)
   @MaxLength(128)
   @Matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d]).+$/, {
-    message: 'La contrasena debe incluir mayuscula, minuscula, numero y simbolo.',
+    message: 'Password must include an uppercase letter, a lowercase letter, a number, and a symbol.',
   })
   password: string;
 }

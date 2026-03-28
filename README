@@ -3,48 +3,48 @@
 Aplicacion web full-stack para la gestion financiera personal con dashboards por rol, analisis de gastos en tiempo real y recomendaciones impulsadas por IA.
 
 **Proyecto:** Ingenieria Web II (2026)  
-**Estado:** En proceso  
+**Estado:** Completo  
 **Ultima actualizacion:** 28 de Marzo de 2026
 
 > Nota operativa: los campos de expiracion de tokens usan `type: Date` en TypeORM para asegurar compatibilidad entre PostgreSQL (Railway) y SQLite (local).
 
 ---
 
-## 🎯 Descripcion General
+## Descripcion General
 
-Klarity es una plataforma moderna de gestion financiera que permite registrar, analizar y optimizar gastos personales. Incluye arquitectura cliente-servidor, soporte multi-moneda y paneles especializados por rol (usuario, asesor y administrador).
+Klarity es una plataforma moderna de gestion financiera que permite registrar, analizar y optimizar gastos personales. Incluye arquitectura cliente-servidor, soporte multi-moneda y paneles especializados por rol (usuario, asesor y administrador). Toda la interfaz es completamente bilingue (ES/EN) con persistencia de preferencia de idioma.
 
 ---
 
-## 🛠️ Stack Tecnologico
+## Stack Tecnologico
 
 | Capa | Tecnologias |
 |------|-------------|
-| Frontend | HTML5, CSS3, JavaScript ES6+, Bootstrap Icons |
-| Diseno | Sistema Klarity personalizado, responsive |
+| Frontend | HTML5, CSS3, JavaScript ES6+, Bootstrap 5, Bootstrap Icons |
+| Diseno | Sistema Klarity personalizado, responsive (mobile-first) |
 | Backend | NestJS, TypeORM, PostgreSQL/SQLite |
 | Autenticacion | JWT + RBAC, verificacion por correo, recuperacion de cuenta, Google Sign-In |
 | OCR e IA | OCR.space + fallback Tesseract, OpenAI/Anthropic opcional |
 | Hosting | Railway (Frontend + Backend + DB) |
-| Internacionalizacion | ES/EN (con cobertura global en todas las paginas) |
+| Internacionalizacion | ES/EN — cobertura completa en todas las paginas (HTML + JS runtime) |
 
 ---
 
-## 🏗️ Arquitectura del Sistema
+## Arquitectura del Sistema
 
 ```txt
 ┌─────────────────────────────────────────────────────────┐
-│                  NAVEGADOR (Frontend)                  │
+│                  NAVEGADOR (Frontend)                   │
 │  ┌──────────────┬──────────────┬──────────────────────┐ │
 │  │  Dashboard   │   Advisor    │      Admin Panel     │ │
 │  │  (Usuario)   │   (Asesor)   │   (Administrador)    │ │
 │  └──────────────┴──────────────┴──────────────────────┘ │
-│                 (Hosted en Netlify)                    │
+│                  (Hosted en Railway)                    │
 └──────────────────────┬──────────────────────────────────┘
                        │ REST API / JWT
                        ↓
 ┌─────────────────────────────────────────────────────────┐
-│               BACKEND NestJS (Railway)                 │
+│               BACKEND NestJS (Railway)                  │
 │  ┌─────────────────────────────────────────────────────┐│
 │  │   Auth | Users | Expenses | Advisor | Tickets/OCR  ││
 │  └─────────────────────────────────────────────────────┘│
@@ -58,7 +58,7 @@ Klarity es una plataforma moderna de gestion financiera que permite registrar, a
 
 ---
 
-## 👥 Roles y Permisos
+## Roles y Permisos
 
 | Rol | Acceso | Funcionalidades |
 |-----|--------|-----------------|
@@ -68,48 +68,69 @@ Klarity es una plataforma moderna de gestion financiera que permite registrar, a
 
 ---
 
-## ✨ Funcionalidades Principales
+## Funcionalidades Principales
 
-### Cumplidas (Requisitos)
-- ✅ Autenticacion JWT con registro y login seguro.
-- ✅ Gestion de perfiles con edicion.
-- ✅ CRUD completo de gastos.
-- ✅ Carga de tickets con OCR para extraccion automatica.
-- ✅ Visualizacion de gastos y dashboards analiticos.
-- ✅ Analisis de patrones de consumo.
-- ✅ Recomendaciones financieras.
-- ✅ Sistema de roles (usuario, asesor, administrador).
+### Requisitos cumplidos
+- Autenticacion JWT con registro y login seguro.
+- Gestion de perfiles con edicion.
+- CRUD completo de gastos.
+- Carga de tickets con OCR para extraccion automatica.
+- Visualizacion de gastos y dashboards analiticos.
+- Analisis de patrones de consumo.
+- Recomendaciones financieras.
+- Sistema de roles (usuario, asesor, administrador).
 
-### Extras Implementados
-- 🌍 Soporte multi-moneda (ARS, USD, EUR, GBP, MXN).
-- 🔄 Selector global de moneda de visualizacion.
-- 💰 Presupuestos y limites de gasto con barra de progreso.
-- 🔁 Marcado de gastos mensuales con autodeteccion por concepto.
-- 🎨 Sistema de temas (claro/oscuro) persistente.
-- 🌐 Internacionalizacion ES/EN con cobertura completa en todas las pages.
-- 🧭 Landing separada por idioma (`/` en ES y `/en` en EN) con preferencia persistida.
-- 🌍 Selector de idioma tambien en login, dashboard, advisor y admin.
-- 🧩 Cobertura extendida de traducciones runtime para textos dinamicos y secciones no etiquetadas.
-- 🧹 Landing simplificada sin Demo Lab para foco comercial y mejor claridad visual.
-- 🥧 Resumen de gastos por categoria en dashboard renovado con grafico de torta y porcentajes.
-- 🌐 Footer y mockup de landing con claves i18n completas (sin textos mixtos ES/EN).
-- 🧷 Favicons diferenciados por contexto: marca Klarity en landing y candado en login para reforzar semantica de seguridad.
-- 🔤 Login con internacionalizacion extendida (acciones, recuperacion, Google y placeholders).
-- ✅ Cobertura i18n reforzada en login (tabs/botones) y presupuesto dashboard (labels + estados).
-- 🤖 Chatbot asesor financiero integrado.
-- 🧠 Respuesta de asesor en formato seccionado (Problema, Diagnostico, Solucion, Proximo paso).
-- 📊 Graficos interactivos de gasto por categoria.
-- 🔐 Verificacion de correo al registrarse.
-- 🔑 Recuperacion de cuenta por email con token temporal.
-- 🧩 Login/registro con Google (ID Token).
-- 🚦 Rate limiting global y por endpoints de autenticacion.
-- 🛡️ Endurecimiento de seguridad en auth (DTOs, validaciones fuertes, tokens hasheados).
-- 🗑️ Confirmacion visual personalizada para eliminar gastos.
-- 🙈 Remocion de credenciales demo visibles en pantalla de login.
+### Extras implementados
+- Soporte multi-moneda (ARS, USD, EUR, GBP, MXN) con selector global de visualizacion.
+- Presupuestos y limites de gasto con barra de progreso.
+- Marcado de gastos mensuales con autodeteccion por concepto.
+- Sistema de temas (claro/oscuro) persistente.
+- Internacionalizacion ES/EN completa en todas las paginas:
+  - Tres capas: `i18n.js` (data-i18n), `universal-i18n.js` (runtime regex), `T()` helper (JS dinamico).
+  - Cobertura de texto estatico, placeholders, aria-labels, title attributes y strings renderizadas por JS.
+  - Landing separada por idioma (`/` en ES, `/en` en EN) con preferencia persistida en localStorage.
+  - Selector de idioma en login, dashboard, advisor y admin.
+- Chatbot asesor financiero integrado con respuesta seccionada (Problema, Diagnostico, Solucion, Proximo paso).
+- Graficos interactivos de gasto por categoria (torta con porcentajes).
+- Semaforo financiero por cliente en panel asesor (Saludable / Atencion / Alto riesgo).
+- Historial de recomendaciones IA por cliente.
+- Verificacion de correo al registrarse.
+- Recuperacion de cuenta por email con token temporal.
+- Login/registro con Google (ID Token).
+- Rate limiting global y por endpoints de autenticacion.
+- Endurecimiento de seguridad en auth (DTOs, validaciones fuertes, tokens hasheados SHA-256).
+- Confirmacion visual personalizada para eliminar gastos.
 
 ---
 
-## 🚀 Ejecucion Local
+## Sistema i18n (Tres Capas)
+
+```
+Frontend/public/src/js/
+├── lang.js             — routing de idioma, localStorage, redireccion (/ = ES, /en = EN)
+├── i18n.js             — diccionario ES+EN; aplica data-i18n, data-i18n-placeholder,
+│                         data-i18n-title, data-i18n-aria; expone window.__klarityI18n
+└── universal-i18n.js   — red de seguridad: reemplazo regex de nodos de texto no cubiertos
+                          (solo corre cuando lang === 'en')
+```
+
+**T() helper** (usado en dashboard.html, advisor.html, admin.html):
+```js
+function T(key) {
+  const lang = window.getLang ? window.getLang() : (localStorage.getItem('klarity-lang') || 'es');
+  const dict = window.__klarityI18n && window.__klarityI18n[lang];
+  return (dict && dict[key] !== undefined) ? dict[key] : key;
+}
+```
+
+**Orden de carga de scripts** requerido en todas las paginas de app:
+```
+runtime-config.js → theme.js → lang.js → i18n.js → universal-i18n.js → script de pagina
+```
+
+---
+
+## Ejecucion Local
 
 ### Backend
 
@@ -148,36 +169,38 @@ SEED_DEMO_PASSWORD=
 ### Frontend
 
 ```bash
-cd Frontend/public
-# servir archivos estaticos (Live Server, http-server, etc)
+cd Frontend
+npm install
+node server.js
+# o bien: servir Frontend/public con cualquier servidor estatico
 ```
 
-`config.js` contempla:
+`config.js` expone:
 - `window.WISEPOCKET_API_BASE_URL`
 - `window.KLARITY_GOOGLE_CLIENT_ID`
 
 ---
 
-## 📡 API Auth
+## API Auth
 
 Endpoints principales:
 
 ```txt
-POST /api/auth/register
-POST /api/auth/login
-POST /api/auth/google
-POST /api/auth/verify-email
-POST /api/auth/resend-verification
-POST /api/auth/request-password-reset
-POST /api/auth/reset-password
-GET  /api/auth/me
+POST  /api/auth/register
+POST  /api/auth/login
+POST  /api/auth/google
+POST  /api/auth/verify-email
+POST  /api/auth/resend-verification
+POST  /api/auth/request-password-reset
+POST  /api/auth/reset-password
+GET   /api/auth/me
 PATCH /api/auth/profile
 PUT   /api/auth/profile
 ```
 
 ---
 
-## 🔐 Seguridad Implementada
+## Seguridad Implementada
 
 - JWT con expiracion y rutas protegidas.
 - Passwords hasheadas con bcrypt.
@@ -185,38 +208,38 @@ PUT   /api/auth/profile
 - Reglas de password fuerte en registro/reset.
 - Rate limiting global y por endpoints sensibles de auth.
 - Tokens de verificacion y recuperacion guardados hasheados (SHA-256).
-- CORS configurable por entorno.
+- CORS configurable por entorno (lista separada por comas, normalizado internamente).
 - Helmet habilitado.
 
 ---
 
-## 🌐 Deploy (Railway Full Stack)
+## Deploy (Railway Full Stack)
 
-### Railway (Backend)
+### Railway — Backend
 - Root Directory: `Backend`
-- Configurar `DATABASE_URL`, `JWT_SECRET`, `DB_SSL`, `CORS_ORIGIN`, `APP_URL`.
+- Configurar: `DATABASE_URL`, `JWT_SECRET`, `DB_SSL`, `CORS_ORIGIN`, `APP_URL`.
 - Para auth extendido: `GOOGLE_CLIENT_ID`, `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `MAIL_FROM`.
-- Si SMTP falla por timeout, el backend no bloquea registro/recuperacion: guarda usuario/solicitud y deja fallback por logs.
+- Si SMTP falla por timeout, el backend no bloquea registro/recuperacion.
 
-### Railway (Frontend)
+### Railway — Frontend
 - Root Directory: `Frontend`
-- El frontend se sirve con `Frontend/server.js` (Node HTTP server, sin frameworks).
-- El servidor expone `runtime-config.js` para inyectar variables en runtime.
+- Servido con `Frontend/server.js` (Node HTTP, sin frameworks).
 - Variables requeridas:
   - `WISEPOCKET_API_BASE_URL=https://<tu-backend-railway>/api`
   - `KLARITY_GOOGLE_CLIENT_ID=<opcional>`
+- Inyecta configuracion runtime via `/runtime-config.js`.
 
 ### Flujo recomendado de despliegue
-1) Crear proyecto Railway.
-2) Agregar PostgreSQL.
-3) Crear servicio Backend (root `Backend`).
-4) Crear servicio Frontend (root `Frontend`).
-5) Configurar variables y dominios.
-6) Actualizar `APP_URL` y `CORS_ORIGIN` en backend con dominio real del frontend.
+1. Crear proyecto Railway.
+2. Agregar PostgreSQL.
+3. Crear servicio Backend (root `Backend`).
+4. Crear servicio Frontend (root `Frontend`).
+5. Configurar variables y dominios.
+6. Actualizar `APP_URL` y `CORS_ORIGIN` en backend con dominio real del frontend.
 
 ---
 
-## 📁 Estructura
+## Estructura
 
 ```txt
 Proyecto_IngWeb_2/
@@ -229,13 +252,25 @@ Proyecto_IngWeb_2/
 │   │   ├── advisor/
 │   │   └── main.ts
 │   └── .env.example
-├── Frontend/public/src/
-│   ├── html/
-│   ├── css/
-│   └── js/
-├── Frontend/server.js
-├── Frontend/railway.json
-├── Frontend/package.json
+├── Frontend/
+│   ├── public/src/
+│   │   ├── html/
+│   │   │   ├── index.html      (landing ES)
+│   │   │   ├── en.html         (landing EN)
+│   │   │   ├── login.html
+│   │   │   ├── dashboard.html
+│   │   │   ├── advisor.html
+│   │   │   └── admin.html
+│   │   ├── css/
+│   │   └── js/
+│   │       ├── i18n.js
+│   │       ├── universal-i18n.js
+│   │       ├── lang.js
+│   │       ├── theme.js
+│   │       └── config.js
+│   ├── server.js
+│   ├── railway.json
+│   └── package.json
 ├── docs/
 │   ├── DOCUMENTACION_PROCESO_PROYECTO.txt
 │   └── MATRIZ_QA_DEPLOY.txt
@@ -244,13 +279,6 @@ Proyecto_IngWeb_2/
 
 ---
 
-## 📊 Commits relevantes recientes
-
-- `83c9c85` Harden auth flows and complete English localization coverage
-- `d48bab3` Improve advisor UX, global currency selector and custom delete modal
-
----
-
-## 🔗 Repositorio
+## Repositorio
 
 - https://github.com/TiziTur/Proyecto_IngWeb_2

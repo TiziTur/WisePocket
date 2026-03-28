@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Panel Asesor — Klarity</title>
+  <title>Advisor Panel — Klarity</title>
   <link rel="icon" type="image/svg+xml"
         href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%233b82f6'><path d='M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5'/></svg>" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -19,50 +19,50 @@
 
   <!-- ── Top bar ─────────────────────────────────────────── -->
   <header class="dash-topbar">
-    <button class="dash-menu-btn" onclick="toggleSidebar()"><i class="bi bi-list"></i></button>
+    <button class="dash-menu-btn" onclick="toggleSidebar()" data-i18n-aria="dash.menuBtn.aria" data-i18n-title="dash.menuBtn.title"><i class="bi bi-list"></i></button>
     <a href="/" class="dash-topbar-brand">
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--k-primary)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
       Klarity
-      <span class="role-chip rc-advisor ms-2" style="font-size:.68rem">Asesor</span>
+      <span class="role-chip rc-advisor ms-2" style="font-size:.68rem" data-i18n="adv.role.chip">Asesor</span>
     </a>
     <div class="dash-topbar-right">
-      <div class="topbar-lang-switch" aria-label="Language selector">
+      <div class="topbar-lang-switch" data-i18n-aria="dash.overlay.aria">
         <button class="k-lang-btn active" id="btnES" type="button" onclick="setLang('es')" title="Español">ES</button>
         <button class="k-lang-btn" id="btnEN" type="button" onclick="setLang('en')" title="English">EN</button>
       </div>
-      <button class="dash-btn-icon" id="themeToggle" title="Cambiar tema" data-theme-toggle>
+      <button class="dash-btn-icon" id="themeToggle" data-i18n-title="adv.theme.title" data-theme-toggle>
         <i class="bi bi-moon-stars-fill" id="themeIcon"></i>
       </button>
-      <div class="dash-avatar" id="avatarInitials" title="Mi perfil">A</div>
+      <div class="dash-avatar" id="avatarInitials" data-i18n-title="adv.avatar.title">A</div>
     </div>
   </header>
 
   <!-- ── Sidebar ─────────────────────────────────────────── -->
   <aside class="dash-sidebar" id="sidebar">
-    <nav class="dash-nav-section" aria-label="Asesor">
-      <p class="dash-nav-label">Asesor</p>
+    <nav class="dash-nav-section" data-i18n-aria="adv.nav.section">
+      <p class="dash-nav-label" data-i18n="adv.nav.section">Asesor</p>
       <button type="button" class="dash-nav-link active w-100 border-0 bg-transparent text-start" onclick="showSection('clients', this)">
-        <i class="bi bi-people-fill"></i> Mis clientes
+        <i class="bi bi-people-fill"></i> <span data-i18n="adv.nav.clients">Mis clientes</span>
       </button>
       <button type="button" class="dash-nav-link w-100 border-0 bg-transparent text-start" onclick="showSection('overview', this)">
-        <i class="bi bi-person-lines-fill"></i> Resumen de cliente
+        <i class="bi bi-person-lines-fill"></i> <span data-i18n="adv.nav.overview">Resumen de cliente</span>
       </button>
       <button type="button" class="dash-nav-link w-100 border-0 bg-transparent text-start" onclick="showSection('patterns', this)">
-        <i class="bi bi-graph-up-arrow"></i> Patrones de gasto
+        <i class="bi bi-graph-up-arrow"></i> <span data-i18n="adv.nav.patterns">Patrones de gasto</span>
       </button>
       <button type="button" class="dash-nav-link w-100 border-0 bg-transparent text-start" onclick="showSection('recommend', this)">
-        <i class="bi bi-stars"></i> Recomendaciones IA
+        <i class="bi bi-stars"></i> <span data-i18n="adv.nav.recommend">Recomendaciones IA</span>
       </button>
     </nav>
-    <nav class="dash-nav-section" aria-label="Cuenta">
-      <p class="dash-nav-label">Cuenta</p>
+    <nav class="dash-nav-section" data-i18n-aria="adv.nav.account">
+      <p class="dash-nav-label" data-i18n="adv.nav.account">Cuenta</p>
       <button type="button" class="dash-nav-link w-100 border-0 bg-transparent text-start" onclick="showSection('profile', this)">
-        <i class="bi bi-person-circle"></i> Mi perfil
+        <i class="bi bi-person-circle"></i> <span data-i18n="adv.nav.profile">Mi perfil</span>
       </button>
     </nav>
     <div class="dash-sidebar-footer">
       <button class="dash-nav-link w-100 border-0 bg-transparent text-start" onclick="logout()">
-        <i class="bi bi-box-arrow-right"></i> Cerrar sesión
+        <i class="bi bi-box-arrow-right"></i> <span data-i18n="adv.nav.logout">Cerrar sesión</span>
       </button>
     </div>
   </aside>
@@ -74,49 +74,49 @@
     <div id="section-clients">
       <div class="dash-page-header">
         <div>
-          <h1 class="dash-page-title">Mis clientes</h1>
-          <p class="dash-page-sub">Lista de usuarios asignados a tu asesoría</p>
+          <h1 class="dash-page-title" data-i18n="adv.clients.title">Mis clientes</h1>
+          <p class="dash-page-sub" data-i18n="adv.clients.sub">Lista de usuarios asignados a tu asesoría</p>
         </div>
         <div style="min-width:240px">
-          <input id="clientSearch" type="text" class="dash-input" placeholder="Buscar cliente por nombre o email" oninput="renderClientsTable()" />
+          <input id="clientSearch" type="text" class="dash-input" data-i18n-placeholder="adv.clients.search.ph" placeholder="Buscar cliente por nombre o email" oninput="renderClientsTable()" />
         </div>
         <button class="btn btn-primary btn-sm" onclick="loadClients()">
-          <i class="bi bi-arrow-clockwise me-1"></i> Actualizar
+          <i class="bi bi-arrow-clockwise me-1"></i> <span data-i18n="adv.clients.refreshBtn">Actualizar</span>
         </button>
       </div>
 
       <div class="kpi-grid mb-3">
         <div class="kpi-card">
           <div class="kpi-icon" style="background:#ede9fe;color:#7c3aed"><i class="bi bi-people-fill"></i></div>
-          <span class="kpi-label">Total clientes</span>
+          <span class="kpi-label" data-i18n="adv.clients.kpi.total">Total clientes</span>
           <span class="kpi-value" id="kpiClients">—</span>
         </div>
         <div class="kpi-card">
           <div class="kpi-icon" style="background:#dbeafe;color:#3b82f6"><i class="bi bi-check-circle-fill"></i></div>
-          <span class="kpi-label">Activos este mes</span>
+          <span class="kpi-label" data-i18n="adv.clients.kpi.active">Activos este mes</span>
           <span class="kpi-value" id="kpiActive">—</span>
         </div>
         <div class="kpi-card">
           <div class="kpi-icon" style="background:#dcfce7;color:#16a34a"><i class="bi bi-cash-stack"></i></div>
-          <span class="kpi-label">Gasto promedio</span>
+          <span class="kpi-label" data-i18n="adv.clients.kpi.avg">Gasto promedio</span>
           <span class="kpi-value" id="kpiAvg">—</span>
         </div>
       </div>
 
       <div class="dash-table-wrap">
         <div class="dash-table-head">
-          <span class="dash-table-title">Clientes registrados</span>
+          <span class="dash-table-title" data-i18n="adv.clients.tbl.title">Clientes registrados</span>
         </div>
         <div style="overflow-x:auto">
           <table class="dash-table">
             <thead>
               <tr>
-                <th>Nombre</th>
-                <th>Email</th>
-                <th>Rol</th>
-                <th>Estado</th>
-                <th>ID</th>
-                <th>Acciones</th>
+                <th data-i18n="adv.tbl.name">Nombre</th>
+                <th data-i18n="adv.tbl.email">Email</th>
+                <th data-i18n="adv.tbl.role">Rol</th>
+                <th data-i18n="adv.tbl.status">Estado</th>
+                <th data-i18n="adv.tbl.id">ID</th>
+                <th data-i18n="adv.tbl.actions">Acciones</th>
               </tr>
             </thead>
             <tbody id="clientsTbody">
@@ -131,28 +131,28 @@
     <div id="section-overview" style="display:none">
       <div class="dash-page-header">
         <div>
-          <h1 class="dash-page-title">Resumen de cliente</h1>
-          <p class="dash-page-sub">Gastos e historial de un usuario específico</p>
+          <h1 class="dash-page-title" data-i18n="adv.ov.title">Resumen de cliente</h1>
+          <p class="dash-page-sub" data-i18n="adv.ov.sub">Gastos e historial de un usuario específico</p>
         </div>
         <button class="btn-k btn-k-outline btn-k-sm" onclick="showSection('clients',null)">
-          <i class="bi bi-arrow-left me-1"></i> Volver
+          <i class="bi bi-arrow-left me-1"></i> <span data-i18n="adv.ov.backBtn">Volver</span>
         </button>
       </div>
 
       <div class="dash-panel mb-3">
-        <p class="dash-panel-title">Seleccionar cliente</p>
+        <p class="dash-panel-title" data-i18n="adv.ov.select.title">Seleccionar cliente</p>
         <div class="row g-2">
           <div class="col-sm-8">
-            <input type="text" id="clientIdInput" class="dash-input" placeholder="ID de usuario" />
+            <input type="text" id="clientIdInput" class="dash-input" data-i18n-placeholder="adv.ov.id.ph" placeholder="ID de usuario" />
           </div>
           <div class="col-sm-4">
-            <button class="btn btn-primary w-100" onclick="loadClientOverview()">Ver resumen</button>
+            <button class="btn btn-primary w-100" onclick="loadClientOverview()" data-i18n="adv.ov.viewBtn">Ver resumen</button>
           </div>
         </div>
       </div>
 
       <div id="clientOverviewResult">
-        <p style="color:var(--k-muted);font-size:.9rem">Introduce un ID de usuario para ver su resumen.</p>
+        <p style="color:var(--k-muted);font-size:.9rem" data-i18n="adv.ov.prompt">Introduce un ID de usuario para ver su resumen.</p>
       </div>
     </div>
 
@@ -160,28 +160,28 @@
     <div id="section-patterns" style="display:none">
       <div class="dash-page-header">
         <div>
-          <h1 class="dash-page-title">Patrones de gasto</h1>
-          <p class="dash-page-sub">Análisis de comportamiento financiero por usuario</p>
+          <h1 class="dash-page-title" data-i18n="adv.pat.title">Patrones de gasto</h1>
+          <p class="dash-page-sub" data-i18n="adv.pat.sub">Análisis de comportamiento financiero por usuario</p>
         </div>
         <button class="btn-k btn-k-outline btn-k-sm" onclick="showSection('clients',null)">
-          <i class="bi bi-arrow-left me-1"></i> Volver
+          <i class="bi bi-arrow-left me-1"></i> <span data-i18n="adv.pat.backBtn">Volver</span>
         </button>
       </div>
 
       <div class="dash-panel mb-3">
-        <p class="dash-panel-title">Seleccionar cliente</p>
+        <p class="dash-panel-title" data-i18n="adv.ov.select.title">Seleccionar cliente</p>
         <div class="row g-2">
           <div class="col-sm-8">
-            <input type="text" id="patternClientId" class="dash-input" placeholder="ID de usuario" />
+            <input type="text" id="patternClientId" class="dash-input" data-i18n-placeholder="adv.pat.id.ph" placeholder="ID de usuario" />
           </div>
           <div class="col-sm-4">
-            <button class="btn btn-primary w-100" onclick="loadPatterns()">Ver patrones</button>
+            <button class="btn btn-primary w-100" onclick="loadPatterns()" data-i18n="adv.pat.viewBtn">Ver patrones</button>
           </div>
         </div>
       </div>
 
       <div id="patternsResult">
-        <p style="color:var(--k-muted);font-size:.9rem">Introduce un ID para ver análisis de patrones.</p>
+        <p style="color:var(--k-muted);font-size:.9rem" data-i18n="adv.pat.prompt">Introduce un ID para ver análisis de patrones.</p>
       </div>
     </div>
 
@@ -189,44 +189,44 @@
     <div id="section-recommend" style="display:none">
       <div class="dash-page-header">
         <div>
-          <h1 class="dash-page-title">Recomendaciones IA</h1>
-          <p class="dash-page-sub">Genera sugerencias personalizadas de ahorro</p>
+          <h1 class="dash-page-title" data-i18n="adv.rec.title">Recomendaciones IA</h1>
+          <p class="dash-page-sub" data-i18n="adv.rec.sub">Genera sugerencias personalizadas de ahorro</p>
         </div>
       </div>
 
       <div class="row g-3">
         <div class="col-12 col-md-5">
           <div class="dash-panel">
-            <p class="dash-panel-title">Parámetros</p>
+            <p class="dash-panel-title" data-i18n="adv.rec.params.title">Parámetros</p>
             <div class="mb-3">
-              <label class="dash-label" for="recClientId">ID de cliente</label>
-              <input id="recClientId" type="text" class="dash-input" placeholder="ID de usuario" />
+              <label class="dash-label" for="recClientId" data-i18n="adv.rec.clientId.label">ID de cliente</label>
+              <input id="recClientId" type="text" class="dash-input" data-i18n-placeholder="adv.ov.id.ph" placeholder="ID de usuario" />
             </div>
             <div class="mb-3">
-              <label class="dash-label" for="recProvider">Proveedor IA</label>
+              <label class="dash-label" for="recProvider" data-i18n="adv.rec.provider.label">Proveedor IA</label>
               <select id="recProvider" class="dash-input">
                 <option value="openai">OpenAI (ChatGPT)</option>
                 <option value="anthropic">Anthropic (Claude)</option>
               </select>
             </div>
             <div class="mb-3">
-              <label class="dash-label" for="recKey">API Key</label>
+              <label class="dash-label" for="recKey" data-i18n="adv.rec.key.label">API Key</label>
               <input id="recKey" type="password" class="dash-input" placeholder="sk-..." />
             </div>
             <button class="btn btn-primary w-100" onclick="loadRecommendations()">
-              <i class="bi bi-stars me-1"></i> Generar recomendaciones
+              <i class="bi bi-stars me-1"></i> <span data-i18n="adv.rec.generateBtn">Generar recomendaciones</span>
             </button>
           </div>
         </div>
         <div class="col-12 col-md-7">
           <div class="dash-panel h-100">
-            <p class="dash-panel-title">Resultado</p>
-            <div id="recOutput" style="font-size:.9rem;color:var(--k-text2);min-height:180px;line-height:1.65">
+            <p class="dash-panel-title" data-i18n="adv.rec.result.title">Resultado</p>
+            <div id="recOutput" style="font-size:.9rem;color:var(--k-text2);min-height:180px;line-height:1.65" data-i18n="adv.rec.result.ph">
               Selecciona un cliente y genera recomendaciones.
             </div>
             <hr style="border-color:var(--k-border);margin:1rem 0" />
-            <p class="dash-panel-title" style="margin-bottom:.65rem">Historial guardado</p>
-            <div id="recHistory" style="font-size:.85rem;color:var(--k-text2);display:flex;flex-direction:column;gap:.55rem">
+            <p class="dash-panel-title" style="margin-bottom:.65rem" data-i18n="adv.rec.history.title">Historial guardado</p>
+            <div id="recHistory" style="font-size:.85rem;color:var(--k-text2);display:flex;flex-direction:column;gap:.55rem" data-i18n="adv.rec.history.empty">
               Aun no hay recomendaciones guardadas.
             </div>
           </div>
@@ -238,19 +238,19 @@
     <div id="section-profile" style="display:none">
       <div class="dash-page-header">
         <div>
-          <h1 class="dash-page-title">Mi perfil</h1>
-          <p class="dash-page-sub">Datos de tu cuenta de asesor</p>
+          <h1 class="dash-page-title" data-i18n="adv.prof.title">Mi perfil</h1>
+          <p class="dash-page-sub" data-i18n="adv.prof.sub">Datos de tu cuenta de asesor</p>
         </div>
       </div>
       <div class="dash-panel" style="max-width:480px">
         <div style="display:flex;flex-direction:column;gap:.75rem;font-size:.9rem">
-          <div><span style="color:var(--k-muted)">Nombre:</span> <strong id="profName">—</strong></div>
-          <div><span style="color:var(--k-muted)">Email:</span> <strong id="profEmail">—</strong></div>
-          <div><span style="color:var(--k-muted)">Rol:</span> <span class="role-chip rc-advisor ms-1">Asesor</span></div>
+          <div><span style="color:var(--k-muted)" data-i18n="adv.prof.name.label">Nombre:</span> <strong id="profName">—</strong></div>
+          <div><span style="color:var(--k-muted)" data-i18n="adv.prof.email.label">Email:</span> <strong id="profEmail">—</strong></div>
+          <div><span style="color:var(--k-muted)" data-i18n="adv.prof.role.label">Rol:</span> <span class="role-chip rc-advisor ms-1" data-i18n="adv.role.chip">Asesor</span></div>
         </div>
         <hr style="border-color:var(--k-border);margin:1rem 0" />
         <button class="btn btn-k btn-k-danger btn-k-sm" onclick="logout()">
-          <i class="bi bi-box-arrow-right me-1"></i> Cerrar sesión
+          <i class="bi bi-box-arrow-right me-1"></i> <span data-i18n="adv.prof.logoutBtn">Cerrar sesión</span>
         </button>
       </div>
     </div>
@@ -258,15 +258,23 @@
   </main>
 </div>
 
-<button id="sidebarOverlay" type="button" aria-label="Cerrar menú lateral"
+<button id="sidebarOverlay" type="button" data-i18n-aria="adv.overlay.aria"
   style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:998;border:0;padding:0;cursor:pointer"></button>
 
 <script src="/runtime-config.js"></script>
 <script src="/src/js/theme.js"></script>
 <script src="/src/js/lang.js"></script>
+<script src="/src/js/i18n.js"></script>
 <script src="/src/js/universal-i18n.js"></script>
 <script>
 const API = window.WISEPOCKET_API_BASE_URL || 'https://proyectoingweb2-production.up.railway.app/api';
+
+// ── T() helper ───────────────────────────────────────────
+function T(key) {
+  const lang = window.getLang ? window.getLang() : (localStorage.getItem('klarity-lang') || 'es');
+  const dict = window.__klarityI18n && window.__klarityI18n[lang];
+  return (dict && dict[key] !== undefined) ? dict[key] : key;
+}
 
 function getToken() { return localStorage.getItem('klarity_token') || sessionStorage.getItem('klarity_token'); }
 function getUserData() {
@@ -344,7 +352,10 @@ async function loadClients() {
     document.getElementById('kpiAvg').textContent = '—';
 
     renderClientsTable();
-    if (!allClients.length) { tb.innerHTML = '<tr><td colspan="6" class="dash-empty">Sin clientes</td></tr>'; return; }
+    if (!allClients.length) {
+      tb.innerHTML = `<tr><td colspan="6" class="dash-empty">${T('adv.js.noClients')}</td></tr>`;
+      return;
+    }
   } catch(e) {
     tb.innerHTML = `<tr><td colspan="6" class="dash-empty text-danger">Error: ${escHtml(e.message)}</td></tr>`;
   }
@@ -360,14 +371,14 @@ function renderClientsTable() {
   });
 
   if (!clients.length) {
-    tb.innerHTML = '<tr><td colspan="6" class="dash-empty">Sin resultados</td></tr>';
+    tb.innerHTML = `<tr><td colspan="6" class="dash-empty">${T('adv.js.noResults')}</td></tr>`;
     return;
   }
 
   tb.innerHTML = clients.map(u => {
     const health = clientHealthMap[u.id] || {};
     const status = String(health.status || 'green');
-    const statusLabel = status === 'red' ? 'Alto riesgo' : status === 'yellow' ? 'Atencion' : 'Saludable';
+    const statusLabel = status === 'red' ? T('adv.js.statusHigh') : status === 'yellow' ? T('adv.js.statusMed') : T('adv.js.statusOk');
     const statusClass = status === 'red' ? 'sb-inactive' : status === 'yellow' ? 'sb-pending' : 'sb-active';
     return `
       <tr>
@@ -377,8 +388,8 @@ function renderClientsTable() {
         <td><span class="status-badge ${statusClass}">${statusLabel}</span></td>
         <td><code style="font-size:.8rem">${u.id||'—'}</code></td>
         <td>
-          <button class="dash-btn-icon" title="Ver resumen" onclick="quickView('${u.id}')"><i class="bi bi-eye"></i></button>
-          <button class="dash-btn-icon ms-2" title="Patrones" onclick="quickPatterns('${u.id}')"><i class="bi bi-graph-up-arrow"></i></button>
+          <button class="dash-btn-icon" title="${T('adv.js.viewSummary')}" onclick="quickView('${u.id}')"><i class="bi bi-eye"></i></button>
+          <button class="dash-btn-icon ms-2" title="${T('adv.js.viewPatterns')}" onclick="quickPatterns('${u.id}')"><i class="bi bi-graph-up-arrow"></i></button>
         </td>
       </tr>`;
   }).join('');
@@ -399,7 +410,7 @@ function quickPatterns(id) {
 async function loadClientOverview() {
   const id = document.getElementById('clientIdInput').value;
   const out = document.getElementById('clientOverviewResult');
-  if (!id) { out.innerHTML = '<p style="color:var(--k-muted)">Introduce un ID.</p>'; return; }
+  if (!id) { out.innerHTML = `<p style="color:var(--k-muted)">${T('adv.js.enterIdOv')}</p>`; return; }
   out.innerHTML = '<span class="loading-spinner"></span>';
   try {
     const res = await fetch(API + '/advisor/overview/' + id, { headers: authHeaders() });
@@ -443,15 +454,15 @@ function renderOverviewVisual(data) {
         </div>
         <span style="font-size:.8rem;color:var(--k-muted)">€${r.value.toFixed(2)}</span>
       </div>`).join('')
-    : '<p style="margin:0;color:var(--k-muted);font-size:.85rem">Sin distribución por categoría disponible.</p>';
+    : `<p style="margin:0;color:var(--k-muted);font-size:.85rem">${T('adv.js.noCatDist')}</p>`;
 
   return `<div class="row g-3">
-    <div class="col-12 col-md-4"><div class="kpi-card"><span class="kpi-label">Total gastado</span><span class="kpi-value">€${totalAmount.toFixed(2)}</span></div></div>
-    <div class="col-12 col-md-4"><div class="kpi-card"><span class="kpi-label">Cantidad de gastos</span><span class="kpi-value">${totalExpenses || '—'}</span></div></div>
-    <div class="col-12 col-md-4"><div class="kpi-card"><span class="kpi-label">Ticket promedio</span><span class="kpi-value">€${avgTicket.toFixed(2)}</span></div></div>
+    <div class="col-12 col-md-4"><div class="kpi-card"><span class="kpi-label">${T('adv.js.totalSpent')}</span><span class="kpi-value">€${totalAmount.toFixed(2)}</span></div></div>
+    <div class="col-12 col-md-4"><div class="kpi-card"><span class="kpi-label">${T('adv.js.expenseCount')}</span><span class="kpi-value">${totalExpenses || '—'}</span></div></div>
+    <div class="col-12 col-md-4"><div class="kpi-card"><span class="kpi-label">${T('adv.js.avgTicket')}</span><span class="kpi-value">€${avgTicket.toFixed(2)}</span></div></div>
     <div class="col-12">
       <div class="dash-panel">
-        <p class="dash-panel-title">Categoría principal: <span style="color:var(--k-primary)">${escHtml(topCategory)}</span></p>
+        <p class="dash-panel-title">${T('adv.js.mainCategory')}<span style="color:var(--k-primary)">${escHtml(topCategory)}</span></p>
         <div style="display:flex;flex-direction:column;gap:.55rem">${categoryBars}</div>
       </div>
     </div>
@@ -461,7 +472,7 @@ function renderOverviewVisual(data) {
 async function loadPatterns() {
   const id = document.getElementById('patternClientId').value;
   const out = document.getElementById('patternsResult');
-  if (!id) { out.innerHTML = '<p style="color:var(--k-muted)">Introduce un ID.</p>'; return; }
+  if (!id) { out.innerHTML = `<p style="color:var(--k-muted)">${T('adv.js.enterIdPat')}</p>`; return; }
   out.innerHTML = '<span class="loading-spinner"></span>';
   try {
     const res = await fetch(API + '/advisor/patterns/' + id, { headers: authHeaders() });
@@ -495,15 +506,15 @@ function renderPatternsVisual(data) {
         <div class="bar-item" style="width:100%;height:${Math.max(8, (p.amount/max)*100)}%;background:${p.amount > avg * 1.35 ? '#ef4444' : 'var(--k-primary)'}"></div>
         <span style="font-size:.72rem;color:var(--k-text2)">${escHtml(p.label)}</span>
       </div>`).join('')}</div>`
-    : '<p style="margin:0;color:var(--k-muted);font-size:.85rem">No hay timeline disponible para este cliente.</p>';
+    : `<p style="margin:0;color:var(--k-muted);font-size:.85rem">${T('adv.js.noTimeline')}</p>`;
 
   return `<div class="row g-3">
-    <div class="col-12 col-md-4"><div class="kpi-card"><span class="kpi-label">Puntos de timeline</span><span class="kpi-value">${points.length || '—'}</span></div></div>
-    <div class="col-12 col-md-4"><div class="kpi-card"><span class="kpi-label">Promedio período</span><span class="kpi-value">€${avg.toFixed(0)}</span></div></div>
-    <div class="col-12 col-md-4"><div class="kpi-card"><span class="kpi-label">Alertas de pico</span><span class="kpi-value">${spikes.length}</span></div></div>
+    <div class="col-12 col-md-4"><div class="kpi-card"><span class="kpi-label">${T('adv.js.timelinePoints')}</span><span class="kpi-value">${points.length || '—'}</span></div></div>
+    <div class="col-12 col-md-4"><div class="kpi-card"><span class="kpi-label">${T('adv.js.periodAvg')}</span><span class="kpi-value">€${avg.toFixed(0)}</span></div></div>
+    <div class="col-12 col-md-4"><div class="kpi-card"><span class="kpi-label">${T('adv.js.spikeAlerts')}</span><span class="kpi-value">${spikes.length}</span></div></div>
     <div class="col-12">
       <div class="dash-panel">
-        <p class="dash-panel-title">Evolución del gasto</p>
+        <p class="dash-panel-title">${T('adv.js.spendEvolution')}</p>
         ${timeline}
       </div>
     </div>
@@ -513,7 +524,7 @@ function renderPatternsVisual(data) {
 async function loadRecommendations() {
   const id = document.getElementById('recClientId').value;
   const out = document.getElementById('recOutput');
-  if (!id) { out.innerHTML = '<p style="color:var(--k-muted)">Introduce un ID de cliente.</p>'; return; }
+  if (!id) { out.innerHTML = `<p style="color:var(--k-muted)">${T('adv.js.enterIdRec')}</p>`; return; }
   out.innerHTML = '<span class="loading-spinner"></span>';
   try {
     const res = await fetch(API + '/advisor/ask', {
@@ -544,13 +555,14 @@ async function loadRecommendationHistory(userId) {
     if (res.status === 401) { logout(); return; }
     const list = await res.json();
     if (!Array.isArray(list) || !list.length) {
-      wrap.textContent = 'Aun no hay recomendaciones guardadas.';
+      wrap.textContent = T('adv.js.noHistory');
       return;
     }
 
+    const locale = (window.getLang && window.getLang() === 'en') ? 'en-GB' : 'es-ES';
     wrap.innerHTML = list.slice(0, 6).map((item) => `
       <div style="border:1px solid var(--k-border);border-radius:.7rem;padding:.6rem .7rem;background:var(--k-bg)">
-        <div style="font-size:.75rem;color:var(--k-muted);margin-bottom:.25rem">${new Date(item.createdAt).toLocaleString('es-ES')} · ${escHtml(item.provider || 'local')}</div>
+        <div style="font-size:.75rem;color:var(--k-muted);margin-bottom:.25rem">${new Date(item.createdAt).toLocaleString(locale)} · ${escHtml(item.provider || 'local')}</div>
         <div style="color:var(--k-text2);white-space:pre-wrap">${escHtml(item.answer || '')}</div>
       </div>`).join('');
   } catch (e) {

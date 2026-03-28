@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Klarity — Ingresar</title>
-  <meta name="description" content="Ingresa o crea tu cuenta en Klarity. Control financiero claro, simple y seguro.">
+  <title>Klarity — Log in</title>
+  <meta name="description" content="Log in or create your Klarity account. Clear, simple and secure financial control.">
   <link rel="icon" type="image/svg+xml"
         href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%233b82f6'/><rect x='8' y='14' width='16' height='12' rx='3' fill='%23ffffff'/><path d='M10.5 14v-2.2a5.5 5.5 0 1 1 11 0V14h-2.2v-2.2a3.3 3.3 0 0 0-6.6 0V14z' fill='%231e3a8a'/></svg>">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -27,17 +27,17 @@
         <span>Klarity</span>
       </a>
       <div class="login-side-content">
-        <p class="login-pill">Acceso seguro</p>
-        <h1>Conoce exactamente<br><span class="gradient-text">a donde va tu dinero.</span></h1>
-        <p class="login-lead">Registra consumos, analiza categorias y recibe recomendaciones de tu asesor financiero. Todo en un solo lugar.</p>
+        <p class="login-pill" data-i18n="login.pill">Acceso seguro</p>
+        <h1 data-i18n="login.headline">Conoce exactamente<br><span class="gradient-text">a donde va tu dinero.</span></h1>
+        <p class="login-lead" data-i18n="login.lead">Registra consumos, analiza categorias y recibe recomendaciones de tu asesor financiero. Todo en un solo lugar.</p>
         <ul class="login-benefits">
-          <li><i class="bi bi-check-circle-fill"></i><span>Control diario de gastos con IA</span></li>
-          <li><i class="bi bi-check-circle-fill"></i><span>OCR de tickets y comprobantes</span></li>
-          <li><i class="bi bi-check-circle-fill"></i><span>Asesor financiero personalizado</span></li>
-          <li><i class="bi bi-check-circle-fill"></i><span>Datos cifrados y 100% seguros</span></li>
+          <li><i class="bi bi-check-circle-fill"></i><span data-i18n="login.benefit1">Control diario de gastos con IA</span></li>
+          <li><i class="bi bi-check-circle-fill"></i><span data-i18n="login.benefit2">OCR de tickets y comprobantes</span></li>
+          <li><i class="bi bi-check-circle-fill"></i><span data-i18n="login.benefit3">Asesor financiero personalizado</span></li>
+          <li><i class="bi bi-check-circle-fill"></i><span data-i18n="login.benefit4">Datos cifrados y 100% seguros</span></li>
         </ul>
         <div class="login-demo-creds">
-          <p class="login-demo-title"><i class="bi bi-shield-check"></i> Acceso seguro</p>
+          <p class="login-demo-title"><i class="bi bi-shield-check"></i> <span data-i18n="login.demo.title">Acceso seguro</span></p>
           <p class="mb-0" data-i18n="login.secureHint">Tus credenciales no se muestran en pantalla. Usa cuentas temporales para pruebas y verifica el flujo completo por correo.</p>
         </div>
       </div>
@@ -52,25 +52,25 @@
         <button class="login-tab" id="tab-register" onclick="switchTab('register')" role="tab" aria-selected="false" aria-controls="panel-register" data-i18n="login.tab.reg">Crear cuenta</button>
       </div>
 
-      <div class="login-lang-switch" aria-label="Selector de idioma">
+      <div class="login-lang-switch" aria-label="Language selector">
         <button class="k-lang-btn active" id="btnES" type="button" onclick="setLang('es')" title="Español">ES</button>
         <button class="k-lang-btn" id="btnEN" type="button" onclick="setLang('en')" title="English">EN</button>
       </div>
 
       <!-- Login form -->
       <section id="panel-login" class="login-panel" role="tabpanel">
-        <h2 class="login-form-title">Bienvenido de vuelta</h2>
-        <p class="login-form-sub">Ingresa tus credenciales para continuar.</p>
+        <h2 class="login-form-title" data-i18n="login.form.welcome">Bienvenido de vuelta</h2>
+        <p class="login-form-sub" data-i18n="login.form.welcomeSub">Ingresa tus credenciales para continuar.</p>
         <form id="loginForm" class="d-grid gap-3" novalidate>
           <div class="login-field">
-            <label class="login-label" for="email"><i class="bi bi-envelope"></i> Correo</label>
-            <input class="login-input" id="email" name="email" type="email" required placeholder="tu@email.com" autocomplete="username">
+            <label class="login-label" for="email"><i class="bi bi-envelope"></i> <span data-i18n="login.label.email">Correo</span></label>
+            <input class="login-input" id="email" name="email" type="email" required placeholder="tu@email.com" data-i18n-placeholder="login.emailPlaceholder" autocomplete="username">
           </div>
           <div class="login-field">
-            <label class="login-label" for="password"><i class="bi bi-lock"></i> Contraseña</label>
+            <label class="login-label" for="password"><i class="bi bi-lock"></i> <span data-i18n="login.label.pass">Contraseña</span></label>
             <div class="login-input-wrap">
               <input class="login-input" id="password" name="password" type="password" required placeholder="••••••••" autocomplete="current-password">
-              <button type="button" class="login-eye" id="togglePwd" title="Mostrar/ocultar" aria-label="Mostrar contraseña">
+              <button type="button" class="login-eye" id="togglePwd" data-i18n-title="login.eye.toggle" title="Mostrar/ocultar" data-i18n-aria="login.eye.aria" aria-label="Mostrar contraseña">
                 <i class="bi bi-eye" id="eyeIcon"></i>
               </button>
             </div>
@@ -85,22 +85,22 @@
 
       <!-- Register form -->
       <section id="panel-register" class="login-panel" style="display:none" role="tabpanel">
-        <h2 class="login-form-title">Crear tu cuenta</h2>
-        <p class="login-form-sub">Gratis, sin tarjeta. Listo en 30 segundos.</p>
+        <h2 class="login-form-title" data-i18n="login.form.create">Crear tu cuenta</h2>
+        <p class="login-form-sub" data-i18n="login.form.createSub">Gratis, sin tarjeta. Listo en 30 segundos.</p>
         <form id="registerForm" class="d-grid gap-3" novalidate>
           <div class="login-field">
-            <label class="login-label" for="registerName"><i class="bi bi-person"></i> Nombre</label>
-            <input class="login-input" id="registerName" name="name" type="text" required placeholder="Tu nombre completo" autocomplete="name">
+            <label class="login-label" for="registerName"><i class="bi bi-person"></i> <span data-i18n="login.label.name">Nombre</span></label>
+            <input class="login-input" id="registerName" name="name" type="text" required placeholder="Tu nombre completo" data-i18n-placeholder="login.name.ph" autocomplete="name">
           </div>
           <div class="login-field">
-            <label class="login-label" for="registerEmail"><i class="bi bi-envelope"></i> Correo</label>
-            <input class="login-input" id="registerEmail" name="email" type="email" required placeholder="tu@email.com" autocomplete="email">
+            <label class="login-label" for="registerEmail"><i class="bi bi-envelope"></i> <span data-i18n="login.label.email">Correo</span></label>
+            <input class="login-input" id="registerEmail" name="email" type="email" required placeholder="tu@email.com" data-i18n-placeholder="login.emailPlaceholder" autocomplete="email">
           </div>
           <div class="login-field">
-            <label class="login-label" for="registerPassword"><i class="bi bi-lock"></i> Contraseña</label>
+            <label class="login-label" for="registerPassword"><i class="bi bi-lock"></i> <span data-i18n="login.label.pass">Contraseña</span></label>
             <div class="login-input-wrap">
-              <input class="login-input" id="registerPassword" name="password" type="password" minlength="6" required placeholder="Mínimo 6 caracteres" autocomplete="new-password">
-              <button type="button" class="login-eye" id="toggleRegPwd" title="Mostrar/ocultar" aria-label="Mostrar contraseña">
+              <input class="login-input" id="registerPassword" name="password" type="password" minlength="6" required placeholder="Mínimo 6 caracteres" data-i18n-placeholder="login.pass.ph" autocomplete="new-password">
+              <button type="button" class="login-eye" id="toggleRegPwd" data-i18n-title="login.eye.toggle" title="Mostrar/ocultar" data-i18n-aria="login.eye.aria" aria-label="Mostrar contraseña">
                 <i class="bi bi-eye" id="eyeRegIcon"></i>
               </button>
             </div>
@@ -134,7 +134,7 @@
         <output id="verifyMessage" class="login-msg" role="status"></output>
       </section>
 
-      <p class="login-back"><a href="/"><i class="bi bi-arrow-left"></i> Volver al inicio</a></p>
+      <p class="login-back"><a href="/"><i class="bi bi-arrow-left"></i> <span data-i18n="login.back">Volver al inicio</span></a></p>
     </div>
   </main>
 </div>
@@ -142,6 +142,7 @@
 <script src="/runtime-config.js"></script>
 <script src="/src/js/theme.js"></script>
 <script src="/src/js/lang.js"></script>
+<script src="/src/js/i18n.js"></script>
 <script src="/src/js/universal-i18n.js"></script>
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <script src="/src/js/login.js"></script>

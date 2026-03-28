@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Panel Admin — Klarity</title>
+  <title>Admin Panel — Klarity</title>
   <link rel="icon" type="image/svg+xml"
         href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%233b82f6'><path d='M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5'/></svg>" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -19,7 +19,7 @@
 
   <!-- ── Top bar ─────────────────────────────────────────── -->
   <header class="dash-topbar">
-    <button class="dash-menu-btn" onclick="toggleSidebar()"><i class="bi bi-list"></i></button>
+    <button class="dash-menu-btn" onclick="toggleSidebar()" data-i18n-aria="dash.menuBtn.aria" data-i18n-title="dash.menuBtn.title"><i class="bi bi-list"></i></button>
     <a href="/" class="dash-topbar-brand">
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--k-primary)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
       Klarity
@@ -30,7 +30,7 @@
         <button class="k-lang-btn active" id="btnES" type="button" onclick="setLang('es')" title="Español">ES</button>
         <button class="k-lang-btn" id="btnEN" type="button" onclick="setLang('en')" title="English">EN</button>
       </div>
-      <button class="dash-btn-icon" id="themeToggle" title="Cambiar tema" data-theme-toggle>
+      <button class="dash-btn-icon" id="themeToggle" data-i18n-title="adm.theme.title" data-theme-toggle>
         <i class="bi bi-moon-stars-fill" id="themeIcon"></i>
       </button>
       <div class="dash-avatar" id="avatarInitials" style="background:var(--k-danger,#ef4444)" title="Admin">A</div>
@@ -39,31 +39,31 @@
 
   <!-- ── Sidebar ─────────────────────────────────────────── -->
   <aside class="dash-sidebar" id="sidebar">
-    <nav class="dash-nav-section" aria-label="Administración">
-      <p class="dash-nav-label">Administración</p>
+    <nav class="dash-nav-section" data-i18n-aria="adm.nav.section">
+      <p class="dash-nav-label" data-i18n="adm.nav.section">Administración</p>
       <button type="button" class="dash-nav-link active w-100 border-0 bg-transparent text-start" onclick="showSection('overview', this)">
-        <i class="bi bi-grid-1x2-fill"></i> Visión general
+        <i class="bi bi-grid-1x2-fill"></i> <span data-i18n="adm.nav.overview">Visión general</span>
       </button>
       <button type="button" class="dash-nav-link w-100 border-0 bg-transparent text-start" onclick="showSection('users', this)">
-        <i class="bi bi-people-fill"></i> Usuarios
+        <i class="bi bi-people-fill"></i> <span data-i18n="adm.nav.users">Usuarios</span>
         <span class="nav-badge" id="usersBadge">—</span>
       </button>
       <button type="button" class="dash-nav-link w-100 border-0 bg-transparent text-start" onclick="showSection('expenses', this)">
-        <i class="bi bi-receipt"></i> Todos los gastos
+        <i class="bi bi-receipt"></i> <span data-i18n="adm.nav.expenses">Todos los gastos</span>
       </button>
     </nav>
-    <nav class="dash-nav-section" aria-label="Sistema">
-      <p class="dash-nav-label">Sistema</p>
+    <nav class="dash-nav-section" data-i18n-aria="adm.nav.system">
+      <p class="dash-nav-label" data-i18n="adm.nav.system">Sistema</p>
       <button type="button" class="dash-nav-link w-100 border-0 bg-transparent text-start" onclick="showSection('health', this)">
-        <i class="bi bi-heart-pulse-fill"></i> Estado del sistema
+        <i class="bi bi-heart-pulse-fill"></i> <span data-i18n="adm.nav.health">Estado del sistema</span>
       </button>
       <button type="button" class="dash-nav-link w-100 border-0 bg-transparent text-start" onclick="showSection('profile', this)">
-        <i class="bi bi-person-circle"></i> Mi perfil
+        <i class="bi bi-person-circle"></i> <span data-i18n="adm.nav.profile">Mi perfil</span>
       </button>
     </nav>
     <div class="dash-sidebar-footer">
       <button class="dash-nav-link w-100 border-0 bg-transparent text-start" onclick="logout()">
-        <i class="bi bi-box-arrow-right"></i> Cerrar sesión
+        <i class="bi bi-box-arrow-right"></i> <span data-i18n="adm.nav.logout">Cerrar sesión</span>
       </button>
     </div>
   </aside>
@@ -75,33 +75,33 @@
     <div id="section-overview">
       <div class="dash-page-header">
         <div>
-          <h1 class="dash-page-title">Visión general</h1>
-          <p class="dash-page-sub">Estadísticas de la plataforma Klarity</p>
+          <h1 class="dash-page-title" data-i18n="adm.ov.title">Visión general</h1>
+          <p class="dash-page-sub" data-i18n="adm.ov.sub">Estadísticas de la plataforma Klarity</p>
         </div>
         <button class="btn btn-primary btn-sm" onclick="loadAll()">
-          <i class="bi bi-arrow-clockwise me-1"></i> Actualizar
+          <i class="bi bi-arrow-clockwise me-1"></i> <span data-i18n="adm.ov.refreshBtn">Actualizar</span>
         </button>
       </div>
 
       <div class="kpi-grid">
         <div class="kpi-card">
           <div class="kpi-icon" style="background:#dbeafe;color:#3b82f6"><i class="bi bi-people-fill"></i></div>
-          <span class="kpi-label">Total usuarios</span>
+          <span class="kpi-label" data-i18n="adm.ov.kpi.users">Total usuarios</span>
           <span class="kpi-value" id="kpiUsers">—</span>
         </div>
         <div class="kpi-card">
           <div class="kpi-icon" style="background:#ede9fe;color:#7c3aed"><i class="bi bi-person-badge-fill"></i></div>
-          <span class="kpi-label">Asesores</span>
+          <span class="kpi-label" data-i18n="adm.ov.kpi.advisors">Asesores</span>
           <span class="kpi-value" id="kpiAdvisors">—</span>
         </div>
         <div class="kpi-card">
           <div class="kpi-icon" style="background:#fee2e2;color:#b91c1c"><i class="bi bi-shield-fill"></i></div>
-          <span class="kpi-label">Admins</span>
+          <span class="kpi-label" data-i18n="adm.ov.kpi.admins">Admins</span>
           <span class="kpi-value" id="kpiAdmins">—</span>
         </div>
         <div class="kpi-card">
           <div class="kpi-icon" style="background:#dcfce7;color:#16a34a"><i class="bi bi-receipt"></i></div>
-          <span class="kpi-label">Total gastos</span>
+          <span class="kpi-label" data-i18n="adm.ov.kpi.expenses">Total gastos</span>
           <span class="kpi-value" id="kpiExpenses">—</span>
         </div>
       </div>
@@ -110,18 +110,25 @@
       <div class="row g-3">
         <div class="col-12 col-lg-4">
           <div class="dash-panel">
-            <p class="dash-panel-title">Distribución de roles</p>
+            <p class="dash-panel-title" data-i18n="adm.ov.roles.title">Distribución de roles</p>
             <div id="roleDistWrap" style="padding:.5rem 0;display:flex;flex-direction:column;gap:.65rem"></div>
           </div>
         </div>
         <div class="col-12 col-lg-8">
           <div class="dash-table-wrap">
             <div class="dash-table-head">
-              <span class="dash-table-title">Últimos usuarios registrados</span>
+              <span class="dash-table-title" data-i18n="adm.ov.recent.title">Últimos usuarios registrados</span>
             </div>
             <div style="overflow-x:auto">
               <table class="dash-table">
-                <thead><tr><th>Nombre</th><th>Email</th><th>Rol</th><th>ID</th></tr></thead>
+                <thead>
+                  <tr>
+                    <th data-i18n="adm.tbl.name">Nombre</th>
+                    <th data-i18n="adm.tbl.email">Email</th>
+                    <th data-i18n="adm.tbl.role">Rol</th>
+                    <th data-i18n="adm.tbl.id">ID</th>
+                  </tr>
+                </thead>
                 <tbody id="recentUsersTbody">
                   <tr><td colspan="4" class="dash-empty"><span class="loading-spinner"></span></td></tr>
                 </tbody>
@@ -136,13 +143,13 @@
     <div id="section-users" style="display:none">
       <div class="dash-page-header">
         <div>
-          <h1 class="dash-page-title">Gestión de usuarios</h1>
-          <p class="dash-page-sub">Todos los usuarios de la plataforma</p>
+          <h1 class="dash-page-title" data-i18n="adm.users.title">Gestión de usuarios</h1>
+          <p class="dash-page-sub" data-i18n="adm.users.sub">Todos los usuarios de la plataforma</p>
         </div>
         <div class="d-flex gap-2">
-          <input id="usersSearch" type="text" class="dash-input" placeholder="Buscar por nombre o email" oninput="filterUsers()" style="min-width:220px;padding:.45rem .75rem" />
+          <input id="usersSearch" type="text" class="dash-input" data-i18n-placeholder="adm.users.search.ph" placeholder="Buscar por nombre o email" oninput="filterUsers()" style="min-width:220px;padding:.45rem .75rem" />
           <select id="filterRole" class="dash-input" onchange="filterUsers()" style="width:auto;padding:.45rem .75rem">
-            <option value="">Todos los roles</option>
+            <option value="" data-i18n="adm.users.allRoles">Todos los roles</option>
             <option value="user">User</option>
             <option value="advisor">Advisor</option>
             <option value="admin">Admin</option>
@@ -158,11 +165,11 @@
           <table class="dash-table">
             <thead>
               <tr>
-                <th>ID</th>
-                <th>Nombre</th>
-                <th>Email</th>
-                <th>Rol</th>
-                <th>Acciones</th>
+                <th data-i18n="adm.tbl.id">ID</th>
+                <th data-i18n="adm.tbl.name">Nombre</th>
+                <th data-i18n="adm.tbl.email">Email</th>
+                <th data-i18n="adm.tbl.role">Rol</th>
+                <th data-i18n="adm.tbl.actions">Acciones</th>
               </tr>
             </thead>
             <tbody id="allUsersTbody">
@@ -173,7 +180,7 @@
       </div>
 
       <div class="dash-panel mt-3">
-        <p class="dash-panel-title">Nuevos usuarios (últimos 6 meses)</p>
+        <p class="dash-panel-title" data-i18n="adm.users.chart.title">Nuevos usuarios (últimos 6 meses)</p>
         <div id="usersMonthlyChart" class="dash-chart-placeholder" style="height:140px"></div>
       </div>
     </div>
@@ -182,11 +189,11 @@
     <div id="section-expenses" style="display:none">
       <div class="dash-page-header">
         <div>
-          <h1 class="dash-page-title">Todos los gastos</h1>
-          <p class="dash-page-sub">Vista de gastos (scope según permisos del backend)</p>
+          <h1 class="dash-page-title" data-i18n="adm.exp.title">Todos los gastos</h1>
+          <p class="dash-page-sub" data-i18n="adm.exp.sub">Vista de gastos (alcance según permisos del backend)</p>
         </div>
         <button class="btn btn-primary btn-sm" onclick="loadAdminExpenses()">
-          <i class="bi bi-arrow-clockwise me-1"></i> Actualizar
+          <i class="bi bi-arrow-clockwise me-1"></i> <span data-i18n="adm.exp.refreshBtn">Actualizar</span>
         </button>
       </div>
 
@@ -194,7 +201,14 @@
         <div style="overflow-x:auto">
           <table class="dash-table">
             <thead>
-              <tr><th>ID</th><th>Concepto</th><th>Categoría</th><th>Importe</th><th>Moneda</th><th>Fecha</th></tr>
+              <tr>
+                <th data-i18n="adm.tbl.id">ID</th>
+                <th data-i18n="adm.tbl.concept">Concepto</th>
+                <th data-i18n="adm.tbl.category">Categoría</th>
+                <th data-i18n="adm.tbl.amount">Importe</th>
+                <th data-i18n="adm.tbl.currency">Moneda</th>
+                <th data-i18n="adm.tbl.date">Fecha</th>
+              </tr>
             </thead>
             <tbody id="adminExpensesTbody">
               <tr><td colspan="6" class="dash-empty"><span class="loading-spinner"></span></td></tr>
@@ -208,32 +222,32 @@
     <div id="section-health" style="display:none">
       <div class="dash-page-header">
         <div>
-          <h1 class="dash-page-title">Estado del sistema</h1>
-          <p class="dash-page-sub">Comprueba la conectividad con el backend</p>
+          <h1 class="dash-page-title" data-i18n="adm.health.title">Estado del sistema</h1>
+          <p class="dash-page-sub" data-i18n="adm.health.sub">Comprueba la conectividad con el backend</p>
         </div>
         <button class="btn btn-primary btn-sm" onclick="checkHealth()">
-          <i class="bi bi-arrow-clockwise me-1"></i> Comprobar
+          <i class="bi bi-arrow-clockwise me-1"></i> <span data-i18n="adm.health.checkBtn">Comprobar</span>
         </button>
       </div>
 
       <div class="row g-3">
         <div class="col-12 col-md-6">
           <div class="dash-panel">
-            <p class="dash-panel-title">Backend API</p>
+            <p class="dash-panel-title" data-i18n="adm.health.api.title">Backend API</p>
             <div style="display:flex;align-items:center;gap:.75rem;margin-bottom:1rem">
               <div id="healthDot" style="width:12px;height:12px;border-radius:50%;background:var(--k-muted);flex-shrink:0"></div>
-              <span id="healthStatus" style="font-size:.9rem;color:var(--k-text2)">Comprobando...</span>
+              <span id="healthStatus" style="font-size:.9rem;color:var(--k-text2)" data-i18n="adm.health.checking">Comprobando...</span>
             </div>
             <code id="healthUrl" style="font-size:.78rem;color:var(--k-muted)"></code>
           </div>
         </div>
         <div class="col-12 col-md-6">
           <div class="dash-panel">
-            <p class="dash-panel-title">Información de entorno</p>
+            <p class="dash-panel-title" data-i18n="adm.health.env.title">Información de entorno</p>
             <div style="display:flex;flex-direction:column;gap:.5rem;font-size:.87rem;color:var(--k-text2)">
-              <div><span style="color:var(--k-muted)">API URL:</span> <code id="envApiUrl" style="font-size:.78rem"></code></div>
-              <div><span style="color:var(--k-muted)">User Agent:</span> <code id="envUA" style="font-size:.78rem;word-break:break-all"></code></div>
-              <div><span style="color:var(--k-muted)">Hora del servidor:</span> <span id="envTime">—</span></div>
+              <div><span style="color:var(--k-muted)" data-i18n="adm.health.apiUrl">API URL:</span> <code id="envApiUrl" style="font-size:.78rem"></code></div>
+              <div><span style="color:var(--k-muted)" data-i18n="adm.health.ua">User Agent:</span> <code id="envUA" style="font-size:.78rem;word-break:break-all"></code></div>
+              <div><span style="color:var(--k-muted)" data-i18n="adm.health.time">Hora del servidor:</span> <span id="envTime">—</span></div>
             </div>
           </div>
         </div>
@@ -243,17 +257,20 @@
     <!-- ====== PROFILE ====================================== -->
     <div id="section-profile" style="display:none">
       <div class="dash-page-header">
-        <div><h1 class="dash-page-title">Mi perfil</h1><p class="dash-page-sub">Cuenta de administrador</p></div>
+        <div>
+          <h1 class="dash-page-title" data-i18n="adm.prof.title">Mi perfil</h1>
+          <p class="dash-page-sub" data-i18n="adm.prof.sub">Cuenta de administrador</p>
+        </div>
       </div>
       <div class="dash-panel" style="max-width:480px">
         <div style="display:flex;flex-direction:column;gap:.75rem;font-size:.9rem">
-          <div><span style="color:var(--k-muted)">Nombre:</span> <strong id="adminName">—</strong></div>
-          <div><span style="color:var(--k-muted)">Email:</span> <strong id="adminEmail">—</strong></div>
-          <div><span style="color:var(--k-muted)">Rol:</span> <span class="role-chip rc-admin ms-1">Admin</span></div>
+          <div><span style="color:var(--k-muted)" data-i18n="adm.prof.name.label">Nombre:</span> <strong id="adminName">—</strong></div>
+          <div><span style="color:var(--k-muted)" data-i18n="adm.prof.email.label">Email:</span> <strong id="adminEmail">—</strong></div>
+          <div><span style="color:var(--k-muted)" data-i18n="adm.prof.role.label">Rol:</span> <span class="role-chip rc-admin ms-1">Admin</span></div>
         </div>
         <hr style="border-color:var(--k-border);margin:1rem 0" />
         <button class="btn btn-k btn-k-danger btn-k-sm" onclick="logout()">
-          <i class="bi bi-box-arrow-right me-1"></i> Cerrar sesión
+          <i class="bi bi-box-arrow-right me-1"></i> <span data-i18n="adm.prof.logoutBtn">Cerrar sesión</span>
         </button>
       </div>
     </div>
@@ -261,22 +278,22 @@
   </main>
 </div>
 
-<button id="sidebarOverlay" type="button" aria-label="Cerrar menú lateral"
+<button id="sidebarOverlay" type="button" data-i18n-aria="adm.overlay.aria"
   style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:998;border:0;padding:0;cursor:pointer"></button>
 
-<!-- Change role modal (simple) -->
+<!-- Change role modal -->
 <div id="roleModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9999;align-items:center;justify-content:center">
   <div style="background:var(--k-surface);border-radius:1rem;padding:1.75rem;max-width:380px;width:90%;box-shadow:var(--k-shadow-lg)">
-    <h5 style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;margin-bottom:1rem">Cambiar rol</h5>
-    <p style="font-size:.88rem;color:var(--k-text2);margin-bottom:1.25rem">Usuario ID: <strong id="roleModalUserId">—</strong></p>
+    <h5 style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;margin-bottom:1rem" data-i18n="adm.modal.title">Cambiar rol</h5>
+    <p style="font-size:.88rem;color:var(--k-text2);margin-bottom:1.25rem"><span data-i18n="adm.modal.userId">Usuario ID:</span> <strong id="roleModalUserId">—</strong></p>
     <select id="roleModalSelect" class="dash-input mb-3">
       <option value="user">user</option>
       <option value="advisor">advisor</option>
       <option value="admin">admin</option>
     </select>
     <div style="display:flex;gap:.75rem">
-      <button class="btn-k btn-k-primary flex-fill" onclick="confirmRoleChange()">Guardar</button>
-      <button class="btn-k btn-k-outline flex-fill" onclick="closeRoleModal()">Cancelar</button>
+      <button class="btn-k btn-k-primary flex-fill" onclick="confirmRoleChange()" data-i18n="adm.modal.saveBtn">Guardar</button>
+      <button class="btn-k btn-k-outline flex-fill" onclick="closeRoleModal()" data-i18n="adm.modal.cancelBtn">Cancelar</button>
     </div>
   </div>
 </div>
@@ -284,9 +301,17 @@
 <script src="/runtime-config.js"></script>
 <script src="/src/js/theme.js"></script>
 <script src="/src/js/lang.js"></script>
+<script src="/src/js/i18n.js"></script>
 <script src="/src/js/universal-i18n.js"></script>
 <script>
 const API = window.WISEPOCKET_API_BASE_URL || 'https://proyectoingweb2-production.up.railway.app/api';
+
+// ── T() helper ───────────────────────────────────────────
+function T(key) {
+  const lang = window.getLang ? window.getLang() : (localStorage.getItem('klarity-lang') || 'es');
+  const dict = window.__klarityI18n && window.__klarityI18n[lang];
+  return (dict && dict[key] !== undefined) ? dict[key] : key;
+}
 
 function getToken() { return localStorage.getItem('klarity_token') || sessionStorage.getItem('klarity_token'); }
 function getUserData() {
@@ -295,7 +320,13 @@ function getUserData() {
 }
 function authHeaders() { return {'Content-Type':'application/json','Authorization':'Bearer '+getToken()}; }
 function escHtml(s){ return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
-function fmtDate(d){ if(!d)return'—'; const dt=new Date(d); return isNaN(dt)?d:dt.toLocaleDateString('es-ES',{day:'2-digit',month:'short',year:'numeric'}); }
+function fmtDate(d){
+  if(!d) return '—';
+  const dt = new Date(d);
+  if(isNaN(dt)) return d;
+  const locale = (window.getLang && window.getLang() === 'en') ? 'en-GB' : 'es-ES';
+  return dt.toLocaleDateString(locale, {day:'2-digit', month:'short', year:'numeric'});
+}
 
 // Guard
 (function() {
@@ -391,13 +422,14 @@ function renderKPIs(users) {
 function renderUsersMonthlyChart(users) {
   const wrap = document.getElementById('usersMonthlyChart');
   if(!wrap) return;
+  const locale = (window.getLang && window.getLang() === 'en') ? 'en-GB' : 'es-ES';
   const now = new Date();
   const months = [];
   for (let i = 5; i >= 0; i--) {
     const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
     months.push({
       key: d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0'),
-      label: d.toLocaleDateString('es-ES', { month: 'short' }).replace('.', ''),
+      label: d.toLocaleDateString(locale, { month: 'short' }).replace('.', ''),
       count: 0
     });
   }
@@ -426,7 +458,7 @@ function renderUsersMonthlyChart(users) {
 function renderRecentTable(users) {
   const tb = document.getElementById('recentUsersTbody');
   if(!tb) return;
-  if(!users.length){ tb.innerHTML='<tr><td colspan="4" class="dash-empty">Sin usuarios</td></tr>'; return; }
+  if(!users.length){ tb.innerHTML=`<tr><td colspan="4" class="dash-empty">${T('adm.js.noUsers')}</td></tr>`; return; }
   tb.innerHTML = users.map(u=>`
     <tr>
       <td>${escHtml(u.name||u.username||'—')}</td>
@@ -439,7 +471,7 @@ function renderRecentTable(users) {
 function renderFullUsersTable(users) {
   const tb = document.getElementById('allUsersTbody');
   if(!tb) return;
-  if(!users.length){ tb.innerHTML='<tr><td colspan="5" class="dash-empty">Sin usuarios</td></tr>'; return; }
+  if(!users.length){ tb.innerHTML=`<tr><td colspan="5" class="dash-empty">${T('adm.js.noUsers')}</td></tr>`; return; }
   tb.innerHTML = users.map(u=>`
     <tr>
       <td><code style="font-size:.78rem">${u.id||'—'}</code></td>
@@ -447,7 +479,7 @@ function renderFullUsersTable(users) {
       <td>${escHtml(u.email||'—')}</td>
       <td><span class="role-chip rc-${(u.role||'user').toLowerCase()}">${escHtml(u.role||'user')}</span></td>
       <td>
-        <button class="dash-btn-icon" title="Cambiar rol" onclick="openRoleModal('${u.id}','${escHtml(u.role||'user')}')"><i class="bi bi-pencil-square"></i></button>
+        <button class="dash-btn-icon" title="${T('adm.js.changeRole')}" onclick="openRoleModal('${u.id}','${escHtml(u.role||'user')}')"><i class="bi bi-pencil-square"></i></button>
       </td>
     </tr>`).join('');
 }
@@ -481,7 +513,7 @@ async function confirmRoleChange() {
   const currentRole = (target?.role || 'user').toLowerCase();
   if (role === currentRole) { closeRoleModal(); return; }
   const displayName = target?.name || target?.username || target?.email || ('ID ' + _roleModalUserId);
-  const ok = confirm('Confirmar cambio de rol para ' + displayName + ': ' + currentRole + ' → ' + role + '?');
+  const ok = confirm(T('adm.js.confirmRole') + displayName + T('adm.js.confirmRoleTo') + role + '?');
   if (!ok) return;
   try {
     const res = await fetch(API + '/users/' + _roleModalUserId, {
@@ -508,7 +540,7 @@ async function loadAdminExpenses() {
     document.getElementById('kpiExpenses').textContent = Array.isArray(data) ? data.length : '—';
     if(!tb) return;
     const expenses = Array.isArray(data) ? data : (data.data || []);
-    if(!expenses.length){ tb.innerHTML='<tr><td colspan="6" class="dash-empty">Sin gastos</td></tr>'; return; }
+    if(!expenses.length){ tb.innerHTML=`<tr><td colspan="6" class="dash-empty">${T('adm.js.noExpenses')}</td></tr>`; return; }
     tb.innerHTML = expenses.map(e=>`
       <tr>
         <td><code style="font-size:.78rem">${e.id||'—'}</code></td>
@@ -526,7 +558,7 @@ async function loadAdminExpenses() {
 // ── Health check ──────────────────────────────────────────
 async function checkHealth() {
   const dot = document.getElementById('healthDot');
-  const status = document.getElementById('healthStatus');
+  const statusEl = document.getElementById('healthStatus');
   const urlEl = document.getElementById('healthUrl');
   const envUrl = document.getElementById('envApiUrl');
   const envUA = document.getElementById('envUA');
@@ -538,20 +570,21 @@ async function checkHealth() {
   if(envUA) envUA.textContent = navigator.userAgent;
 
   dot.style.background = '#f59e0b';
-  status.textContent = 'Comprobando...';
+  statusEl.textContent = T('adm.health.checking');
   try {
     const res = await fetch(base, { signal: AbortSignal.timeout(6000) });
     if (res.ok || res.status < 500) {
       dot.style.background = '#10b981';
-      status.textContent = 'API accesible (HTTP ' + res.status + ')';
+      statusEl.textContent = T('adm.health.ok') + ' (HTTP ' + res.status + ')';
     } else {
       throw new Error('HTTP ' + res.status);
     }
   } catch(e) {
     dot.style.background = '#ef4444';
-    status.textContent = 'Sin respuesta: ' + e.message;
+    statusEl.textContent = T('adm.health.fail') + e.message;
   }
-  if(envTime) envTime.textContent = new Date().toLocaleString('es-ES');
+  const locale = (window.getLang && window.getLang() === 'en') ? 'en-GB' : 'es-ES';
+  if(envTime) envTime.textContent = new Date().toLocaleString(locale);
 }
 
 // ── Load all ──────────────────────────────────────────────

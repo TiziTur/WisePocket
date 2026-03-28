@@ -2,3 +2,7 @@ node_modules
 Backend/dist
 Backend/database.sqlite
 Backend/.env
+
+# Local project documents
+*.pdf
+*.txt

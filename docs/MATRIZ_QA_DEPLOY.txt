@@ -1,13 +1,13 @@
 MATRIZ QA - KLARITY
 Version: 2026-03-28
-Objetivo: validar end-to-end frontend + backend luego de encender Railway y Netlify.
+Objetivo: validar end-to-end frontend + backend luego de encender Railway.
 
 ====================================================================
 0) PRE-CHECK
 ====================================================================
 Estado requerido:
-- Backend deployado y healthy.
-- Frontend deployado en Netlify.
+- Backend deployado y healthy en Railway.
+- Frontend deployado en Railway (servidor Node estatico).
 - Variables de entorno cargadas en Railway.
 
 Variables minimas backend:
@@ -24,6 +24,10 @@ Variables auth extendido:
 - SMTP_USER
 - SMTP_PASS
 - MAIL_FROM
+
+Variables frontend:
+- WISEPOCKET_API_BASE_URL=https://<tu-backend-railway>/api
+- KLARITY_GOOGLE_CLIENT_ID=<opcional>
 
 Resultado esperado:
 - /api responde.
@@ -96,15 +100,15 @@ Esperado:
 ====================================================================
 Caso A: clientes + semaforo
 Esperado:
-- Estado Saludable/Atencion/Alto riesgo.
+- Estado Saludable/Atencion/Alto riesgo visible en tabla.
 
 Caso B: resumen y patrones
 Esperado:
-- KPIs, barras y timeline correctos.
+- KPIs, barras y timeline correctos al ingresar un ID de usuario.
 
 Caso C: recomendaciones
 Esperado:
-- Respuesta visible + persistida en historial.
+- Respuesta visible + persistida en historial guardado.
 
 ====================================================================
 4) PANEL ADMIN
@@ -112,10 +116,12 @@ Esperado:
 Caso A: usuarios
 Esperado:
 - Busqueda/filtro correctos.
+- Badge de cantidad en sidebar actualizado.
 
 Caso B: cambio de rol
 Esperado:
 - PATCH exitoso y rol reflejado en UI.
+- Confirm dialog en idioma activo (ES o EN).
 
 Caso C: metricas
 Esperado:
@@ -150,13 +156,29 @@ Esperado:
 ====================================================================
 6) I18N EN TODAS LAS PAGINAS
 ====================================================================
-Caso A: cambio de idioma a EN
+Caso A: cambio de idioma a EN en landing
 Pasos:
-1. En landing, cambiar ES -> EN.
-2. Navegar a login, dashboard, advisor y admin.
+1. En landing (/), cambiar ES -> EN (redirige a /en).
+2. Verificar todos los textos en ingles.
 Esperado:
-- No quedan textos de interfaz en espanol.
-- Placeholders/titles dinamicos tambien aparecen en ingles.
+- Ninguna cadena en espanol en landing EN.
+
+Caso B: cambio de idioma en app (login/dashboard/advisor/admin)
+Pasos:
+1. Entrar a /login, cambiar a EN.
+2. Navegar a dashboard, advisor y admin con lang=en persistido.
+Esperado:
+- Todos los textos de interfaz en ingles.
+- Placeholders, aria-labels y title attributes en ingles.
+- Strings renderizadas por JS (estados vacios, KPI labels, status badges, confirm dialogs) en ingles.
+- Fechas y locales en formato en-GB.
+
+Caso C: persistencia de idioma
+Pasos:
+1. Seleccionar EN en cualquier pagina.
+2. Recargar / navegar a otra pagina.
+Esperado:
+- Preferencia EN mantenida en localStorage (klarity-lang).
 
 ====================================================================
 7) CRITERIO DE APROBACION
@@ -165,7 +187,7 @@ Aprobado si:
 - Todos los casos A de cada seccion pasan.
 - Flujos auth (verify/reset/google) pasan.
 - No hay errores 500 en flujos principales.
-- Cambio de idioma EN cubre todas las pages.
+- Cambio de idioma EN cubre todas las pages sin residuos en espanol.
 
 Registro QA sugerido:
 - Caso

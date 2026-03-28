@@ -229,5 +229,9 @@ Frontend:
 - Se amplio diccionario runtime universal para cubrir textos hardcodeados restantes en landing y paneles.
 - Se retiro la seccion Demo Lab de la landing para mejorar foco y conversion.
 - Se reemplazo grafico de barras por grafico de torta con porcentajes en resumen de gastos por categoria.
+- Se completo i18n de footer de landing y etiqueta temporal del mockup (mes) para evitar textos fijos en idioma incorrecto.
+- Se ajustaron favicons por contexto (marca en landing, seguridad en login).
+- Se extendio i18n de login para botones, placeholders, recuperacion, Google y mensajes runtime.
+- Se agrego cobertura i18n puntual para textos remanentes en login y seccion presupuestos del dashboard.
 
 Fin del documento.

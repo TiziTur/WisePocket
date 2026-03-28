@@ -92,6 +92,10 @@ Klarity es una plataforma moderna de gestion financiera que permite registrar, a
 - 🧩 Cobertura extendida de traducciones runtime para textos dinamicos y secciones no etiquetadas.
 - 🧹 Landing simplificada sin Demo Lab para foco comercial y mejor claridad visual.
 - 🥧 Resumen de gastos por categoria en dashboard renovado con grafico de torta y porcentajes.
+- 🌐 Footer y mockup de landing con claves i18n completas (sin textos mixtos ES/EN).
+- 🧷 Favicons diferenciados por contexto: marca Klarity en landing y candado en login para reforzar semantica de seguridad.
+- 🔤 Login con internacionalizacion extendida (acciones, recuperacion, Google y placeholders).
+- ✅ Cobertura i18n reforzada en login (tabs/botones) y presupuesto dashboard (labels + estados).
 - 🤖 Chatbot asesor financiero integrado.
 - 🧠 Respuesta de asesor en formato seccionado (Problema, Diagnostico, Solucion, Proximo paso).
 - 📊 Graficos interactivos de gasto por categoria.

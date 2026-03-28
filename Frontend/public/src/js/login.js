@@ -9,6 +9,64 @@ const GOOGLE_CLIENT_ID = window.KLARITY_GOOGLE_CLIENT_ID || '';
 const TOKEN_KEY = 'klarity_token';
 const USER_KEY  = 'klarity_user';
 
+function lang() {
+    return (window.getLang ? window.getLang() : localStorage.getItem('klarity-lang') || 'es') === 'en' ? 'en' : 'es';
+}
+
+const I18N_LOGIN = {
+    es: {
+        genericError: 'No se pudo completar la operacion.',
+        validating: 'Validando credenciales...',
+        signingIn: 'Entrando...',
+        welcome: 'Bienvenido/a. Redirigiendo...',
+        connectError: 'No se pudo conectar con el servidor.',
+        enter: 'Entrar',
+        creatingAccount: 'Creando cuenta...',
+        creating: 'Creando...',
+        pwdPolicy: 'La contrasena debe tener 10+ caracteres, mayuscula, minuscula, numero y simbolo.',
+        accountCreated: 'Cuenta creada. Redirigiendo...',
+        createError: 'No se pudo crear la cuenta.',
+        createAccount: 'Crear cuenta',
+        requestSent: 'Solicitud enviada.',
+        recoveryError: 'No se pudo solicitar recuperacion.',
+        newPwdPolicy: 'La nueva contrasena no cumple requisitos de seguridad.',
+        pwdUpdated: 'Contrasena actualizada.',
+        pwdUpdateError: 'No se pudo actualizar la contrasena.',
+        verifyResendError: 'No se pudo reenviar la verificacion.',
+        verified: 'Correo verificado.',
+        verifyError: 'No se pudo verificar el correo.',
+        googleError: 'No se pudo iniciar con Google.'
+    },
+    en: {
+        genericError: 'Could not complete the operation.',
+        validating: 'Validating credentials...',
+        signingIn: 'Signing in...',
+        welcome: 'Welcome. Redirecting...',
+        connectError: 'Could not connect to the server.',
+        enter: 'Log in',
+        creatingAccount: 'Creating account...',
+        creating: 'Creating...',
+        pwdPolicy: 'Password must include 10+ characters, uppercase, lowercase, number and symbol.',
+        accountCreated: 'Account created. Redirecting...',
+        createError: 'Could not create the account.',
+        createAccount: 'Create account',
+        requestSent: 'Request sent.',
+        recoveryError: 'Could not request account recovery.',
+        newPwdPolicy: 'The new password does not meet security requirements.',
+        pwdUpdated: 'Password updated.',
+        pwdUpdateError: 'Could not update password.',
+        verifyResendError: 'Could not resend verification.',
+        verified: 'Email verified.',
+        verifyError: 'Could not verify email.',
+        googleError: 'Could not sign in with Google.'
+    }
+};
+
+function t(key) {
+    const dictionary = I18N_LOGIN[lang()] || I18N_LOGIN.es;
+    return dictionary[key] || I18N_LOGIN.es[key] || key;
+}
+
 // ── Helpers ───────────────────────────────────────────────
 function redirectByRole(role) {
     const r = (role || '').toLowerCase();
@@ -44,7 +102,7 @@ async function postJson(path, payload) {
     });
     const data = await response.json().catch(() => ({}));
     if (!response.ok) {
-        throw new Error(getJsonError(data, 'No se pudo completar la operacion.'));
+        throw new Error(getJsonError(data, t('genericError')));
     }
     return data;
 }
@@ -77,8 +135,8 @@ if (form) {
     form.addEventListener('submit', async function(event) {
         event.preventDefault();
         const btn = form.querySelector('button[type="submit"]');
-        setMsg(message, '<span style="color:var(--k-muted)">Validando credenciales...</span>');
-        if (btn) { btn.disabled = true; btn.textContent = 'Entrando...'; }
+        setMsg(message, '<span style="color:var(--k-muted)">' + escHtml(t('validating')) + '</span>');
+        if (btn) { btn.disabled = true; btn.textContent = t('signingIn'); }
 
         const payload = {
             email:    String(document.getElementById('email').value || '').trim(),
@@ -87,13 +145,13 @@ if (form) {
 
         try {
             const data = await postJson('/auth/login', payload);
-            setMsg(message, '<span style="color:var(--k-success,#10b981)"><i class="bi bi-check-circle me-1"></i>Bienvenido/a. Redirigiendo...</span>');
+            setMsg(message, '<span style="color:var(--k-success,#10b981)"><i class="bi bi-check-circle me-1"></i>' + escHtml(t('welcome')) + '</span>');
             saveSession(data, true);
             setTimeout(() => redirectByRole(data.user && data.user.role), 600);
         } catch (error) {
-            setMsg(message, '<span style="color:var(--k-danger,#ef4444)"><i class="bi bi-exclamation-circle me-1"></i>' + escHtml(error.message || 'No se pudo conectar con el servidor.') + '</span>', true);
+            setMsg(message, '<span style="color:var(--k-danger,#ef4444)"><i class="bi bi-exclamation-circle me-1"></i>' + escHtml(error.message || t('connectError')) + '</span>', true);
         } finally {
-            if (btn) { btn.disabled = false; btn.textContent = 'Entrar'; }
+            if (btn) { btn.disabled = false; btn.textContent = t('enter'); }
         }
     });
 }
@@ -106,8 +164,8 @@ if (registerForm) {
     registerForm.addEventListener('submit', async function(event) {
         event.preventDefault();
         const btn = registerForm.querySelector('button[type="submit"]');
-        setMsg(registerMessage, '<span style="color:var(--k-muted)">Creando cuenta...</span>');
-        if (btn) { btn.disabled = true; btn.textContent = 'Creando...'; }
+        setMsg(registerMessage, '<span style="color:var(--k-muted)">' + escHtml(t('creatingAccount')) + '</span>');
+        if (btn) { btn.disabled = true; btn.textContent = t('creating'); }
 
         const payload = {
             name:     String(document.getElementById('registerName').value || '').trim(),
@@ -116,20 +174,20 @@ if (registerForm) {
         };
 
         if (!validatePasswordStrength(payload.password)) {
-            setMsg(registerMessage, '<span style="color:var(--k-danger,#ef4444)"><i class="bi bi-shield-exclamation me-1"></i>La contrasena debe tener 10+ caracteres, mayuscula, minuscula, numero y simbolo.</span>', true);
-            if (btn) { btn.disabled = false; btn.textContent = 'Crear cuenta'; }
+            setMsg(registerMessage, '<span style="color:var(--k-danger,#ef4444)"><i class="bi bi-shield-exclamation me-1"></i>' + escHtml(t('pwdPolicy')) + '</span>', true);
+            if (btn) { btn.disabled = false; btn.textContent = t('createAccount'); }
             return;
         }
 
         try {
             const data = await postJson('/auth/register', payload);
-            setMsg(registerMessage, '<span style="color:var(--k-success,#10b981)"><i class="bi bi-check-circle me-1"></i>Cuenta creada. Redirigiendo...</span>');
+            setMsg(registerMessage, '<span style="color:var(--k-success,#10b981)"><i class="bi bi-check-circle me-1"></i>' + escHtml(t('accountCreated')) + '</span>');
             saveSession(data, true);
             setTimeout(() => redirectByRole(data.user && data.user.role), 600);
         } catch (error) {
-            setMsg(registerMessage, '<span style="color:var(--k-danger,#ef4444)"><i class="bi bi-exclamation-circle me-1"></i>' + escHtml(error.message || 'No se pudo crear la cuenta.') + '</span>', true);
+            setMsg(registerMessage, '<span style="color:var(--k-danger,#ef4444)"><i class="bi bi-exclamation-circle me-1"></i>' + escHtml(error.message || t('createError')) + '</span>', true);
         } finally {
-            if (btn) { btn.disabled = false; btn.textContent = 'Crear cuenta'; }
+            if (btn) { btn.disabled = false; btn.textContent = t('createAccount'); }
         }
     });
 }
@@ -162,9 +220,9 @@ if (requestResetForm) {
         const email = String(document.getElementById('resetEmail').value || '').trim();
         try {
             const data = await postJson('/auth/request-password-reset', { email });
-            setMsg(resetMessage, '<span style="color:var(--k-success,#10b981)"><i class="bi bi-envelope-check me-1"></i>' + escHtml(data.message || 'Solicitud enviada.') + '</span>');
+            setMsg(resetMessage, '<span style="color:var(--k-success,#10b981)"><i class="bi bi-envelope-check me-1"></i>' + escHtml(data.message || t('requestSent')) + '</span>');
         } catch (error) {
-            setMsg(resetMessage, '<span style="color:var(--k-danger,#ef4444)"><i class="bi bi-exclamation-circle me-1"></i>' + escHtml(error.message || 'No se pudo solicitar recuperacion.') + '</span>', true);
+            setMsg(resetMessage, '<span style="color:var(--k-danger,#ef4444)"><i class="bi bi-exclamation-circle me-1"></i>' + escHtml(error.message || t('recoveryError')) + '</span>', true);
         }
     });
 }
@@ -175,14 +233,14 @@ if (resetPasswordForm) {
         const token = String(document.getElementById('resetToken').value || '').trim();
         const password = String(document.getElementById('newPassword').value || '');
         if (!validatePasswordStrength(password)) {
-            setMsg(resetMessage, '<span style="color:var(--k-danger,#ef4444)"><i class="bi bi-shield-exclamation me-1"></i>La nueva contrasena no cumple requisitos de seguridad.</span>', true);
+            setMsg(resetMessage, '<span style="color:var(--k-danger,#ef4444)"><i class="bi bi-shield-exclamation me-1"></i>' + escHtml(t('newPwdPolicy')) + '</span>', true);
             return;
         }
         try {
             const data = await postJson('/auth/reset-password', { token, password });
-            setMsg(resetMessage, '<span style="color:var(--k-success,#10b981)"><i class="bi bi-check-circle me-1"></i>' + escHtml(data.message || 'Contrasena actualizada.') + '</span>');
+            setMsg(resetMessage, '<span style="color:var(--k-success,#10b981)"><i class="bi bi-check-circle me-1"></i>' + escHtml(data.message || t('pwdUpdated')) + '</span>');
         } catch (error) {
-            setMsg(resetMessage, '<span style="color:var(--k-danger,#ef4444)"><i class="bi bi-exclamation-circle me-1"></i>' + escHtml(error.message || 'No se pudo actualizar la contrasena.') + '</span>', true);
+            setMsg(resetMessage, '<span style="color:var(--k-danger,#ef4444)"><i class="bi bi-exclamation-circle me-1"></i>' + escHtml(error.message || t('pwdUpdateError')) + '</span>', true);
         }
     });
 }
@@ -193,9 +251,9 @@ if (resendVerificationForm) {
         const email = String(document.getElementById('verifyEmail').value || '').trim();
         try {
             const data = await postJson('/auth/resend-verification', { email });
-            setMsg(verifyMessage, '<span style="color:var(--k-success,#10b981)"><i class="bi bi-envelope-check me-1"></i>' + escHtml(data.message || 'Solicitud enviada.') + '</span>');
+            setMsg(verifyMessage, '<span style="color:var(--k-success,#10b981)"><i class="bi bi-envelope-check me-1"></i>' + escHtml(data.message || t('requestSent')) + '</span>');
         } catch (error) {
-            setMsg(verifyMessage, '<span style="color:var(--k-danger,#ef4444)"><i class="bi bi-exclamation-circle me-1"></i>' + escHtml(error.message || 'No se pudo reenviar la verificacion.') + '</span>', true);
+            setMsg(verifyMessage, '<span style="color:var(--k-danger,#ef4444)"><i class="bi bi-exclamation-circle me-1"></i>' + escHtml(error.message || t('verifyResendError')) + '</span>', true);
         }
     });
 }
@@ -208,9 +266,9 @@ async function verifyTokenFromQuery() {
     if (verifyToken) {
         try {
             const data = await postJson('/auth/verify-email', { token: verifyToken });
-            setMsg(message || registerMessage, '<span style="color:var(--k-success,#10b981)"><i class="bi bi-check-circle me-1"></i>' + escHtml(data.message || 'Correo verificado.') + '</span>');
+            setMsg(message || registerMessage, '<span style="color:var(--k-success,#10b981)"><i class="bi bi-check-circle me-1"></i>' + escHtml(data.message || t('verified')) + '</span>');
         } catch (error) {
-            setMsg(message || registerMessage, '<span style="color:var(--k-danger,#ef4444)"><i class="bi bi-exclamation-circle me-1"></i>' + escHtml(error.message || 'No se pudo verificar el correo.') + '</span>', true);
+            setMsg(message || registerMessage, '<span style="color:var(--k-danger,#ef4444)"><i class="bi bi-exclamation-circle me-1"></i>' + escHtml(error.message || t('verifyError')) + '</span>', true);
         }
     }
 
@@ -239,7 +297,7 @@ function setupGoogleButtons() {
                 await loginWithGoogleCredential(response.credential);
             } catch (error) {
                 const target = message || registerMessage;
-                setMsg(target, '<span style="color:var(--k-danger,#ef4444)"><i class="bi bi-exclamation-circle me-1"></i>' + escHtml(error.message || 'No se pudo iniciar con Google.') + '</span>', true);
+                setMsg(target, '<span style="color:var(--k-danger,#ef4444)"><i class="bi bi-exclamation-circle me-1"></i>' + escHtml(error.message || t('googleError')) + '</span>', true);
             }
         }
     });

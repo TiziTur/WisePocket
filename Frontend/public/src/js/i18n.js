@@ -98,11 +98,31 @@
 
       // Footer
       'footer.product':   'Producto',
+      'footer.features':  'Funciones',
+      'footer.pricing':   'Precios',
+      'footer.faq':       'FAQ',
+      'footer.demo':      'Demo',
+      'footer.about':     'Nosotros',
+      'footer.blog':      'Blog',
+      'footer.careers':   'Empleos',
+      'footer.press':     'Prensa',
+      'footer.privacy':   'Privacidad',
+      'footer.terms':     'Terminos',
+      'footer.security':  'Seguridad',
+      'footer.access':    'Acceso',
+      'footer.login':     'Iniciar sesion',
+      'footer.register':  'Registrarse',
+      'footer.dashboard': 'Mi panel',
+      'footer.rights':    'Todos los derechos reservados.',
+      'footer.project':   'Proyecto Ingenieria Web II - Universidad',
       'footer.resources': 'Recursos',
       'footer.company':   'Empresa',
       'footer.legal':     'Legal',
       'footer.tagline':   'Claridad financiera para todos.',
       'footer.copy':      '© 2025 Klarity. Todos los derechos reservados.',
+
+      // Mockup
+      'mock.month':       'Marzo 2026',
 
       // Login page
       'login.back':       '← Volver al inicio',
@@ -120,6 +140,18 @@
       'login.btn.enter':   'Entrar',
       'login.btn.create':  'Crear cuenta',
       'login.demo.title':  'Cuentas de demo',
+      'login.googleLogin': 'Continuar con Google',
+      'login.googleCreate':'Crear cuenta con Google',
+      'login.forgot':      'Recuperar cuenta',
+      'login.resend':      'Reenviar verificacion',
+      'login.recoveryTitle':'Recuperar cuenta',
+      'login.sendRecovery':'Enviar enlace de recuperacion',
+      'login.resetTokenPlaceholder': 'Token de recuperacion (del enlace)',
+      'login.newPasswordPlaceholder':'Nueva contrasena segura',
+      'login.updatePassword':'Actualizar contrasena',
+      'login.verifyTitle': 'Verificar correo',
+      'login.resendLink':  'Reenviar enlace de verificacion',
+      'login.emailPlaceholder':'correo@dominio.com',
 
       // Dashboard
       'dash.overview':    'Resumen',
@@ -130,6 +162,9 @@
       'dash.advisor':     'Asesor IA',
       'dash.profile':     'Perfil',
       'dash.logout':      'Cerrar sesión',
+      'dash.displayCurrency': 'Moneda de visualizacion',
+      'dash.nextMonthCommitted': 'Comprometido del proximo mes',
+      'dash.loading': 'Cargando...',
     },
 
     en: {
@@ -223,11 +258,31 @@
 
       // Footer
       'footer.product':   'Product',
+      'footer.features':  'Features',
+      'footer.pricing':   'Pricing',
+      'footer.faq':       'FAQ',
+      'footer.demo':      'Demo',
+      'footer.about':     'About',
+      'footer.blog':      'Blog',
+      'footer.careers':   'Careers',
+      'footer.press':     'Press',
+      'footer.privacy':   'Privacy',
+      'footer.terms':     'Terms',
+      'footer.security':  'Security',
+      'footer.access':    'Access',
+      'footer.login':     'Log in',
+      'footer.register':  'Sign up',
+      'footer.dashboard': 'Dashboard',
+      'footer.rights':    'All rights reserved.',
+      'footer.project':   'Web Engineering II Project - University',
       'footer.resources': 'Resources',
       'footer.company':   'Company',
       'footer.legal':     'Legal',
       'footer.tagline':   'Financial clarity for everyone.',
       'footer.copy':      '© 2025 Klarity. All rights reserved.',
+
+      // Mockup
+      'mock.month':       'March 2026',
 
       // Login page
       'login.back':       '← Back to home',
@@ -245,6 +300,18 @@
       'login.btn.enter':   'Enter',
       'login.btn.create':  'Create account',
       'login.demo.title':  'Demo accounts',
+      'login.googleLogin': 'Continue with Google',
+      'login.googleCreate':'Create account with Google',
+      'login.forgot':      'Recover account',
+      'login.resend':      'Resend verification',
+      'login.recoveryTitle':'Recover account',
+      'login.sendRecovery':'Send recovery link',
+      'login.resetTokenPlaceholder': 'Recovery token (from the link)',
+      'login.newPasswordPlaceholder':'New secure password',
+      'login.updatePassword':'Update password',
+      'login.verifyTitle': 'Verify email',
+      'login.resendLink':  'Resend verification link',
+      'login.emailPlaceholder':'email@domain.com',
 
       // Dashboard
       'dash.overview':    'Overview',
@@ -255,6 +322,9 @@
       'dash.advisor':     'AI Advisor',
       'dash.profile':     'Profile',
       'dash.logout':      'Log out',
+      'dash.displayCurrency': 'Display currency',
+      'dash.nextMonthCommitted': 'Committed for next month',
+      'dash.loading': 'Loading...',
     }
   };
 
@@ -265,6 +335,13 @@
       var key = el.getAttribute('data-i18n');
       if (dict[key] !== undefined) {
         el.innerHTML = dict[key];
+      }
+    });
+
+    document.querySelectorAll('[data-i18n-placeholder]').forEach(function (el) {
+      var key = el.getAttribute('data-i18n-placeholder');
+      if (dict[key] !== undefined) {
+        el.setAttribute('placeholder', dict[key]);
       }
     });
 

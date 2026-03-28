@@ -6,7 +6,7 @@
   <title>Klarity — Ingresar</title>
   <meta name="description" content="Ingresa o crea tu cuenta en Klarity. Control financiero claro, simple y seguro.">
   <link rel="icon" type="image/svg+xml"
-        href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%233b82f6'><path d='M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5'/></svg>">
+        href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%23111827'/><rect x='8' y='14' width='16' height='12' rx='3' fill='%23ffffff'/><path d='M10.5 14v-2.2a5.5 5.5 0 1 1 11 0V14h-2.2v-2.2a3.3 3.3 0 0 0-6.6 0V14z' fill='%236366f1'/></svg>">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
@@ -48,8 +48,8 @@
   <main class="login-main">
     <div class="login-main-inner">
       <div class="login-tabs" role="tablist">
-        <button class="login-tab active" id="tab-login" onclick="switchTab('login')" role="tab" aria-selected="true" aria-controls="panel-login">Ingresar</button>
-        <button class="login-tab" id="tab-register" onclick="switchTab('register')" role="tab" aria-selected="false" aria-controls="panel-register">Crear cuenta</button>
+        <button class="login-tab active" id="tab-login" onclick="switchTab('login')" role="tab" aria-selected="true" aria-controls="panel-login" data-i18n="login.tab.in">Ingresar</button>
+        <button class="login-tab" id="tab-register" onclick="switchTab('register')" role="tab" aria-selected="false" aria-controls="panel-register" data-i18n="login.tab.reg">Crear cuenta</button>
       </div>
 
       <div class="login-lang-switch" aria-label="Selector de idioma">
@@ -75,10 +75,10 @@
               </button>
             </div>
           </div>
-          <button class="login-btn" type="submit">Entrar <i class="bi bi-arrow-right"></i></button>
-          <button class="login-btn login-btn-google" type="button" id="googleLoginBtn"><i class="bi bi-google"></i> Continuar con Google</button>
-          <button class="login-link-btn" type="button" id="forgotPwdBtn"><i class="bi bi-key"></i> Recuperar cuenta</button>
-          <button class="login-link-btn" type="button" id="resendVerifyBtn"><i class="bi bi-envelope-check"></i> Reenviar verificacion</button>
+          <button class="login-btn" type="submit"><span data-i18n="login.btn.enter">Entrar</span> <i class="bi bi-arrow-right"></i></button>
+          <button class="login-btn login-btn-google" type="button" id="googleLoginBtn"><i class="bi bi-google"></i> <span data-i18n="login.googleLogin">Continuar con Google</span></button>
+          <button class="login-link-btn" type="button" id="forgotPwdBtn"><i class="bi bi-key"></i> <span data-i18n="login.forgot">Recuperar cuenta</span></button>
+          <button class="login-link-btn" type="button" id="resendVerifyBtn"><i class="bi bi-envelope-check"></i> <span data-i18n="login.resend">Reenviar verificacion</span></button>
           <output id="loginMessage" class="login-msg" role="status"></output>
         </form>
       </section>
@@ -105,31 +105,31 @@
               </button>
             </div>
           </div>
-          <button class="login-btn" type="submit">Crear cuenta <i class="bi bi-person-plus"></i></button>
-          <button class="login-btn login-btn-google" type="button" id="googleRegisterBtn"><i class="bi bi-google"></i> Crear cuenta con Google</button>
+          <button class="login-btn" type="submit"><span data-i18n="login.btn.create">Crear cuenta</span> <i class="bi bi-person-plus"></i></button>
+          <button class="login-btn login-btn-google" type="button" id="googleRegisterBtn"><i class="bi bi-google"></i> <span data-i18n="login.googleCreate">Crear cuenta con Google</span></button>
           <output id="registerMessage" class="login-msg" role="status"></output>
         </form>
       </section>
 
       <section class="login-aux" id="passwordRecoveryPanel" style="display:none">
-        <h3 class="login-aux-title">Recuperar cuenta</h3>
+        <h3 class="login-aux-title" data-i18n="login.recoveryTitle">Recuperar cuenta</h3>
         <form id="requestResetForm" class="d-grid gap-2" novalidate>
-          <input class="login-input" id="resetEmail" type="email" placeholder="correo@dominio.com" required>
-          <button class="login-btn login-btn-sm" type="submit">Enviar enlace de recuperacion</button>
+          <input class="login-input" id="resetEmail" type="email" placeholder="correo@dominio.com" data-i18n-placeholder="login.emailPlaceholder" required>
+          <button class="login-btn login-btn-sm" type="submit" data-i18n="login.sendRecovery">Enviar enlace de recuperacion</button>
         </form>
         <form id="resetPasswordForm" class="d-grid gap-2 mt-2" novalidate>
-          <input class="login-input" id="resetToken" type="text" placeholder="Token de recuperacion (del enlace)">
-          <input class="login-input" id="newPassword" type="password" placeholder="Nueva contrasena segura" minlength="10" required>
-          <button class="login-btn login-btn-sm" type="submit">Actualizar contrasena</button>
+          <input class="login-input" id="resetToken" type="text" placeholder="Token de recuperacion (del enlace)" data-i18n-placeholder="login.resetTokenPlaceholder">
+          <input class="login-input" id="newPassword" type="password" placeholder="Nueva contrasena segura" data-i18n-placeholder="login.newPasswordPlaceholder" minlength="10" required>
+          <button class="login-btn login-btn-sm" type="submit" data-i18n="login.updatePassword">Actualizar contrasena</button>
         </form>
         <output id="resetMessage" class="login-msg" role="status"></output>
       </section>
 
       <section class="login-aux" id="verificationPanel" style="display:none">
-        <h3 class="login-aux-title">Verificar correo</h3>
+        <h3 class="login-aux-title" data-i18n="login.verifyTitle">Verificar correo</h3>
         <form id="resendVerificationForm" class="d-grid gap-2" novalidate>
-          <input class="login-input" id="verifyEmail" type="email" placeholder="correo@dominio.com" required>
-          <button class="login-btn login-btn-sm" type="submit">Reenviar enlace de verificacion</button>
+          <input class="login-input" id="verifyEmail" type="email" placeholder="correo@dominio.com" data-i18n-placeholder="login.emailPlaceholder" required>
+          <button class="login-btn login-btn-sm" type="submit" data-i18n="login.resendLink">Reenviar enlace de verificacion</button>
         </form>
         <output id="verifyMessage" class="login-msg" role="status"></output>
       </section>

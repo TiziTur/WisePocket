@@ -35,10 +35,8 @@
           <li><i class="bi bi-check-circle-fill"></i><span>Datos cifrados y 100% seguros</span></li>
         </ul>
         <div class="login-demo-creds">
-          <p class="login-demo-title"><i class="bi bi-info-circle"></i> Cuentas demo disponibles</p>
-          <code>demo@klarity.app / Demo2026!</code><br>
-          <code>advisor@klarity.app / Klarity2026!</code><br>
-          <code>admin@klarity.app / Admin2026!</code>
+          <p class="login-demo-title"><i class="bi bi-shield-check"></i> Acceso seguro</p>
+          <p class="mb-0">Tus credenciales no se muestran en pantalla. Usa cuentas temporales para pruebas y verifica el flujo completo por correo.</p>
         </div>
       </div>
     </div>
@@ -71,6 +69,9 @@
             </div>
           </div>
           <button class="login-btn" type="submit">Entrar <i class="bi bi-arrow-right"></i></button>
+          <button class="login-btn login-btn-google" type="button" id="googleLoginBtn"><i class="bi bi-google"></i> Continuar con Google</button>
+          <button class="login-link-btn" type="button" id="forgotPwdBtn"><i class="bi bi-key"></i> Recuperar cuenta</button>
+          <button class="login-link-btn" type="button" id="resendVerifyBtn"><i class="bi bi-envelope-check"></i> Reenviar verificacion</button>
           <output id="loginMessage" class="login-msg" role="status"></output>
         </form>
       </section>
@@ -98,8 +99,32 @@
             </div>
           </div>
           <button class="login-btn" type="submit">Crear cuenta <i class="bi bi-person-plus"></i></button>
+          <button class="login-btn login-btn-google" type="button" id="googleRegisterBtn"><i class="bi bi-google"></i> Crear cuenta con Google</button>
           <output id="registerMessage" class="login-msg" role="status"></output>
         </form>
+      </section>
+
+      <section class="login-aux" id="passwordRecoveryPanel" style="display:none">
+        <h3 class="login-aux-title">Recuperar cuenta</h3>
+        <form id="requestResetForm" class="d-grid gap-2" novalidate>
+          <input class="login-input" id="resetEmail" type="email" placeholder="correo@dominio.com" required>
+          <button class="login-btn login-btn-sm" type="submit">Enviar enlace de recuperacion</button>
+        </form>
+        <form id="resetPasswordForm" class="d-grid gap-2 mt-2" novalidate>
+          <input class="login-input" id="resetToken" type="text" placeholder="Token de recuperacion (del enlace)">
+          <input class="login-input" id="newPassword" type="password" placeholder="Nueva contrasena segura" minlength="10" required>
+          <button class="login-btn login-btn-sm" type="submit">Actualizar contrasena</button>
+        </form>
+        <output id="resetMessage" class="login-msg" role="status"></output>
+      </section>
+
+      <section class="login-aux" id="verificationPanel" style="display:none">
+        <h3 class="login-aux-title">Verificar correo</h3>
+        <form id="resendVerificationForm" class="d-grid gap-2" novalidate>
+          <input class="login-input" id="verifyEmail" type="email" placeholder="correo@dominio.com" required>
+          <button class="login-btn login-btn-sm" type="submit">Reenviar enlace de verificacion</button>
+        </form>
+        <output id="verifyMessage" class="login-msg" role="status"></output>
       </section>
 
       <p class="login-back"><a href="/"><i class="bi bi-arrow-left"></i> Volver al inicio</a></p>
@@ -109,6 +134,8 @@
 
 <script src="/src/js/config.js"></script>
 <script src="/src/js/theme.js"></script>
+<script src="/src/js/universal-i18n.js"></script>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 <script src="/src/js/login.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
 <script>

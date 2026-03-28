@@ -1,5 +1,7 @@
 import { Module } from '@nestjs/common';
+import { APP_GUARD } from '@nestjs/core';
 import { ConfigModule } from '@nestjs/config';
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
@@ -13,6 +15,12 @@ import { AdvisorRecommendation } from './advisor/advisor-recommendation.entity';
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
+    ThrottlerModule.forRoot([
+      {
+        ttl: 60_000,
+        limit: 120,
+      },
+    ]),
     TypeOrmModule.forRootAsync({
       useFactory: () => {
         const databaseUrl = process.env.DATABASE_URL;
@@ -40,6 +48,12 @@ import { AdvisorRecommendation } from './advisor/advisor-recommendation.entity';
     ExpensesModule,
     TicketsModule,
     AdvisorModule,
+  ],
+  providers: [
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
+    },
   ],
 })
 export class AppModule {}

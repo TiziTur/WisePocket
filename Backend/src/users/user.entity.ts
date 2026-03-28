@@ -23,6 +23,24 @@ export class User {
   @Column()
   passwordHash: string;
 
+  @Column({ default: false })
+  emailVerified: boolean;
+
+  @Column({ type: 'varchar', nullable: true })
+  emailVerificationTokenHash: string | null;
+
+  @Column({ nullable: true })
+  emailVerificationExpiresAt: Date | null;
+
+  @Column({ type: 'varchar', nullable: true })
+  passwordResetTokenHash: string | null;
+
+  @Column({ nullable: true })
+  passwordResetExpiresAt: Date | null;
+
+  @Column({ type: 'varchar', nullable: true })
+  authProvider: string | null;
+
   @Column({ type: 'text', default: Role.USER })
   role: Role;
 

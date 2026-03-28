@@ -30,12 +30,22 @@ export class UsersController {
       limit: limitNum,
     });
 
-    const mapUser = (user: { id: string; name: string; email: string; role: Role; createdAt?: Date }) => ({
+    const mapUser = (user: {
+      id: string;
+      name: string;
+      email: string;
+      role: Role;
+      createdAt?: Date;
+      emailVerified?: boolean;
+      authProvider?: string | null;
+    }) => ({
       id: user.id,
       name: user.name,
       email: user.email,
       role: user.role,
       createdAt: user.createdAt,
+      emailVerified: Boolean(user.emailVerified),
+      authProvider: user.authProvider ?? 'password',
     });
 
     if (Array.isArray(result)) {
@@ -61,6 +71,8 @@ export class UsersController {
       name: updated.name,
       email: updated.email,
       role: updated.role,
+      emailVerified: updated.emailVerified,
+      authProvider: updated.authProvider ?? 'password',
     };
   }
 }

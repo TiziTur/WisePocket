@@ -77,13 +77,31 @@ export class UsersService implements OnModuleInit {
       const existing = await this.findByEmail(seed.email);
       if (!existing) {
         const passwordHash = await bcrypt.hash(seed.password, 10);
-        await this.create({ email: seed.email, name: seed.name, passwordHash, role: seed.role });
+        await this.create({
+          email: seed.email,
+          name: seed.name,
+          passwordHash,
+          role: seed.role,
+          emailVerified: true,
+          authProvider: 'password',
+        });
+      } else if (!existing.emailVerified) {
+        existing.emailVerified = true;
+        await this.save(existing);
       }
     }
   }
 
   findByEmail(email: string): Promise<User | null> {
-    return this.usersRepository.findOne({ where: { email } });
+    return this.usersRepository.findOne({ where: { email: this.normalizeEmail(email) } });
+  }
+
+  findByEmailVerificationTokenHash(tokenHash: string): Promise<User | null> {
+    return this.usersRepository.findOne({ where: { emailVerificationTokenHash: tokenHash } });
+  }
+
+  findByPasswordResetTokenHash(tokenHash: string): Promise<User | null> {
+    return this.usersRepository.findOne({ where: { passwordResetTokenHash: tokenHash } });
   }
 
   findById(id: string): Promise<User | null> {
@@ -95,12 +113,24 @@ export class UsersService implements OnModuleInit {
     name: string;
     passwordHash: string;
     role?: Role;
+    emailVerified?: boolean;
+    emailVerificationTokenHash?: string | null;
+    emailVerificationExpiresAt?: Date | null;
+    passwordResetTokenHash?: string | null;
+    passwordResetExpiresAt?: Date | null;
+    authProvider?: string | null;
   }): Promise<User> {
     const user = this.usersRepository.create({
-      email: data.email,
-      name: data.name,
+      email: this.normalizeEmail(data.email),
+      name: String(data.name || '').trim(),
       passwordHash: data.passwordHash,
       role: data.role ?? Role.USER,
+      emailVerified: Boolean(data.emailVerified),
+      emailVerificationTokenHash: data.emailVerificationTokenHash ?? null,
+      emailVerificationExpiresAt: data.emailVerificationExpiresAt ?? null,
+      passwordResetTokenHash: data.passwordResetTokenHash ?? null,
+      passwordResetExpiresAt: data.passwordResetExpiresAt ?? null,
+      authProvider: data.authProvider ?? 'password',
     });
 
     return this.usersRepository.save(user);
@@ -113,11 +143,11 @@ export class UsersService implements OnModuleInit {
     }
 
     if (payload.name) {
-      user.name = payload.name;
+      user.name = String(payload.name).trim();
     }
 
     if (payload.email) {
-      user.email = payload.email;
+      user.email = this.normalizeEmail(payload.email);
     }
 
     return this.usersRepository.save(user);
@@ -131,6 +161,14 @@ export class UsersService implements OnModuleInit {
 
     user.role = role;
     return this.usersRepository.save(user);
+  }
+
+  async save(user: User): Promise<User> {
+    return this.usersRepository.save(user);
+  }
+
+  private normalizeEmail(email: string): string {
+    return String(email || '').trim().toLowerCase();
   }
 
 }

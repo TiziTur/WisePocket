@@ -572,6 +572,46 @@
       'adm.js.changeRole':       'Cambiar rol',
       'adm.js.confirmRole':      'Confirmar cambio de rol para ',
       'adm.js.confirmRoleTo':    ' → ',
+      'adm.js.deleteUser':       'Eliminar usuario',
+      'adm.js.confirmDelete':    '¿Eliminar a ',
+      'adm.js.confirmDelete2':   '? Esta acción borrará también todos sus gastos y no se puede deshacer.',
+      'adm.js.deleteOk':         'Usuario eliminado correctamente.',
+      'adm.js.noExpFilter':      'Sin gastos para los filtros aplicados',
+      'adm.js.allUsers':         'Todos los usuarios',
+      'adm.js.verified':         'Verificado',
+      'adm.js.notVerified':      'No verificado',
+
+      // Admin panel — users table extra columns
+      'adm.tbl.joined':          'Registro',
+      'adm.tbl.verified':        'Email',
+      'adm.tbl.provider':        'Proveedor',
+
+      // Admin panel — pagination
+      'adm.pg.prev':             'Anterior',
+      'adm.pg.next':             'Siguiente',
+      'adm.pg.of':               'de',
+      'adm.pg.showing':          'Mostrando',
+      'adm.pg.perPage':          'por página',
+      'adm.pg.results':          'resultados',
+
+      // Admin panel — expenses section filters
+      'adm.exp.search.ph':       'Buscar concepto...',
+      'adm.exp.filterUser.ph':   'Filtrar por usuario',
+      'adm.exp.filterCat.ph':    'Categoría',
+      'adm.exp.filterDate.from': 'Desde',
+      'adm.exp.filterDate.to':   'Hasta',
+      'adm.exp.tbl.user':        'Usuario',
+      'adm.exp.clearBtn':        'Limpiar',
+
+      // Admin panel — stats section
+      'adm.stats.title':         'Estadísticas globales',
+      'adm.stats.sub':           'Análisis agregado de toda la plataforma',
+      'adm.stats.topSpenders':   'Top gastadores del mes',
+      'adm.stats.topCats':       'Categorías más usadas',
+      'adm.stats.avgExp':        'Gasto medio por usuario',
+      'adm.stats.totalAmount':   'Volumen total registrado',
+      'adm.stats.noData':        'Sin datos disponibles',
+      'adm.nav.stats':           'Estadísticas',
     },
 
     en: {
@@ -1139,6 +1179,46 @@
       'adm.js.changeRole':       'Change role',
       'adm.js.confirmRole':      'Confirm role change for ',
       'adm.js.confirmRoleTo':    ' → ',
+      'adm.js.deleteUser':       'Delete user',
+      'adm.js.confirmDelete':    'Delete ',
+      'adm.js.confirmDelete2':   '? This will also delete all their expenses and cannot be undone.',
+      'adm.js.deleteOk':         'User deleted successfully.',
+      'adm.js.noExpFilter':      'No expenses match the current filters',
+      'adm.js.allUsers':         'All users',
+      'adm.js.verified':         'Verified',
+      'adm.js.notVerified':      'Not verified',
+
+      // Admin panel — users table extra columns
+      'adm.tbl.joined':          'Joined',
+      'adm.tbl.verified':        'Email',
+      'adm.tbl.provider':        'Provider',
+
+      // Admin panel — pagination
+      'adm.pg.prev':             'Previous',
+      'adm.pg.next':             'Next',
+      'adm.pg.of':               'of',
+      'adm.pg.showing':          'Showing',
+      'adm.pg.perPage':          'per page',
+      'adm.pg.results':          'results',
+
+      // Admin panel — expenses section filters
+      'adm.exp.search.ph':       'Search concept...',
+      'adm.exp.filterUser.ph':   'Filter by user',
+      'adm.exp.filterCat.ph':    'Category',
+      'adm.exp.filterDate.from': 'From',
+      'adm.exp.filterDate.to':   'To',
+      'adm.exp.tbl.user':        'User',
+      'adm.exp.clearBtn':        'Clear',
+
+      // Admin panel — stats section
+      'adm.stats.title':         'Global statistics',
+      'adm.stats.sub':           'Aggregated analysis across the whole platform',
+      'adm.stats.topSpenders':   'Top spenders this month',
+      'adm.stats.topCats':       'Most used categories',
+      'adm.stats.avgExp':        'Average spend per user',
+      'adm.stats.totalAmount':   'Total registered volume',
+      'adm.stats.noData':        'No data available',
+      'adm.nav.stats':           'Statistics',
     }
   };
 

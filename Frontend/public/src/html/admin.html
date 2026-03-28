@@ -13,6 +13,24 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
   <link rel="stylesheet" href="/src/css/styles.css" />
   <link rel="stylesheet" href="/src/css/dashboard.css" />
+  <style>
+    .verified-chip { display:inline-flex;align-items:center;gap:.3rem;font-size:.73rem;padding:.18rem .5rem;border-radius:999px;font-weight:600 }
+    .verified-yes  { background:#dcfce7;color:#15803d }
+    .verified-no   { background:#fee2e2;color:#b91c1c }
+    .pg-bar { display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;margin-top:.75rem;font-size:.83rem;color:var(--k-text2) }
+    .pg-btn { padding:.25rem .6rem;border-radius:.4rem;border:1px solid var(--k-border);background:var(--k-surface);cursor:pointer;font-size:.8rem;color:var(--k-text) }
+    .pg-btn:disabled { opacity:.4;cursor:default }
+    .pg-btn.active { background:var(--k-primary);color:#fff;border-color:var(--k-primary) }
+    .exp-filter-row { display:flex;gap:.5rem;flex-wrap:wrap;align-items:center;margin-bottom:1rem }
+    .exp-filter-row .dash-input { padding:.4rem .65rem;font-size:.85rem }
+    .stat-leaderboard { display:flex;flex-direction:column;gap:.55rem }
+    .stat-lb-row { display:flex;align-items:center;gap:.65rem }
+    .stat-lb-rank { font-size:.75rem;color:var(--k-muted);min-width:1.2rem;text-align:right }
+    .stat-lb-bar-wrap { flex:1;background:var(--k-bg);border-radius:999px;height:6px;overflow:hidden }
+    .stat-lb-bar { height:100%;border-radius:999px;background:var(--k-primary) }
+    .stat-lb-label { font-size:.8rem;color:var(--k-text2);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:130px }
+    .stat-lb-val { font-size:.8rem;font-weight:600;color:var(--k-text);min-width:3.5rem;text-align:right }
+  </style>
 </head>
 <body>
 <div class="dash-layout" id="dashLayout">
@@ -50,6 +68,9 @@
       </button>
       <button type="button" class="dash-nav-link w-100 border-0 bg-transparent text-start" onclick="showSection('expenses', this)">
         <i class="bi bi-receipt"></i> <span data-i18n="adm.nav.expenses">Todos los gastos</span>
+      </button>
+      <button type="button" class="dash-nav-link w-100 border-0 bg-transparent text-start" onclick="showSection('stats', this)">
+        <i class="bi bi-bar-chart-fill"></i> <span data-i18n="adm.nav.stats">Estadísticas</span>
       </button>
     </nav>
     <nav class="dash-nav-section" data-i18n-aria="adm.nav.system">
@@ -106,7 +127,7 @@
         </div>
       </div>
 
-      <!-- Role distribution -->
+      <!-- Role distribution + recent users -->
       <div class="row g-3">
         <div class="col-12 col-lg-4">
           <div class="dash-panel">
@@ -126,7 +147,7 @@
                     <th data-i18n="adm.tbl.name">Nombre</th>
                     <th data-i18n="adm.tbl.email">Email</th>
                     <th data-i18n="adm.tbl.role">Rol</th>
-                    <th data-i18n="adm.tbl.id">ID</th>
+                    <th data-i18n="adm.tbl.joined">Registro</th>
                   </tr>
                 </thead>
                 <tbody id="recentUsersTbody">
@@ -146,8 +167,8 @@
           <h1 class="dash-page-title" data-i18n="adm.users.title">Gestión de usuarios</h1>
           <p class="dash-page-sub" data-i18n="adm.users.sub">Todos los usuarios de la plataforma</p>
         </div>
-        <div class="d-flex gap-2">
-          <input id="usersSearch" type="text" class="dash-input" data-i18n-placeholder="adm.users.search.ph" placeholder="Buscar por nombre o email" oninput="filterUsers()" style="min-width:220px;padding:.45rem .75rem" />
+        <div class="d-flex gap-2 flex-wrap">
+          <input id="usersSearch" type="text" class="dash-input" data-i18n-placeholder="adm.users.search.ph" placeholder="Buscar por nombre o email" oninput="filterUsers()" style="min-width:200px;padding:.45rem .75rem" />
           <select id="filterRole" class="dash-input" onchange="filterUsers()" style="width:auto;padding:.45rem .75rem">
             <option value="" data-i18n="adm.users.allRoles">Todos los roles</option>
             <option value="user">User</option>
@@ -165,18 +186,22 @@
           <table class="dash-table">
             <thead>
               <tr>
-                <th data-i18n="adm.tbl.id">ID</th>
                 <th data-i18n="adm.tbl.name">Nombre</th>
                 <th data-i18n="adm.tbl.email">Email</th>
                 <th data-i18n="adm.tbl.role">Rol</th>
+                <th data-i18n="adm.tbl.verified">Email</th>
+                <th data-i18n="adm.tbl.provider">Proveedor</th>
+                <th data-i18n="adm.tbl.joined">Registro</th>
                 <th data-i18n="adm.tbl.actions">Acciones</th>
               </tr>
             </thead>
             <tbody id="allUsersTbody">
-              <tr><td colspan="5" class="dash-empty"><span class="loading-spinner"></span></td></tr>
+              <tr><td colspan="7" class="dash-empty"><span class="loading-spinner"></span></td></tr>
             </tbody>
           </table>
         </div>
+        <!-- Pagination bar -->
+        <div class="pg-bar" id="usersPgBar"></div>
       </div>
 
       <div class="dash-panel mt-3">
@@ -197,12 +222,35 @@
         </button>
       </div>
 
+      <!-- Expense filters -->
+      <div class="exp-filter-row">
+        <input id="expSearch" type="text" class="dash-input" data-i18n-placeholder="adm.exp.search.ph" placeholder="Buscar concepto..." oninput="filterExpenses()" style="min-width:180px" />
+        <select id="expCatFilter" class="dash-input" onchange="filterExpenses()" style="width:auto">
+          <option value="" data-i18n="adm.exp.filterCat.ph">Categoría</option>
+          <option value="Alimentación">Alimentación / Food</option>
+          <option value="Transporte">Transporte / Transport</option>
+          <option value="Ocio">Ocio / Leisure</option>
+          <option value="Suscripciones">Suscripciones / Subscriptions</option>
+          <option value="Salud">Salud / Health</option>
+          <option value="Vivienda">Vivienda / Housing</option>
+          <option value="Otro">Otro / Other</option>
+        </select>
+        <input id="expDateFrom" type="date" class="dash-input" onchange="filterExpenses()" data-i18n-title="adm.exp.filterDate.from" />
+        <input id="expDateTo" type="date" class="dash-input" onchange="filterExpenses()" data-i18n-title="adm.exp.filterDate.to" />
+        <select id="expUserFilter" class="dash-input" onchange="filterExpenses()" style="width:auto;max-width:180px">
+          <option value="" data-i18n="adm.js.allUsers">Todos los usuarios</option>
+        </select>
+        <button class="btn btn-outline-secondary btn-sm" onclick="clearExpFilters()">
+          <i class="bi bi-x-lg me-1"></i><span data-i18n="adm.exp.clearBtn">Limpiar</span>
+        </button>
+      </div>
+
       <div class="dash-table-wrap">
         <div style="overflow-x:auto">
           <table class="dash-table">
             <thead>
               <tr>
-                <th data-i18n="adm.tbl.id">ID</th>
+                <th data-i18n="adm.exp.tbl.user">Usuario</th>
                 <th data-i18n="adm.tbl.concept">Concepto</th>
                 <th data-i18n="adm.tbl.category">Categoría</th>
                 <th data-i18n="adm.tbl.amount">Importe</th>
@@ -214,6 +262,48 @@
               <tr><td colspan="6" class="dash-empty"><span class="loading-spinner"></span></td></tr>
             </tbody>
           </table>
+        </div>
+        <div class="pg-bar" id="expPgBar"></div>
+      </div>
+    </div>
+
+    <!-- ====== STATS ======================================== -->
+    <div id="section-stats" style="display:none">
+      <div class="dash-page-header">
+        <div>
+          <h1 class="dash-page-title" data-i18n="adm.stats.title">Estadísticas globales</h1>
+          <p class="dash-page-sub" data-i18n="adm.stats.sub">Análisis agregado de toda la plataforma</p>
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="loadStats()">
+          <i class="bi bi-arrow-clockwise me-1"></i> <span data-i18n="adm.ov.refreshBtn">Actualizar</span>
+        </button>
+      </div>
+
+      <div class="kpi-grid" id="statsKpiGrid">
+        <div class="kpi-card">
+          <div class="kpi-icon" style="background:#fef9c3;color:#ca8a04"><i class="bi bi-cash-stack"></i></div>
+          <span class="kpi-label" data-i18n="adm.stats.totalAmount">Volumen total registrado</span>
+          <span class="kpi-value" id="statsTotalAmount">—</span>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon" style="background:#e0f2fe;color:#0369a1"><i class="bi bi-calculator"></i></div>
+          <span class="kpi-label" data-i18n="adm.stats.avgExp">Gasto medio por usuario</span>
+          <span class="kpi-value" id="statsAvgExp">—</span>
+        </div>
+      </div>
+
+      <div class="row g-3 mt-1">
+        <div class="col-12 col-lg-6">
+          <div class="dash-panel">
+            <p class="dash-panel-title" data-i18n="adm.stats.topSpenders">Top gastadores del mes</p>
+            <div id="statsTopSpenders" class="stat-leaderboard" style="min-height:100px"></div>
+          </div>
+        </div>
+        <div class="col-12 col-lg-6">
+          <div class="dash-panel">
+            <p class="dash-panel-title" data-i18n="adm.stats.topCats">Categorías más usadas</p>
+            <div id="statsTopCats" class="stat-leaderboard" style="min-height:100px"></div>
+          </div>
         </div>
       </div>
     </div>
@@ -281,7 +371,7 @@
 <button id="sidebarOverlay" type="button" data-i18n-aria="adm.overlay.aria"
   style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:998;border:0;padding:0;cursor:pointer"></button>
 
-<!-- Change role modal -->
+<!-- ── Change role modal ──────────────────────────────────── -->
 <div id="roleModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9999;align-items:center;justify-content:center">
   <div style="background:var(--k-surface);border-radius:1rem;padding:1.75rem;max-width:380px;width:90%;box-shadow:var(--k-shadow-lg)">
     <h5 style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;margin-bottom:1rem" data-i18n="adm.modal.title">Cambiar rol</h5>
@@ -294,6 +384,22 @@
     <div style="display:flex;gap:.75rem">
       <button class="btn-k btn-k-primary flex-fill" onclick="confirmRoleChange()" data-i18n="adm.modal.saveBtn">Guardar</button>
       <button class="btn-k btn-k-outline flex-fill" onclick="closeRoleModal()" data-i18n="adm.modal.cancelBtn">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Delete user modal ─────────────────────────────────── -->
+<div id="deleteModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9999;align-items:center;justify-content:center">
+  <div style="background:var(--k-surface);border-radius:1rem;padding:1.75rem;max-width:400px;width:90%;box-shadow:var(--k-shadow-lg)">
+    <h5 style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;margin-bottom:.75rem;color:var(--k-danger,#ef4444)">
+      <i class="bi bi-exclamation-triangle-fill me-2"></i><span data-i18n="adm.js.deleteUser">Eliminar usuario</span>
+    </h5>
+    <p style="font-size:.9rem;color:var(--k-text2);margin-bottom:1.5rem" id="deleteModalMsg">—</p>
+    <div style="display:flex;gap:.75rem">
+      <button class="btn-k btn-k-danger flex-fill" id="deleteModalConfirmBtn" onclick="confirmDeleteUser()">
+        <i class="bi bi-trash3 me-1"></i><span data-i18n="adm.js.deleteUser">Eliminar</span>
+      </button>
+      <button class="btn-k btn-k-outline flex-fill" onclick="closeDeleteModal()" data-i18n="adm.modal.cancelBtn">Cancelar</button>
     </div>
   </div>
 </div>
@@ -313,7 +419,7 @@ function T(key) {
   return (dict && dict[key] !== undefined) ? dict[key] : key;
 }
 
-function getToken() { return localStorage.getItem('klarity_token') || sessionStorage.getItem('klarity_token'); }
+function getToken()   { return localStorage.getItem('klarity_token') || sessionStorage.getItem('klarity_token'); }
 function getUserData() {
   try { const r = localStorage.getItem('klarity_user')||sessionStorage.getItem('klarity_user'); return r?JSON.parse(r):null; }
   catch { return null; }
@@ -327,8 +433,9 @@ function fmtDate(d){
   const locale = (window.getLang && window.getLang() === 'en') ? 'en-GB' : 'es-ES';
   return dt.toLocaleDateString(locale, {day:'2-digit', month:'short', year:'numeric'});
 }
+function fmtMoney(n){ return isNaN(+n) ? '—' : (+n).toLocaleString(undefined, {minimumFractionDigits:2,maximumFractionDigits:2}); }
 
-// Guard
+// ── Auth guard ───────────────────────────────────────────
 (function() {
   const token = getToken();
   if (!token) { window.location.href = '/login'; return; }
@@ -338,13 +445,13 @@ function fmtDate(d){
     if (role === 'user')    { window.location.href = '/dashboard'; return; }
     if (role === 'advisor') { window.location.href = '/advisor';   return; }
     document.getElementById('avatarInitials').textContent = (user.name||user.email||'A').slice(0,1).toUpperCase();
-    if(document.getElementById('adminName')) document.getElementById('adminName').textContent = user.name || '—';
+    if(document.getElementById('adminName'))  document.getElementById('adminName').textContent  = user.name  || '—';
     if(document.getElementById('adminEmail')) document.getElementById('adminEmail').textContent = user.email || '—';
   }
 })();
 
-// Nav
-const SECTIONS = ['overview','users','expenses','health','profile'];
+// ── Nav ───────────────────────────────────────────────────
+const SECTIONS = ['overview','users','expenses','stats','health','profile'];
 function showSection(name, linkEl) {
   SECTIONS.forEach(id => {
     const el = document.getElementById('section-' + id);
@@ -352,9 +459,10 @@ function showSection(name, linkEl) {
   });
   document.querySelectorAll('.dash-nav-link').forEach(a => a.classList.remove('active'));
   if(linkEl) linkEl.classList.add('active');
-  if(name === 'users') loadUsers();
+  if(name === 'users')    loadUsers();
   if(name === 'expenses') loadAdminExpenses();
-  if(name === 'health') checkHealth();
+  if(name === 'health')   checkHealth();
+  if(name === 'stats')    loadStats();
   closeSidebar();
 }
 
@@ -368,14 +476,16 @@ function closeSidebar() {
   document.getElementById('sidebar').classList.remove('open');
   document.getElementById('sidebarOverlay').style.display = 'none';
 }
-
 document.getElementById('sidebarOverlay').addEventListener('click', closeSidebar);
 
-// ── Load all users ────────────────────────────────────────
+// ── Users ─────────────────────────────────────────────────
 let allUsers = [];
+let usersPage = 1;
+const USERS_PER_PAGE = 20;
+
 async function loadUsers() {
   const tb = document.getElementById('allUsersTbody');
-  if(tb) tb.innerHTML = '<tr><td colspan="5" class="dash-empty"><span class="loading-spinner"></span></td></tr>';
+  if(tb) tb.innerHTML = '<tr><td colspan="7" class="dash-empty"><span class="loading-spinner"></span></td></tr>';
   try {
     const res = await fetch(API + '/users', { headers: authHeaders() });
     if (res.status === 401) { logout(); return; }
@@ -383,24 +493,23 @@ async function loadUsers() {
     allUsers = Array.isArray(data) ? data : (data.data || []);
     renderKPIs(allUsers);
     renderRecentTable(allUsers.slice(0, 5));
-    renderFullUsersTable(allUsers);
+    usersPage = 1;
+    filterUsers();
     const badge = document.getElementById('usersBadge');
     if(badge) badge.textContent = allUsers.length;
   } catch(e) {
-    const err = `<tr><td colspan="5" class="dash-empty text-danger">Error: ${escHtml(e.message)}</td></tr>`;
-    if(tb) tb.innerHTML = err;
+    if(tb) tb.innerHTML = `<tr><td colspan="7" class="dash-empty text-danger">Error: ${escHtml(e.message)}</td></tr>`;
   }
 }
 
 function renderKPIs(users) {
-  document.getElementById('kpiUsers').textContent = users.length;
-  document.getElementById('kpiAdvisors').textContent = users.filter(u=>(u.role||'').toLowerCase()==='advisor').length;
-  document.getElementById('kpiAdmins').textContent = users.filter(u=>(u.role||'').toLowerCase()==='admin').length;
+  document.getElementById('kpiUsers').textContent     = users.length;
+  document.getElementById('kpiAdvisors').textContent  = users.filter(u=>(u.role||'').toLowerCase()==='advisor').length;
+  document.getElementById('kpiAdmins').textContent    = users.filter(u=>(u.role||'').toLowerCase()==='admin').length;
 
-  // Role distribution bars
   const dist = document.getElementById('roleDistWrap');
   if(!dist) return;
-  const roles = ['user','advisor','admin'];
+  const roles  = ['user','advisor','admin'];
   const colors = {'user':'var(--k-primary)','advisor':'#7c3aed','admin':'#ef4444'};
   dist.innerHTML = roles.map(r => {
     const cnt = users.filter(u=>(u.role||'').toLowerCase()===r).length;
@@ -433,7 +542,6 @@ function renderUsersMonthlyChart(users) {
       count: 0
     });
   }
-
   users.forEach(u => {
     const raw = u.createdAt || u.created_at || u.registeredAt;
     if(!raw) return;
@@ -443,7 +551,6 @@ function renderUsersMonthlyChart(users) {
     const bucket = months.find(m => m.key === key);
     if(bucket) bucket.count += 1;
   });
-
   const maxVal = Math.max(1, ...months.map(m => m.count));
   wrap.innerHTML = months.map((m) => {
     const h = Math.max(10, (m.count / maxVal) * 100);
@@ -461,36 +568,73 @@ function renderRecentTable(users) {
   if(!users.length){ tb.innerHTML=`<tr><td colspan="4" class="dash-empty">${T('adm.js.noUsers')}</td></tr>`; return; }
   tb.innerHTML = users.map(u=>`
     <tr>
-      <td>${escHtml(u.name||u.username||'—')}</td>
+      <td><strong>${escHtml(u.name||u.username||'—')}</strong></td>
       <td>${escHtml(u.email||'—')}</td>
       <td><span class="role-chip rc-${(u.role||'user').toLowerCase()}">${escHtml(u.role||'user')}</span></td>
-      <td><code style="font-size:.78rem">${u.id||'—'}</code></td>
+      <td style="font-size:.8rem;color:var(--k-muted)">${fmtDate(u.createdAt||u.created_at)}</td>
     </tr>`).join('');
 }
 
 function renderFullUsersTable(users) {
   const tb = document.getElementById('allUsersTbody');
   if(!tb) return;
-  if(!users.length){ tb.innerHTML=`<tr><td colspan="5" class="dash-empty">${T('adm.js.noUsers')}</td></tr>`; return; }
-  tb.innerHTML = users.map(u=>`
-    <tr>
-      <td><code style="font-size:.78rem">${u.id||'—'}</code></td>
-      <td><strong>${escHtml(u.name||u.username||'—')}</strong></td>
+  if(!users.length){ tb.innerHTML=`<tr><td colspan="7" class="dash-empty">${T('adm.js.noUsers')}</td></tr>`; return; }
+  const start = (usersPage - 1) * USERS_PER_PAGE;
+  const page  = users.slice(start, start + USERS_PER_PAGE);
+  tb.innerHTML = page.map(u=>{
+    const isVerified = u.emailVerified;
+    const verChip = isVerified
+      ? `<span class="verified-chip verified-yes"><i class="bi bi-check-circle-fill"></i>${T('adm.js.verified')}</span>`
+      : `<span class="verified-chip verified-no"><i class="bi bi-x-circle-fill"></i>${T('adm.js.notVerified')}</span>`;
+    const provider = escHtml(u.authProvider || 'password');
+    return `<tr>
+      <td><strong>${escHtml(u.name||u.username||'—')}</strong><br><code style="font-size:.7rem;color:var(--k-muted)">${u.id||'—'}</code></td>
       <td>${escHtml(u.email||'—')}</td>
       <td><span class="role-chip rc-${(u.role||'user').toLowerCase()}">${escHtml(u.role||'user')}</span></td>
-      <td>
+      <td>${verChip}</td>
+      <td><code style="font-size:.78rem">${provider}</code></td>
+      <td style="font-size:.8rem;color:var(--k-muted)">${fmtDate(u.createdAt||u.created_at)}</td>
+      <td style="white-space:nowrap">
         <button class="dash-btn-icon" title="${T('adm.js.changeRole')}" onclick="openRoleModal('${u.id}','${escHtml(u.role||'user')}')"><i class="bi bi-pencil-square"></i></button>
+        <button class="dash-btn-icon danger" title="${T('adm.js.deleteUser')}" onclick="openDeleteModal('${u.id}','${escHtml(u.name||u.email||u.id)}')"><i class="bi bi-trash3"></i></button>
       </td>
-    </tr>`).join('');
+    </tr>`;
+  }).join('');
+  renderUsersPagination(users);
+}
+
+function renderUsersPagination(users) {
+  const bar   = document.getElementById('usersPgBar');
+  if(!bar) return;
+  const total = users.length;
+  const pages = Math.max(1, Math.ceil(total / USERS_PER_PAGE));
+  if(pages <= 1 && total <= USERS_PER_PAGE){ bar.innerHTML=''; return; }
+  const start = (usersPage-1)*USERS_PER_PAGE+1;
+  const end   = Math.min(usersPage*USERS_PER_PAGE, total);
+  let btns = '';
+  for(let i=1;i<=pages;i++){
+    btns += `<button class="pg-btn${i===usersPage?' active':''}" onclick="goUsersPage(${i},event)">${i}</button>`;
+  }
+  bar.innerHTML = `
+    <button class="pg-btn" onclick="goUsersPage(${usersPage-1},event)" ${usersPage<=1?'disabled':''}><i class="bi bi-chevron-left"></i></button>
+    ${btns}
+    <button class="pg-btn" onclick="goUsersPage(${usersPage+1},event)" ${usersPage>=pages?'disabled':''}><i class="bi bi-chevron-right"></i></button>
+    <span style="margin-left:.5rem">${T('adm.pg.showing')} ${start}–${end} ${T('adm.pg.of')} ${total} ${T('adm.pg.results')}</span>`;
+}
+
+function goUsersPage(p, e) {
+  if(e) e.preventDefault();
+  usersPage = p;
+  filterUsers();
 }
 
 function filterUsers() {
-  const role = document.getElementById('filterRole').value;
+  const role = document.getElementById('filterRole')?.value || '';
   const term = (document.getElementById('usersSearch')?.value || '').trim().toLowerCase();
   const filtered = allUsers.filter(u => {
     const roleOk = role ? (u.role||'').toLowerCase()===role : true;
-    const name = (u.name || u.username || '').toLowerCase();
-    const email = (u.email || '').toLowerCase();
+    const name   = (u.name || u.username || '').toLowerCase();
+    const email  = (u.email || '').toLowerCase();
     const textOk = !term || name.includes(term) || email.includes(term);
     return roleOk && textOk;
   });
@@ -509,7 +653,7 @@ function closeRoleModal() { document.getElementById('roleModal').style.display =
 async function confirmRoleChange() {
   const role = document.getElementById('roleModalSelect').value;
   if (!_roleModalUserId) return;
-  const target = allUsers.find(u => String(u.id) === String(_roleModalUserId));
+  const target      = allUsers.find(u => String(u.id) === String(_roleModalUserId));
   const currentRole = (target?.role || 'user').toLowerCase();
   if (role === currentRole) { closeRoleModal(); return; }
   const displayName = target?.name || target?.username || target?.email || ('ID ' + _roleModalUserId);
@@ -517,19 +661,46 @@ async function confirmRoleChange() {
   if (!ok) return;
   try {
     const res = await fetch(API + '/users/' + _roleModalUserId, {
-      method: 'PATCH',
-      headers: authHeaders(),
-      body: JSON.stringify({ role })
+      method: 'PATCH', headers: authHeaders(), body: JSON.stringify({ role })
     });
     if (!res.ok) throw new Error((await res.json()).message || 'Error');
     closeRoleModal();
-    loadUsers();
+    await loadUsers();
+  } catch(e) { alert('Error: ' + e.message); }
+}
+
+// ── Delete modal ─────────────────────────────────────────
+let _deleteModalUserId = null;
+function openDeleteModal(id, name) {
+  _deleteModalUserId = id;
+  document.getElementById('deleteModalMsg').textContent =
+    T('adm.js.confirmDelete') + name + T('adm.js.confirmDelete2');
+  document.getElementById('deleteModal').style.display = 'flex';
+}
+function closeDeleteModal() { document.getElementById('deleteModal').style.display = 'none'; _deleteModalUserId = null; }
+async function confirmDeleteUser() {
+  if (!_deleteModalUserId) return;
+  const btn = document.getElementById('deleteModalConfirmBtn');
+  btn.disabled = true;
+  try {
+    const res = await fetch(API + '/users/' + _deleteModalUserId, {
+      method: 'DELETE', headers: authHeaders()
+    });
+    if (!res.ok) throw new Error((await res.json()).message || 'Error');
+    closeDeleteModal();
+    await loadUsers();
+    await loadAdminExpenses();
   } catch(e) {
+    btn.disabled = false;
     alert('Error: ' + e.message);
   }
 }
 
 // ── Admin expenses ────────────────────────────────────────
+let allExpenses = [];
+let expPage = 1;
+const EXP_PER_PAGE = 25;
+
 async function loadAdminExpenses() {
   const tb = document.getElementById('adminExpensesTbody');
   if(tb) tb.innerHTML = '<tr><td colspan="6" class="dash-empty"><span class="loading-spinner"></span></td></tr>';
@@ -537,38 +708,202 @@ async function loadAdminExpenses() {
     const res = await fetch(API + '/expenses', { headers: authHeaders() });
     if (res.status === 401) { logout(); return; }
     const data = await res.json();
-    document.getElementById('kpiExpenses').textContent = Array.isArray(data) ? data.length : '—';
-    if(!tb) return;
-    const expenses = Array.isArray(data) ? data : (data.data || []);
-    if(!expenses.length){ tb.innerHTML=`<tr><td colspan="6" class="dash-empty">${T('adm.js.noExpenses')}</td></tr>`; return; }
-    tb.innerHTML = expenses.map(e=>`
-      <tr>
-        <td><code style="font-size:.78rem">${e.id||'—'}</code></td>
-        <td>${escHtml(e.concept||e.description||'—')}</td>
-        <td>${escHtml(e.category||'Otro')}</td>
-        <td><strong>${(+e.amount||0).toFixed(2)}</strong></td>
-        <td>${escHtml(e.currency||'EUR')}</td>
-        <td>${fmtDate(e.date||e.createdAt)}</td>
-      </tr>`).join('');
+    allExpenses = Array.isArray(data) ? data : (data.data || []);
+    document.getElementById('kpiExpenses').textContent = allExpenses.length;
+    populateExpUserFilter();
+    expPage = 1;
+    filterExpenses();
   } catch(e) {
-    if(tb) tb.innerHTML=`<tr><td colspan="6" class="dash-empty text-danger">Error: ${escHtml(e.message)}</td></tr>`;
+    if(tb) tb.innerHTML = `<tr><td colspan="6" class="dash-empty text-danger">Error: ${escHtml(e.message)}</td></tr>`;
+  }
+}
+
+function populateExpUserFilter() {
+  const sel = document.getElementById('expUserFilter');
+  if(!sel) return;
+  const seen = new Set();
+  const opts = [`<option value="" data-i18n="adm.js.allUsers">${T('adm.js.allUsers')}</option>`];
+  allExpenses.forEach(e => {
+    const uid   = e.userId || e.user?.id;
+    const uname = e.user?.name || e.user?.email || uid;
+    if(uid && !seen.has(uid)) { seen.add(uid); opts.push(`<option value="${escHtml(uid)}">${escHtml(uname)}</option>`); }
+  });
+  sel.innerHTML = opts.join('');
+}
+
+function clearExpFilters() {
+  ['expSearch','expCatFilter','expDateFrom','expDateTo','expUserFilter'].forEach(id => {
+    const el = document.getElementById(id);
+    if(el) el.value = '';
+  });
+  expPage = 1;
+  filterExpenses();
+}
+
+function filterExpenses() {
+  const q       = (document.getElementById('expSearch')?.value     || '').trim().toLowerCase();
+  const cat     = (document.getElementById('expCatFilter')?.value  || '');
+  const from    = document.getElementById('expDateFrom')?.value;
+  const to      = document.getElementById('expDateTo')?.value;
+  const userId  = (document.getElementById('expUserFilter')?.value || '');
+  const filtered = allExpenses.filter(e => {
+    const concept = (e.concept || e.commerce || e.description || '').toLowerCase();
+    if(q && !concept.includes(q)) return false;
+    if(cat && (e.category||'') !== cat) return false;
+    if(userId) {
+      const uid = e.userId || e.user?.id;
+      if(String(uid) !== String(userId)) return false;
+    }
+    if(from || to) {
+      const d = new Date(e.date || e.createdAt);
+      if(from && d < new Date(from)) return false;
+      if(to   && d > new Date(to + 'T23:59:59')) return false;
+    }
+    return true;
+  });
+  renderExpensesTable(filtered);
+}
+
+function renderExpensesTable(expenses) {
+  const tb = document.getElementById('adminExpensesTbody');
+  if(!tb) return;
+  if(!expenses.length){
+    tb.innerHTML=`<tr><td colspan="6" class="dash-empty">${T('adm.js.noExpFilter')}</td></tr>`;
+    document.getElementById('expPgBar').innerHTML = '';
+    return;
+  }
+  const start = (expPage-1)*EXP_PER_PAGE;
+  const page  = expenses.slice(start, start + EXP_PER_PAGE);
+  tb.innerHTML = page.map(e=>{
+    const uname = escHtml(e.user?.name || e.user?.email || e.userId || '—');
+    return `<tr>
+      <td style="font-size:.82rem">${uname}</td>
+      <td>${escHtml(e.concept||e.commerce||e.description||'—')}</td>
+      <td>${escHtml(e.category||'Otro')}</td>
+      <td><strong>${fmtMoney(e.amount)}</strong></td>
+      <td>${escHtml(e.currency||'EUR')}</td>
+      <td>${fmtDate(e.date||e.createdAt)}</td>
+    </tr>`;
+  }).join('');
+  renderExpPagination(expenses);
+}
+
+function renderExpPagination(expenses) {
+  const bar   = document.getElementById('expPgBar');
+  if(!bar) return;
+  const total = expenses.length;
+  const pages = Math.max(1, Math.ceil(total / EXP_PER_PAGE));
+  if(pages <= 1){ bar.innerHTML=''; return; }
+  const start = (expPage-1)*EXP_PER_PAGE+1;
+  const end   = Math.min(expPage*EXP_PER_PAGE, total);
+  let btns = '';
+  const maxVisible = 7;
+  for(let i=1;i<=pages;i++){
+    if(pages > maxVisible && i > 2 && i < pages - 1 && Math.abs(i - expPage) > 1){
+      if(btns.slice(-3) !== '...') btns += '<span style="padding:0 .2rem;color:var(--k-muted)">…</span>';
+    } else {
+      btns += `<button class="pg-btn${i===expPage?' active':''}" onclick="goExpPage(${i},event)">${i}</button>`;
+    }
+  }
+  bar.innerHTML = `
+    <button class="pg-btn" onclick="goExpPage(${expPage-1},event)" ${expPage<=1?'disabled':''}><i class="bi bi-chevron-left"></i></button>
+    ${btns}
+    <button class="pg-btn" onclick="goExpPage(${expPage+1},event)" ${expPage>=pages?'disabled':''}><i class="bi bi-chevron-right"></i></button>
+    <span style="margin-left:.5rem">${T('adm.pg.showing')} ${start}–${end} ${T('adm.pg.of')} ${total} ${T('adm.pg.results')}</span>`;
+}
+
+function goExpPage(p, e) {
+  if(e) e.preventDefault();
+  expPage = p;
+  filterExpenses();
+}
+
+// ── Stats ─────────────────────────────────────────────────
+async function loadStats() {
+  // Reuse already-loaded data; if not loaded yet, fetch first
+  if(!allExpenses.length) await loadAdminExpenses();
+  if(!allUsers.length)    await loadUsers();
+
+  const now   = new Date();
+  const month = now.getMonth();
+  const year  = now.getFullYear();
+
+  // Total volume (all time)
+  const totalAmt = allExpenses.reduce((s,e) => s + (+e.amount||0), 0);
+  document.getElementById('statsTotalAmount').textContent = fmtMoney(totalAmt) + ' EUR';
+
+  // Avg spend per user (users who have at least 1 expense)
+  const userTotals = {};
+  allExpenses.forEach(e => {
+    const uid = e.userId || e.user?.id;
+    if(!uid) return;
+    userTotals[uid] = (userTotals[uid]||0) + (+e.amount||0);
+  });
+  const actives = Object.values(userTotals);
+  const avg = actives.length ? actives.reduce((s,v)=>s+v,0) / actives.length : 0;
+  document.getElementById('statsAvgExp').textContent = fmtMoney(avg) + ' EUR';
+
+  // Top spenders this month
+  const monthlyTotals = {};
+  const monthlyNames  = {};
+  allExpenses.forEach(e => {
+    const d = new Date(e.date || e.createdAt);
+    if(d.getMonth() !== month || d.getFullYear() !== year) return;
+    const uid = e.userId || e.user?.id;
+    if(!uid) return;
+    monthlyTotals[uid] = (monthlyTotals[uid]||0) + (+e.amount||0);
+    monthlyNames[uid]  = e.user?.name || e.user?.email || uid;
+  });
+  const topSpenders = Object.entries(monthlyTotals)
+    .sort((a,b) => b[1]-a[1]).slice(0,7);
+
+  const spendersEl = document.getElementById('statsTopSpenders');
+  if(!topSpenders.length){
+    spendersEl.innerHTML = `<span style="color:var(--k-muted);font-size:.87rem">${T('adm.stats.noData')}</span>`;
+  } else {
+    const maxS = topSpenders[0][1];
+    spendersEl.innerHTML = '<div class="stat-leaderboard">' + topSpenders.map(([uid,total],i)=>`
+      <div class="stat-lb-row">
+        <span class="stat-lb-rank">${i+1}</span>
+        <span class="stat-lb-label" title="${escHtml(monthlyNames[uid])}">${escHtml(monthlyNames[uid])}</span>
+        <div class="stat-lb-bar-wrap"><div class="stat-lb-bar" style="width:${Math.round((total/maxS)*100)}%"></div></div>
+        <span class="stat-lb-val">${fmtMoney(total)}</span>
+      </div>`).join('') + '</div>';
+  }
+
+  // Top categories (all time)
+  const catTotals = {};
+  allExpenses.forEach(e => { const c = e.category||'Otro'; catTotals[c]=(catTotals[c]||0)+(+e.amount||0); });
+  const topCats = Object.entries(catTotals).sort((a,b)=>b[1]-a[1]).slice(0,7);
+
+  const catsEl = document.getElementById('statsTopCats');
+  if(!topCats.length){
+    catsEl.innerHTML = `<span style="color:var(--k-muted);font-size:.87rem">${T('adm.stats.noData')}</span>`;
+  } else {
+    const maxC = topCats[0][1];
+    const catColors = ['#3b82f6','#7c3aed','#10b981','#f59e0b','#ef4444','#06b6d4','#ec4899'];
+    catsEl.innerHTML = '<div class="stat-leaderboard">' + topCats.map(([cat,total],i)=>`
+      <div class="stat-lb-row">
+        <span class="stat-lb-rank">${i+1}</span>
+        <span class="stat-lb-label" title="${escHtml(cat)}">${escHtml(cat)}</span>
+        <div class="stat-lb-bar-wrap"><div class="stat-lb-bar" style="width:${Math.round((total/maxC)*100)}%;background:${catColors[i%catColors.length]}"></div></div>
+        <span class="stat-lb-val">${fmtMoney(total)}</span>
+      </div>`).join('') + '</div>';
   }
 }
 
 // ── Health check ──────────────────────────────────────────
 async function checkHealth() {
-  const dot = document.getElementById('healthDot');
+  const dot      = document.getElementById('healthDot');
   const statusEl = document.getElementById('healthStatus');
-  const urlEl = document.getElementById('healthUrl');
-  const envUrl = document.getElementById('envApiUrl');
-  const envUA = document.getElementById('envUA');
-  const envTime = document.getElementById('envTime');
-
+  const urlEl    = document.getElementById('healthUrl');
+  const envUrl   = document.getElementById('envApiUrl');
+  const envUA    = document.getElementById('envUA');
+  const envTime  = document.getElementById('envTime');
   const base = API.replace(/\/api\/?$/, '');
-  if(urlEl) urlEl.textContent = base + '/api';
+  if(urlEl)  urlEl.textContent  = base + '/api';
   if(envUrl) envUrl.textContent = API;
-  if(envUA) envUA.textContent = navigator.userAgent;
-
+  if(envUA)  envUA.textContent  = navigator.userAgent;
   dot.style.background = '#f59e0b';
   statusEl.textContent = T('adm.health.checking');
   try {
@@ -576,9 +911,7 @@ async function checkHealth() {
     if (res.ok || res.status < 500) {
       dot.style.background = '#10b981';
       statusEl.textContent = T('adm.health.ok') + ' (HTTP ' + res.status + ')';
-    } else {
-      throw new Error('HTTP ' + res.status);
-    }
+    } else { throw new Error('HTTP ' + res.status); }
   } catch(e) {
     dot.style.background = '#ef4444';
     statusEl.textContent = T('adm.health.fail') + e.message;
@@ -587,16 +920,13 @@ async function checkHealth() {
   if(envTime) envTime.textContent = new Date().toLocaleString(locale);
 }
 
-// ── Load all ──────────────────────────────────────────────
+// ── Init ──────────────────────────────────────────────────
 function loadAll() { loadUsers(); loadAdminExpenses(); }
-
 function logout() {
-  localStorage.removeItem('klarity_token'); localStorage.removeItem('klarity_user');
+  localStorage.removeItem('klarity_token');  localStorage.removeItem('klarity_user');
   sessionStorage.removeItem('klarity_token'); sessionStorage.removeItem('klarity_user');
   window.location.href = '/login';
 }
-
-// Init
 loadAll();
 </script>
 </body>

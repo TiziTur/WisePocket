@@ -1,4 +1,4 @@
-import { Body, Controller, Get, NotFoundException, Param, Patch, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, NotFoundException, Param, Patch, Query, UseGuards } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/roles/roles.guard';
@@ -74,5 +74,13 @@ export class UsersController {
       emailVerified: updated.emailVerified,
       authProvider: updated.authProvider ?? 'password',
     };
+  }
+
+  @Delete(':id')
+  @Roles(Role.ADMIN)
+  async remove(@Param('id') id: string) {
+    const result = await this.usersService.remove(id);
+    if (!result) throw new NotFoundException('Usuario no encontrado.');
+    return result;
   }
 }

@@ -22,8 +22,9 @@ export class UsersService implements OnModuleInit {
     const q = params?.q?.trim();
     const role = params?.role;
     const page = Math.max(1, Number(params?.page || 1));
-    const limit = Math.min(100, Math.max(1, Number(params?.limit || 0)));
-    const hasPagination = limit > 0;
+    const rawLimit = params?.limit !== undefined ? Number(params.limit) : 0;
+    const hasPagination = rawLimit > 0;
+    const limit = hasPagination ? Math.min(100, Math.max(1, rawLimit)) : 0;
 
     const where: FindOptionsWhere<User>[] = [];
     if (q) {
@@ -161,6 +162,13 @@ export class UsersService implements OnModuleInit {
 
     user.role = role;
     return this.usersRepository.save(user);
+  }
+
+  async remove(id: string): Promise<{ deleted: true } | null> {
+    const user = await this.findById(id);
+    if (!user) return null;
+    await this.usersRepository.remove(user);
+    return { deleted: true };
   }
 
   async save(user: User): Promise<User> {

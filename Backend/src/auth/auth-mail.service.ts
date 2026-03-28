@@ -27,6 +27,9 @@ export class AuthMailService {
       port,
       secure: port === 465,
       auth: { user, pass },
+      connectionTimeout: 7000,
+      greetingTimeout: 7000,
+      socketTimeout: 10000,
     });
   }
 
@@ -59,12 +62,18 @@ export class AuthMailService {
       return;
     }
 
-    await this.transporter.sendMail({
-      from: this.getFromAddress(),
-      to: payload.to,
-      subject: payload.subject,
-      text: payload.text,
-      html: payload.html,
-    });
+    try {
+      await this.transporter.sendMail({
+        from: this.getFromAddress(),
+        to: payload.to,
+        subject: payload.subject,
+        text: payload.text,
+        html: payload.html,
+      });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      this.logger.error(`SMTP send failed: ${message}`);
+      this.logger.log(`[MAIL:FALLBACK] to=${payload.to} subject="${payload.subject}" body="${payload.text}"`);
+    }
   }
 }

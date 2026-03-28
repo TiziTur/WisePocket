@@ -261,11 +261,19 @@ export class AuthService implements OnModuleInit {
 
   private async sendVerificationEmail(email: string, name: string, token: string) {
     const verifyUrl = `${this.getClientBaseUrl()}/login?verifyToken=${encodeURIComponent(token)}`;
-    await this.authMailService.sendVerificationEmail(email, name, verifyUrl);
+    try {
+      await this.authMailService.sendVerificationEmail(email, name, verifyUrl);
+    } catch {
+      // Never block auth flow if SMTP is temporarily unavailable.
+    }
   }
 
   private async sendPasswordResetEmail(email: string, name: string, token: string) {
     const resetUrl = `${this.getClientBaseUrl()}/login?resetToken=${encodeURIComponent(token)}`;
-    await this.authMailService.sendPasswordResetEmail(email, name, resetUrl);
+    try {
+      await this.authMailService.sendPasswordResetEmail(email, name, resetUrl);
+    } catch {
+      // Never block password-reset request response due to SMTP outage.
+    }
   }
 }

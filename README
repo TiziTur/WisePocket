@@ -186,6 +186,7 @@ PUT   /api/auth/profile
 ### Railway (Backend)
 - Configurar `DATABASE_URL`, `JWT_SECRET`, `DB_SSL`, `CORS_ORIGIN`, `APP_URL`.
 - Para auth extendido: `GOOGLE_CLIENT_ID`, `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `MAIL_FROM`.
+- Si SMTP falla por timeout, el backend no bloquea registro/recuperacion: guarda usuario/solicitud y deja fallback por logs.
 
 ### Netlify (Frontend)
 - Public directory: `Frontend/public`.

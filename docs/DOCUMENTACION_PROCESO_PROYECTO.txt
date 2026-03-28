@@ -122,6 +122,7 @@ Arquitectura basada en frontend estatico + backend NestJS REST con JWT.
 - Throttling adicional por endpoint en auth.
 - Tokens de verify/reset almacenados hasheados (SHA-256).
 - Normalizacion de email en backend.
+- Envio de email tolerante a fallos SMTP (timeout/falla no bloquea flujo de registro o recuperacion).
 
 ====================================================================
 6) FUNCIONALIDADES POR ROL

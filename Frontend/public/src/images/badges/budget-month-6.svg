@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80" fill="none">
+  <circle cx="40" cy="40" r="38" fill="#ede9fe" stroke="#7c3aed" stroke-width="2.5"/>
+  <!-- shield -->
+  <path d="M40 16 L62 24 L62 42 C62 54 40 66 40 66 C40 66 18 54 18 42 L18 24Z" fill="#7c3aed" opacity=".2"/>
+  <path d="M40 20 L58 27 L58 42 C58 52 40 62 40 62 C40 62 22 52 22 42 L22 27Z" fill="#7c3aed" opacity=".5"/>
+  <!-- check mark inside shield -->
+  <path d="M30 41 L37 48 L51 32" stroke="#7c3aed" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <!-- 6 sparkles -->
+  <circle cx="14" cy="18" r="2.5" fill="#f59e0b"/>
+  <circle cx="66" cy="18" r="2.5" fill="#f59e0b"/>
+  <circle cx="10" cy="40" r="2" fill="#f59e0b" opacity=".7"/>
+  <circle cx="70" cy="40" r="2" fill="#f59e0b" opacity=".7"/>
+  <circle cx="18" cy="62" r="2" fill="#f59e0b" opacity=".5"/>
+  <circle cx="62" cy="62" r="2" fill="#f59e0b" opacity=".5"/>
+</svg>

@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80" fill="none">
+  <circle cx="40" cy="40" r="38" fill="#fef3c7" stroke="#f59e0b" stroke-width="2.5"/>
+  <!-- piggy bank body -->
+  <ellipse cx="40" cy="44" rx="20" ry="17" fill="#f59e0b" opacity=".85"/>
+  <!-- snout -->
+  <ellipse cx="55" cy="47" rx="7" ry="5.5" fill="#fbbf24"/>
+  <circle cx="53.5" cy="46.5" r="1.5" fill="#92400e" opacity=".5"/>
+  <circle cx="56.5" cy="46.5" r="1.5" fill="#92400e" opacity=".5"/>
+  <!-- ear -->
+  <ellipse cx="30" cy="31" rx="5" ry="6" fill="#fbbf24"/>
+  <ellipse cx="30" cy="31" rx="3" ry="4" fill="#f59e0b" opacity=".6"/>
+  <!-- eye -->
+  <circle cx="37" cy="38" r="2.5" fill="white"/>
+  <circle cx="37" cy="38" r="1.3" fill="#1a202c"/>
+  <!-- coin slot -->
+  <rect x="36" y="26" width="8" height="3" rx="1.5" fill="#92400e" opacity=".45"/>
+  <!-- coin -->
+  <circle cx="40" cy="23" r="5" fill="#f59e0b"/>
+  <text x="40" y="26.5" font-family="Arial,sans-serif" font-size="7" font-weight="700" fill="white" text-anchor="middle">€</text>
+  <!-- legs -->
+  <rect x="30" y="59" width="5" height="8" rx="2.5" fill="#f59e0b" opacity=".8"/>
+  <rect x="37" y="60" width="5" height="7" rx="2.5" fill="#f59e0b" opacity=".8"/>
+  <rect x="44" y="59" width="5" height="8" rx="2.5" fill="#f59e0b" opacity=".8"/>
+</svg>

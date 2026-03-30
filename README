@@ -46,6 +46,356 @@ Klarity es una plataforma moderna de gestion financiera que permite registrar, a
 ┌─────────────────────────────────────────────────────────┐
 │               BACKEND NestJS (Railway)                  │
 │  ┌─────────────────────────────────────────────────────┐│
+│  │  Auth | Users | Expenses | Advisor | Tickets/OCR   ││
+│  │  Budgets | Gamification | Friendships | Shared Exp  ││
+│  └─────────────────────────────────────────────────────┘│
+└──────────────────────┬──────────────────────────────────┘
+                       │ SQL
+                       ↓
+            ┌──────────────────────────┐
+            │ PostgreSQL (Railway DB)  │
+            └──────────────────────────┘
+```
+
+---
+
+## Roles y Permisos
+
+| Rol | Acceso | Funcionalidades |
+|-----|--------|-----------------|
+| Usuario | `/dashboard` | Registrar gastos, OCR, presupuestos, analisis personal, chatbot asesor, logros, gastos compartidos |
+| Asesor | `/advisor` | Ver clientes, analizar patrones, generar recomendaciones, consultar historial |
+| Administrador | `/admin` | Gestion global de usuarios/roles, vista global de gastos y estado de sistema |
+
+---
+
+## Funcionalidades Principales
+
+### Requisitos cumplidos
+- Autenticacion JWT con registro y login seguro.
+- Gestion de perfiles con edicion.
+- CRUD completo de gastos.
+- Carga de tickets con OCR para extraccion automatica.
+- Visualizacion de gastos y dashboards analiticos.
+- Analisis de patrones de consumo.
+- Recomendaciones financieras.
+- Sistema de roles (usuario, asesor, administrador).
+
+### Extras implementados
+- Soporte multi-moneda (ARS, USD, EUR, GBP, MXN) con selector global de visualizacion.
+- Presupuestos y limites de gasto con barra de progreso (persistidos en backend).
+- Marcado de gastos mensuales con autodeteccion por concepto.
+- Sistema de temas (claro/oscuro) persistente.
+- Internacionalizacion ES/EN completa en todas las paginas.
+- Chatbot asesor financiero integrado.
+- Graficos interactivos de gasto por categoria.
+- Semaforo financiero por cliente en panel asesor.
+- Verificacion de correo al registrarse.
+- Recuperacion de cuenta por email con token temporal.
+- Login/registro con Google (ID Token).
+- Rate limiting global y por endpoints de autenticacion.
+- **Gamificacion (Logros):** 12 insignias con imagenes SVG personalizadas, evaluacion automatica tras cada gasto, widget en el overview y seccion completa en el dashboard.
+- **Gastos Compartidos:** sistema de amigos (solicitud/aceptacion), creacion de gastos divididos, balance de deudas simplificado y liquidacion de pagos.
+
+---
+
+## Gamificacion — Insignias
+
+12 insignias disponibles, cada una con imagen SVG unica que sigue el sistema de diseno Klarity:
+
+| ID | Nombre ES | Condicion |
+|----|-----------|-----------|
+| `first-expense` | Primer paso | Registrar el 1er gasto |
+| `expense-10` | Coleccionista | 10 gastos registrados |
+| `expense-50` | Experto financiero | 50 gastos registrados |
+| `expense-100` | Maestro del control | 100 gastos registrados |
+| `first-recurring` | Compromisos claros | 1er gasto recurrente |
+| `category-master` | Multifacetico | Gastos en 5 categorias distintas |
+| `budget-month-1` | Mes bajo control | 1 mes por debajo del presupuesto |
+| `budget-month-3` | Racha de ahorro | 3 meses consecutivos bajo presupuesto |
+| `budget-month-6` | Disciplina de acero | 6 meses consecutivos bajo presupuesto |
+| `shared-first` | En buena compania | 1er gasto compartido creado |
+| `night-owl` | Buho nocturno | Gasto registrado entre 00:00 y 05:00 |
+| `early-bird` | Madrugador | Gasto registrado entre 05:00 y 07:00 |
+
+Los SVGs se encuentran en `Frontend/public/src/images/badges/`.
+
+---
+
+## API de Nuevos Modulos
+
+### Presupuestos
+```txt
+GET    /api/budgets
+PUT    /api/budgets/:category
+DELETE /api/budgets/:category
+```
+
+### Gamificacion
+```txt
+GET  /api/gamification/badges     — todas las insignias + estado ganado + progreso
+POST /api/gamification/evaluate   — re-evaluar insignias manualmente
+```
+
+### Amistades
+```txt
+POST   /api/friendships           — enviar solicitud de amistad por email
+GET    /api/friendships           — listar amigos y solicitudes pendientes
+PATCH  /api/friendships/:id       — aceptar o rechazar solicitud
+DELETE /api/friendships/:id       — eliminar amigo
+```
+
+### Gastos Compartidos
+```txt
+POST   /api/shared-expenses                       — crear gasto compartido
+GET    /api/shared-expenses                       — mis gastos compartidos
+GET    /api/shared-expenses/balance               — balance de deudas simplificado
+PATCH  /api/shared-expenses/:id/settle/:userId    — marcar deuda como saldada
+DELETE /api/shared-expenses/:id                   — eliminar (solo creador)
+```
+
+---
+
+## Sistema i18n (Tres Capas)
+
+```
+Frontend/public/src/js/
+├── lang.js             — routing de idioma, localStorage, redireccion (/ = ES, /en = EN)
+├── i18n.js             — diccionario ES+EN; aplica data-i18n, data-i18n-placeholder,
+│                         data-i18n-title, data-i18n-aria; expone window.__klarityI18n
+└── universal-i18n.js   — red de seguridad: reemplazo regex de nodos de texto no cubiertos
+                          (solo corre cuando lang === 'en')
+```
+
+**T() helper** — definido en `shared-helpers.js` y disponible en todos los paneles:
+```js
+function T(key) {
+  const lang = window.getLang ? window.getLang() : (localStorage.getItem('klarity-lang') || 'es');
+  const dict = window.__klarityI18n && window.__klarityI18n[lang];
+  return (dict && dict[key] !== undefined) ? dict[key] : key;
+}
+```
+
+**Orden de carga de scripts** requerido en todas las paginas de app:
+```
+runtime-config.js → theme.js → lang.js → i18n.js → universal-i18n.js → shared-helpers.js → script de pagina
+```
+
+---
+
+## Ejecucion Local
+
+### Backend
+
+```bash
+cd Backend
+npm install
+cp .env.example .env
+npm run start:dev
+```
+
+Variables clave (`Backend/.env`):
+
+```env
+PORT=3000
+DATABASE_URL=
+DB_SSL=false
+CORS_ORIGIN=http://localhost:5173
+
+JWT_SECRET=replace_with_a_long_random_secret
+APP_URL=http://localhost:5173
+
+GOOGLE_CLIENT_ID=
+
+SMTP_HOST=smtp-relay.brevo.com
+SMTP_PORT=587
+SMTP_USER=
+SMTP_PASS=
+MAIL_FROM=no-reply@klarity.local
+
+SEED_DEFAULT_PASSWORD=
+SEED_ADVISOR_PASSWORD=
+SEED_ADMIN_PASSWORD=
+SEED_DEMO_PASSWORD=
+```
+
+### Frontend
+
+```bash
+cd Frontend
+npm install
+node server.js
+# o bien: servir Frontend/public con cualquier servidor estatico
+```
+
+`config.js` expone:
+- `window.WISEPOCKET_API_BASE_URL`
+- `window.KLARITY_GOOGLE_CLIENT_ID`
+
+---
+
+## API Auth
+
+Endpoints principales:
+
+```txt
+POST  /api/auth/register
+POST  /api/auth/login
+POST  /api/auth/google
+POST  /api/auth/verify-email
+POST  /api/auth/resend-verification
+POST  /api/auth/request-password-reset
+POST  /api/auth/reset-password
+GET   /api/auth/me
+PATCH /api/auth/profile
+PUT   /api/auth/profile
+```
+
+---
+
+## Seguridad Implementada
+
+- JWT con expiracion y rutas protegidas.
+- Passwords hasheadas con bcrypt.
+- ValidationPipe global con whitelist y forbidNonWhitelisted.
+- Reglas de password fuerte en registro/reset.
+- Rate limiting global y por endpoints sensibles de auth.
+- Tokens de verificacion y recuperacion guardados hasheados (SHA-256).
+- CORS configurable por entorno (lista separada por comas, normalizado internamente).
+- Helmet habilitado.
+
+---
+
+## Deploy (Railway Full Stack)
+
+### Railway — Backend
+- Root Directory: `Backend`
+- Configurar: `DATABASE_URL`, `JWT_SECRET`, `DB_SSL`, `CORS_ORIGIN`, `APP_URL`.
+- Para auth extendido: `GOOGLE_CLIENT_ID`, `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `MAIL_FROM`.
+- Si SMTP falla por timeout, el backend no bloquea registro/recuperacion.
+
+### Railway — Frontend
+- Root Directory: `Frontend`
+- Servido con `Frontend/server.js` (Node HTTP, sin frameworks).
+- Variables requeridas:
+  - `WISEPOCKET_API_BASE_URL=https://<tu-backend-railway>/api`
+  - `KLARITY_GOOGLE_CLIENT_ID=<opcional>`
+- Inyecta configuracion runtime via `/runtime-config.js`.
+
+### Flujo recomendado de despliegue
+1. Crear proyecto Railway.
+2. Agregar PostgreSQL.
+3. Crear servicio Backend (root `Backend`).
+4. Crear servicio Frontend (root `Frontend`).
+5. Configurar variables y dominios.
+6. Actualizar `APP_URL` y `CORS_ORIGIN` en backend con dominio real del frontend.
+
+---
+
+## Estructura
+
+```txt
+Proyecto_IngWeb_2/
+├── Backend/
+│   ├── src/
+│   │   ├── auth/
+│   │   ├── users/
+│   │   ├── expenses/
+│   │   ├── tickets/
+│   │   ├── advisor/
+│   │   ├── budgets/            — presupuestos por categoria (backend)
+│   │   ├── gamification/       — 12 insignias + evaluacion automatica
+│   │   ├── friendships/        — sistema de amigos
+│   │   ├── shared-expenses/    — gastos divididos + balance de deudas
+│   │   ├── common/
+│   │   │   ├── roles/
+│   │   │   └── utils/
+│   │   └── main.ts
+│   └── .env.example
+├── Frontend/
+│   ├── public/src/
+│   │   ├── html/
+│   │   │   ├── index.html
+│   │   │   ├── en.html
+│   │   │   ├── login.html
+│   │   │   ├── dashboard.html
+│   │   │   ├── advisor.html
+│   │   │   └── admin.html
+│   │   ├── css/
+│   │   │   ├── variables.css
+│   │   │   ├── styles.css
+│   │   │   ├── dashboard.css
+│   │   │   └── login.css
+│   │   ├── images/
+│   │   │   └── badges/         — 12 SVGs de insignias (first-expense.svg, etc.)
+│   │   └── js/
+│   │       ├── shared-helpers.js
+│   │       ├── i18n.js
+│   │       ├── universal-i18n.js
+│   │       ├── lang.js
+│   │       ├── theme.js
+│   │       └── config.js
+│   ├── server.js
+│   ├── railway.json
+│   └── package.json
+├── docs/
+│   ├── DOCUMENTACION_PROCESO_PROYECTO.txt
+│   └── MATRIZ_QA_DEPLOY.txt
+└── README
+```
+
+---
+
+## Repositorio
+
+- https://github.com/TiziTur/Proyecto_IngWeb_2
+
+Aplicacion web full-stack para la gestion financiera personal con dashboards por rol, analisis de gastos en tiempo real y recomendaciones impulsadas por IA.
+
+**Proyecto:** Ingenieria Web II (2026)  
+**Estado:** Completo  
+**Ultima actualizacion:** 30 de Marzo de 2026
+
+> Nota operativa: los campos de expiracion de tokens usan `type: Date` en TypeORM para asegurar compatibilidad entre PostgreSQL (Railway) y SQLite (local).
+
+---
+
+## Descripcion General
+
+Klarity es una plataforma moderna de gestion financiera que permite registrar, analizar y optimizar gastos personales. Incluye arquitectura cliente-servidor, soporte multi-moneda y paneles especializados por rol (usuario, asesor y administrador). Toda la interfaz es completamente bilingue (ES/EN) con persistencia de preferencia de idioma.
+
+---
+
+## Stack Tecnologico
+
+| Capa | Tecnologias |
+|------|-------------|
+| Frontend | HTML5, CSS3, JavaScript ES6+, Bootstrap 5, Bootstrap Icons |
+| Diseno | Sistema Klarity personalizado, responsive (mobile-first) |
+| Backend | NestJS, TypeORM, PostgreSQL/SQLite |
+| Autenticacion | JWT + RBAC, verificacion por correo, recuperacion de cuenta, Google Sign-In |
+| OCR e IA | OCR.space + fallback Tesseract, OpenAI/Anthropic opcional |
+| Hosting | Railway (Frontend + Backend + DB) |
+| Internacionalizacion | ES/EN — cobertura completa en todas las paginas (HTML + JS runtime) |
+
+---
+
+## Arquitectura del Sistema
+
+```txt
+┌─────────────────────────────────────────────────────────┐
+│                  NAVEGADOR (Frontend)                   │
+│  ┌──────────────┬──────────────┬──────────────────────┐ │
+│  │  Dashboard   │   Advisor    │      Admin Panel     │ │
+│  │  (Usuario)   │   (Asesor)   │   (Administrador)    │ │
+│  └──────────────┴──────────────┴──────────────────────┘ │
+│                  (Hosted en Railway)                    │
+└──────────────────────┬──────────────────────────────────┘
+                       │ REST API / JWT
+                       ↓
+┌─────────────────────────────────────────────────────────┐
+│               BACKEND NestJS (Railway)                  │
+│  ┌─────────────────────────────────────────────────────┐│
 │  │   Auth | Users | Expenses | Advisor | Tickets/OCR  ││
 │  └─────────────────────────────────────────────────────┘│
 └──────────────────────┬──────────────────────────────────┘

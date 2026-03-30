@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80" fill="none">
+  <circle cx="40" cy="40" r="38" fill="#d1fae5" stroke="#10b981" stroke-width="2.5"/>
+  <!-- two person silhouettes -->
+  <!-- person 1 -->
+  <circle cx="30" cy="28" r="9" fill="#10b981" opacity=".7"/>
+  <path d="M14 58 C14 46 46 46 46 58" fill="#10b981" opacity=".5"/>
+  <!-- person 2 -->
+  <circle cx="50" cy="26" r="9" fill="#10b981"/>
+  <path d="M34 58 C34 46 66 46 66 58" fill="#10b981" opacity=".75"/>
+  <!-- link / coin between them -->
+  <circle cx="40" cy="52" r="8" fill="#f59e0b"/>
+  <text x="40" y="56" font-family="Arial,sans-serif" font-size="10" font-weight="700" fill="white" text-anchor="middle">€</text>
+</svg>

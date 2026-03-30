@@ -1411,20 +1411,30 @@ function renderRecurringCommitments(data) {
 }
 
 // ── Achievements ──────────────────────────────────────────
-const BADGE_ICONS = {
-  first_expense:    'bi-receipt',
-  ten_expenses:     'bi-list-check',
-  fifty_expenses:   'bi-journal-check',
-  hundred_expenses: 'bi-award-fill',
-  monthly_budget:   'bi-piggy-bank',
-  streak_months:    'bi-calendar-check',
-  five_categories:  'bi-tags',
-  all_categories:   'bi-collection',
-  no_overspend:     'bi-shield-check',
-  shared_expense:   'bi-people',
-  five_friends:     'bi-people-fill',
-  early_adopter:    'bi-star-fill',
-};
+
+/**
+ * Normalise a badge object coming from the API.
+ * The backend returns nameEs/nameEn/descriptionEs/descriptionEn.
+ * We pick the right language and expose flat .name/.description/.key fields
+ * so the rest of the UI doesn't need to know about the bilingual structure.
+ */
+function normBadge(b) {
+  const lang = (document.documentElement.lang || 'es').startsWith('en') ? 'en' : 'es';
+  return {
+    ...b,
+    key: b.id,
+    name: lang === 'en' ? (b.nameEn || b.nameEs || b.id) : (b.nameEs || b.nameEn || b.id),
+    description: lang === 'en' ? (b.descriptionEn || b.descriptionEs || '') : (b.descriptionEs || b.descriptionEn || ''),
+  };
+}
+
+/** Render the icon/image portion of a badge */
+function badgeIconHtml(b, sizeClass) {
+  if (b.imageUrl) {
+    return `<img src="${escHtml(b.imageUrl)}" alt="${escHtml(b.name)}" class="badge-svg-img${sizeClass ? ' '+sizeClass : ''}" loading="lazy">`;
+  }
+  return `<div class="badge-icon" style="background:color-mix(in srgb,${escHtml(b.color||'var(--k-primary)')} 14%,var(--k-bg));color:${escHtml(b.color||'var(--k-primary)')}"><i class="bi ${escHtml(b.icon||'bi-patch-check')}"></i></div>`;
+}
 
 let _badgesCache = null;
 
@@ -1436,7 +1446,9 @@ async function loadAchievements() {
   try {
     const res = await fetch(API + '/gamification/badges', { headers: authHeaders() });
     if (res.status === 401) { logout(); return; }
-    const badges = await res.json();
+    const data = await res.json();
+    // API returns { badges: [...], totalEarned: N }
+    const badges = (Array.isArray(data) ? data : (data.badges || [])).map(normBadge);
     _badgesCache = badges;
     renderBadgeGrid(badges, grid);
     renderBadgeStats(badges, stats);
@@ -1456,24 +1468,23 @@ function renderBadgeGrid(badges, container) {
     return;
   }
   container.innerHTML = badges.map(b => {
-    const iconClass = BADGE_ICONS[b.key] || 'bi-patch-check';
     const isEarned = !!b.earned;
     const earnedDate = b.earnedAt ? fmtDate(b.earnedAt) : '';
-    const pct = (!isEarned && b.progress != null && b.total > 0)
-      ? Math.min(100, (b.progress / b.total) * 100).toFixed(1) : 0;
-    const progressHtml = (!isEarned && b.progress != null && b.total != null) ? `
+    const pct = (!isEarned && b.progress != null && b.conditionValue > 0)
+      ? Math.min(100, b.progress * 100).toFixed(1) : 0;
+    const progressHtml = (!isEarned && b.progress != null) ? `
       <div style="width:100%;margin-top:.35rem">
         <div style="background:var(--k-bg);border-radius:999px;height:5px;overflow:hidden">
-          <div style="width:${pct}%;height:100%;background:var(--k-primary);border-radius:999px"></div>
+          <div style="width:${pct}%;height:100%;background:${escHtml(b.color||'var(--k-primary)')};border-radius:999px"></div>
         </div>
-        <div style="font-size:.7rem;color:var(--k-muted);margin-top:.2rem">${b.progress} / ${b.total}</div>
+        <div style="font-size:.7rem;color:var(--k-muted);margin-top:.2rem">${Math.round(b.progress * b.conditionValue)} / ${b.conditionValue}</div>
       </div>` : '';
-    return `<div class="badge-card ${isEarned ? 'earned' : 'locked'}" title="${escHtml(b.description || b.name)}">
-      <div class="badge-icon"><i class="bi ${iconClass}"></i></div>
+    return `<div class="badge-card ${isEarned ? 'earned' : 'locked'}" title="${escHtml(b.description)}" style="${isEarned ? `--badge-color:${b.color||'var(--k-primary)'}` : ''}">
+      ${badgeIconHtml(b, '')}
       <div class="badge-name">${escHtml(b.name)}</div>
       ${isEarned
-        ? `<div class="badge-earned-date"><i class="bi bi-check-circle-fill text-success me-1"></i>${T('dash.achv.earnedOn')} ${earnedDate}</div>`
-        : `<div class="badge-desc">${escHtml(b.description || '')}${progressHtml}</div>`
+        ? `<div class="badge-earned-date"><i class="bi bi-check-circle-fill me-1" style="color:var(--k-success)"></i>${T('dash.achv.earnedOn')} ${earnedDate}</div>`
+        : `<div class="badge-desc">${escHtml(b.description)}${progressHtml}</div>`
       }
     </div>`;
   }).join('');
@@ -1496,9 +1507,8 @@ function renderAchievementsWidget(badges) {
     return;
   }
   const earnedHtml = earned.map(b => {
-    const iconClass = BADGE_ICONS[b.key] || 'bi-patch-check';
     return `<div class="achv-widget-item">
-      <div class="achv-widget-icon"><i class="bi ${iconClass}"></i></div>
+      ${badgeIconHtml(b, 'achv-widget-img')}
       <div>
         <div style="font-size:.85rem;font-weight:600;color:var(--k-text)">${escHtml(b.name)}</div>
         <div style="font-size:.74rem;color:var(--k-muted)">${T('dash.achv.earnedOn')} ${fmtDate(b.earnedAt)}</div>
@@ -1507,19 +1517,18 @@ function renderAchievementsWidget(badges) {
   }).join('');
   let nextHtml = '';
   if (nextBadge) {
-    const pct = (nextBadge.progress != null && nextBadge.total > 0)
-      ? Math.min(100, (nextBadge.progress / nextBadge.total) * 100).toFixed(1) : 0;
-    const nextIcon = BADGE_ICONS[nextBadge.key] || 'bi-patch-check';
+    const pct = (nextBadge.progress != null)
+      ? Math.min(100, nextBadge.progress * 100).toFixed(1) : 0;
     nextHtml = `<div style="margin-top:.8rem;padding-top:.75rem;border-top:1px solid var(--k-border)">
       <div style="font-size:.78rem;color:var(--k-muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:.4rem">${T('dash.achv.nextBadge')}</div>
       <div style="display:flex;align-items:center;gap:.65rem">
-        <div class="achv-widget-icon" style="opacity:.55"><i class="bi ${nextIcon}"></i></div>
+        <div style="opacity:.55;flex-shrink:0">${badgeIconHtml(nextBadge, 'achv-widget-img')}</div>
         <div style="flex:1">
           <div style="font-size:.83rem;font-weight:600;color:var(--k-text2)">${escHtml(nextBadge.name)}</div>
           <div style="background:var(--k-bg);border-radius:999px;height:5px;overflow:hidden;margin-top:.3rem">
-            <div style="width:${pct}%;height:100%;background:var(--k-primary);border-radius:999px;transition:width .4s"></div>
+            <div style="width:${pct}%;height:100%;background:${escHtml(nextBadge.color||'var(--k-primary)')};border-radius:999px;transition:width .4s"></div>
           </div>
-          ${nextBadge.progress != null ? `<div style="font-size:.7rem;color:var(--k-muted);margin-top:.15rem">${nextBadge.progress} / ${nextBadge.total}</div>` : ''}
+          ${nextBadge.progress != null ? `<div style="font-size:.7rem;color:var(--k-muted);margin-top:.15rem">${Math.round(nextBadge.progress * nextBadge.conditionValue)} / ${nextBadge.conditionValue}</div>` : ''}
         </div>
       </div>
     </div>`;
@@ -1535,7 +1544,8 @@ async function loadAchievementsWidget() {
   try {
     const res = await fetch(API + '/gamification/badges', { headers: authHeaders() });
     if (!res.ok) return;
-    const badges = await res.json();
+    const data = await res.json();
+    const badges = (Array.isArray(data) ? data : (data.badges || [])).map(normBadge);
     _badgesCache = badges;
     renderAchievementsWidget(badges);
     const earnedCount = badges.filter(b => b.earned).length;

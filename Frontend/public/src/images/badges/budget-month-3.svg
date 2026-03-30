@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80" fill="none">
+  <circle cx="40" cy="40" r="38" fill="#dbeafe" stroke="#3b82f6" stroke-width="2.5"/>
+  <!-- 3 flame shapes representing streak -->
+  <path d="M22 58 C22 48 28 44 26 36 C32 42 32 50 28 54 C30 46 36 44 34 34 C40 42 38 56 36 60 C38 52 44 50 42 40 C48 48 46 60 40 64 C36 67 22 66 22 58Z" fill="#f59e0b" opacity=".3"/>
+  <path d="M34 58 C34 50 40 46 38 38 C44 44 44 52 40 56 C42 48 48 46 46 36 C52 44 50 60 44 64 C38 67 34 64 34 58Z" fill="#f59e0b" opacity=".6"/>
+  <path d="M42 56 C42 48 48 44 46 36 C52 42 52 52 48 56 C50 48 56 46 54 38 C58 44 56 60 52 63 C48 66 42 62 42 56Z" fill="#f97316"/>
+  <!-- stars above -->
+  <path d="M20 22 L21.2 26 L25 26 L22 28.5 L23.2 32.5 L20 30 L16.8 32.5 L18 28.5 L15 26 L18.8 26Z" fill="#f59e0b"/>
+  <path d="M40 14 L41.4 18.5 L46 18.5 L42.3 21.3 L43.7 25.8 L40 23 L36.3 25.8 L37.7 21.3 L34 18.5 L38.6 18.5Z" fill="#f59e0b"/>
+  <path d="M60 22 L61.2 26 L65 26 L62 28.5 L63.2 32.5 L60 30 L56.8 32.5 L58 28.5 L55 26 L58.8 26Z" fill="#f59e0b"/>
+</svg>

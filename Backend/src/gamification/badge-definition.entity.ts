@@ -35,6 +35,10 @@ export class BadgeDefinition {
   @Column({ type: 'text' })
   color: string;
 
+  /** Optional custom SVG/image URL for the badge */
+  @Column({ type: 'text', nullable: true, default: null })
+  imageUrl: string | null;
+
   @Column({ type: 'text' })
   conditionType: ConditionType;
 

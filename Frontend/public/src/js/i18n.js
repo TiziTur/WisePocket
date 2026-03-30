@@ -197,7 +197,7 @@
       'footer.copy':      '© 2026 Klarity. Todos los derechos reservados.',
 
       // Login page
-      'login.back':                   '← Volver al inicio',
+      'login.back':                   'Volver al inicio',
       'login.pill':                   'Acceso seguro',
       'login.headline':               'Conoce exactamente<br><span class="gradient-text">a donde va tu dinero.</span>',
       'login.lead':                   'Registra consumos, analiza categorías y recibe recomendaciones de tu asesor financiero. Todo en un solo lugar.',
@@ -422,6 +422,7 @@
       'dash.achv.noBadges':           'Aún no has ganado ningún badge.',
       'dash.achv.noNext':             '¡Has conseguido todos los badges!',
       'dash.achv.widget.title':       'Mis logros',
+      'dash.achv.refresh':            'Actualizar',
 
       // Dashboard — shared expenses section
       'dash.sh.title':                'Gastos compartidos',
@@ -860,7 +861,7 @@
       'footer.copy':      '© 2026 Klarity. All rights reserved.',
 
       // Login page
-      'login.back':                   '← Back to home',
+      'login.back':                   'Back to home',
       'login.pill':                   'Secure access',
       'login.headline':               'Know exactly<br><span class="gradient-text">where your money goes.</span>',
       'login.lead':                   'Log your spending, analyse categories and get recommendations from your financial advisor. All in one place.',
@@ -1085,6 +1086,7 @@
       'dash.achv.noBadges':           'You haven\'t earned any badges yet.',
       'dash.achv.noNext':             'You\'ve earned all badges!',
       'dash.achv.widget.title':       'My achievements',
+      'dash.achv.refresh':            'Refresh',
 
       // Dashboard — shared expenses section
       'dash.sh.title':                'Shared expenses',

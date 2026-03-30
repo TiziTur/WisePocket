@@ -4,6 +4,8 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { createWorker } from 'tesseract.js';
 import { memoryStorage } from 'multer';
 import * as sharp from 'sharp';
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const heicConvert = require('heic-convert');
 
 /** MIME types accepted for OCR processing */
 const ALLOWED_MIMES = new Set([
@@ -40,6 +42,9 @@ function isAllowedFile(file: Express.Multer.File): boolean {
  * Normalise any supported image format to a JPEG buffer that both
  * Tesseract.js and OCR.space can reliably process.
  * PDFs are passed through as-is (OCR.space handles them; Tesseract skips them).
+ *
+ * HEIC/HEIF are decoded first with heic-convert (pure-JS, no native libs needed)
+ * so this works on Railway and any other Linux host without libheif installed.
  */
 async function normalizeImageBuffer(file: Express.Multer.File): Promise<{ buffer: Buffer; mimetype: string; filename: string }> {
   const mime = (file.mimetype || '').toLowerCase();
@@ -50,9 +55,18 @@ async function normalizeImageBuffer(file: Express.Multer.File): Promise<{ buffer
     return { buffer: file.buffer, mimetype: 'application/pdf', filename: file.originalname || 'ticket.pdf' };
   }
 
-  // For all image types (including HEIC/HEIF/WEBP/BMP/TIFF/AVIF) convert to JPEG
-  // sharp handles HEIC/HEIF on Node via libvips bindings
-  const jpegBuffer = await sharp(file.buffer)
+  let inputBuffer = file.buffer;
+
+  // HEIC/HEIF: decode to raw JPEG first using heic-convert (pure JS, no libheif needed)
+  const isHeic = mime === 'image/heic' || mime === 'image/heif' || ext === '.heic' || ext === '.heif';
+  if (isHeic) {
+    const arrayBuffer = await heicConvert({ buffer: inputBuffer, format: 'JPEG', quality: 0.92 });
+    inputBuffer = Buffer.from(arrayBuffer);
+  }
+
+  // For all other image types (WEBP, BMP, TIFF, AVIF, PNG, JPEG, GIF …) use sharp
+  // to normalise orientation and re-encode as JPEG.
+  const jpegBuffer = await sharp(inputBuffer)
     .rotate()                   // auto-rotate based on EXIF orientation
     .jpeg({ quality: 92 })
     .toBuffer();

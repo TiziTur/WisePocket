@@ -1479,7 +1479,8 @@ function renderBadgeGrid(badges, container) {
         </div>
         <div style="font-size:.7rem;color:var(--k-muted);margin-top:.2rem">${Math.round(b.progress * b.conditionValue)} / ${b.conditionValue}</div>
       </div>` : '';
-    return `<div class="badge-card ${isEarned ? 'earned' : 'locked'}" title="${escHtml(b.description)}" style="${isEarned ? `--badge-color:${b.color||'var(--k-primary)'}` : ''}">
+    const styleAttr = isEarned ? ('--badge-color:' + (b.color || 'var(--k-primary)')) : '';
+    return `<div class="badge-card ${isEarned ? 'earned' : 'locked'}" title="${escHtml(b.description)}" style="${styleAttr}">
       ${badgeIconHtml(b, '')}
       <div class="badge-name">${escHtml(b.name)}</div>
       ${isEarned

@@ -580,8 +580,20 @@
   width: 100%;
 }
 
-.k-chart-wrap.bar-h  { height: 220px; }
-.k-chart-wrap.pie-h  { height: 220px; }
+.k-chart-wrap.bar-h { height: 220px; }
+
+/* Pie/doughnut: fixed square container so Chart.js centres itself */
+.k-chart-wrap.pie-h {
+  height: 260px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.k-chart-wrap.pie-h canvas {
+  max-width: 260px;
+  max-height: 260px;
+}
 
 /* Legacy CSS pie (fallback) */
 .pie-chart-wrap {

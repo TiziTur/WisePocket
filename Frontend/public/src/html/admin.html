@@ -112,7 +112,7 @@
       </div>
 
       <!-- Role distribution + recent users -->
-      <div class="row g-3">
+      <div class="row g-3 mt-3">
         <div class="col-12 col-lg-4">
           <div class="dash-panel">
             <p class="dash-panel-title" data-i18n="adm.ov.roles.title">Distribución de roles</p>
@@ -159,8 +159,8 @@
             <option value="advisor">Advisor</option>
             <option value="admin">Admin</option>
           </select>
-          <button class="btn btn-primary btn-sm" onclick="loadUsers()">
-            <i class="bi bi-arrow-clockwise me-1"></i>
+          <button class="btn btn-primary" style="padding:.45rem .75rem" onclick="loadUsers()">
+            <i class="bi bi-arrow-clockwise"></i>
           </button>
         </div>
       </div>
@@ -190,7 +190,7 @@
 
       <div class="dash-panel mt-3">
         <p class="dash-panel-title" data-i18n="adm.users.chart.title">Nuevos usuarios (últimos 6 meses)</p>
-        <div id="usersMonthlyChart"></div>
+        <div id="usersMonthlyChart" style="padding-bottom:1rem"></div>
       </div>
     </div>
 
@@ -535,6 +535,7 @@ function renderUsersMonthlyChart(users) {
       }]
     },
     options: {
+      maintainAspectRatio: false,
       plugins: { legend: { display: false } },
       scales: {
         x: { ticks: { color: isDark ? '#b0bdd4' : '#4a5568', font: { size: 11 } }, grid: { display: false } },

@@ -1,21 +1,16 @@
 /**
  * tickets.controller.ts
  *
- * OCR pipeline — complete rewrite.
+ * OCR pipeline — Gemini Vision first, OCR.space fallback, Tesseract last resort.
  *
- * Strategy:
- *  1. Accept any image format (JPEG/PNG/WEBP/BMP/TIFF/AVIF/GIF/HEIC/HEIF/PDF).
- *  2. Preprocess with sharp: rotate → grayscale → normalise contrast →
- *     adaptive sharpen → upscale to ≥2000 px wide → clean JPEG for OCR.
- *     HEIC/HEIF are first decoded with heic-convert (pure JS, no libheif).
- *  3. Try OCR.space engine 2 (ML) first; if it fails or returns empty text
- *     fall back to engine 1 (Tesseract-based), then to local Tesseract.js.
- *  4. Parse the raw text with specialised extractors for:
- *     - Commerce / store name
- *     - Grand total amount  (handles ARS large numbers, EU/US decimal formats)
- *     - Date               (all common receipt date formats)
- *     - Currency           (symbol, code and contextual heuristics)
- *     - Category           (taxonomy of ~120 keywords)
+ * Primary strategy: send the image directly to Google Gemini 1.5 Flash Vision
+ * with a structured prompt. The model reads the ticket as a human would and
+ * returns a JSON object with commerce, amount, date, currency and category.
+ * This eliminates the fragile "OCR text → regex extraction" chain entirely.
+ *
+ * Fallback chain (when GEMINI_API_KEY is absent or Gemini fails):
+ *   1. OCR.space (engine 2 → engine 1) + regex extraction
+ *   2. Tesseract.js local + regex extraction
  */
 
 import {
@@ -31,103 +26,192 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { createWorker } from 'tesseract.js';
 import { memoryStorage } from 'multer';
 import * as sharp from 'sharp';
+import { GoogleGenerativeAI, Part } from '@google/generative-ai';
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const heicConvert = require('heic-convert');
+
+// ─── Types ─────────────────────────────────────────────────────────────────────
+
+interface TicketResult {
+  commerce:  string;
+  date:      string;
+  amount:    number;
+  category:  string;
+  currency:  'EUR' | 'USD' | 'ARS' | 'GBP' | 'MXN';
+  rawText:   string;
+}
 
 // ─── File-type guards ──────────────────────────────────────────────────────────
 
 const ALLOWED_MIMES = new Set([
   'image/jpeg', 'image/jpg', 'image/png', 'image/webp',
-  'image/gif', 'image/bmp', 'image/tiff', 'image/tif',
+  'image/gif',  'image/bmp', 'image/tiff', 'image/tif',
   'image/heic', 'image/heif', 'image/avif', 'application/pdf',
 ]);
-
 const ALLOWED_EXTS = new Set([
   '.jpg', '.jpeg', '.png', '.webp', '.gif',
   '.bmp', '.tiff', '.tif', '.heic', '.heif', '.avif', '.pdf',
 ]);
 
-function isAllowedFile(file: Express.Multer.File): boolean {
-  const mime = (file.mimetype || '').toLowerCase();
+function isAllowedFile(f: Express.Multer.File): boolean {
+  const mime = (f.mimetype || '').toLowerCase();
   if (ALLOWED_MIMES.has(mime)) return true;
-  const ext = (file.originalname || '').toLowerCase().match(/\.[^.]+$/)?.[0] ?? '';
+  const ext = (f.originalname || '').toLowerCase().match(/\.[^.]+$/)?.[0] ?? '';
   return ALLOWED_EXTS.has(ext);
 }
 
-// ─── Image pre-processing ──────────────────────────────────────────────────────
+// ─── Image normalisation ───────────────────────────────────────────────────────
 
 /**
- * Convert any supported image to a receipt-optimised greyscale JPEG.
+ * Convert any supported image to a clean JPEG optimised for both Gemini
+ * Vision and Tesseract/OCR.space.
  *
- * Pipeline:
- *   HEIC/HEIF → heic-convert (quality 1.0, lossless intermediate)
- *   ↓
- *   sharp.rotate()         — fix EXIF orientation
- *   .grayscale()           — remove colour noise; receipts are b/w anyway
- *   .normalise()           — stretch histogram to full 0-255 range
- *   .clahe()               — local contrast enhancement (helps faded ink)
- *   .sharpen()             — crisp text edges
- *   .resize(≥2000px)       — Tesseract accuracy degrades below ~1500 px wide
- *   .jpeg({ quality:97 })  — high-quality output, avoid re-encode artefacts
+ * HEIC → heic-convert (pure JS, no libheif on Railway)
+ * All others → sharp pipeline:
+ *   rotate (EXIF) → grayscale → normalise → sharpen → upscale ≥ 1800 px → JPEG 95
+ *
+ * For Gemini we also produce a base64 string (inlineData part).
  */
-async function normalizeImageBuffer(
-  file: Express.Multer.File,
-): Promise<{ buffer: Buffer; mimetype: string; filename: string }> {
-  const mime = (file.mimetype || '').toLowerCase();
-  const ext  = (file.originalname || '').toLowerCase().match(/\.[^.]+$/)?.[0] ?? '';
+async function normalizeImage(f: Express.Multer.File): Promise<{
+  buffer:   Buffer;
+  mimetype: string;
+  filename: string;
+  base64:   string;        // base64 of the processed JPEG (for Gemini)
+}> {
+  const mime = (f.mimetype || '').toLowerCase();
+  const ext  = (f.originalname || '').toLowerCase().match(/\.[^.]+$/)?.[0] ?? '';
 
   if (mime === 'application/pdf' || ext === '.pdf') {
-    return { buffer: file.buffer, mimetype: 'application/pdf', filename: file.originalname || 'ticket.pdf' };
+    const b64 = f.buffer.toString('base64');
+    return { buffer: f.buffer, mimetype: 'application/pdf', filename: f.originalname || 'ticket.pdf', base64: b64 };
   }
 
-  let src = file.buffer;
+  let src = f.buffer;
 
-  // HEIC/HEIF — pure-JS decode (works on Railway with no libheif installed)
   const isHeic = mime === 'image/heic' || mime === 'image/heif' || ext === '.heic' || ext === '.heif';
   if (isHeic) {
     const ab = await heicConvert({ buffer: src, format: 'JPEG', quality: 1.0 });
     src = Buffer.from(ab);
   }
 
-  // Read current dimensions so we only upscale, never downscale
+  // Determine upscale target: longest side ≥ 1800 px
   const meta = await sharp(src).metadata();
-  const w = meta.width ?? 0;
-  const h = meta.height ?? 0;
-
-  // We want the longest side to be at least 2000 px
-  const minPx = 2000;
-  let resizeWidth: number | null = null;
-  let resizeHeight: number | null = null;
-  if (w > 0 && h > 0 && Math.max(w, h) < minPx) {
-    if (w >= h) resizeWidth  = minPx;
-    else        resizeHeight = minPx;
-  }
+  const longest = Math.max(meta.width ?? 0, meta.height ?? 0);
+  const resizeOpts = longest > 0 && longest < 1800
+    ? { width: (meta.width ?? 0) >= (meta.height ?? 0) ? 1800 : undefined,
+        height: (meta.height ?? 0) > (meta.width ?? 0)  ? 1800 : undefined,
+        fit:  'inside' as const, withoutEnlargement: false, kernel: 'lanczos3' as const }
+    : null;
 
   let pipeline = sharp(src)
-    .rotate()       // EXIF auto-rotate
-    .grayscale()    // greyscale — major OCR quality boost
-    .normalise();   // global contrast stretch
+    .rotate()
+    .grayscale()
+    .normalise()
+    .sharpen({ sigma: 1.5, m1: 2, m2: 3.5 });
 
-  // CLAHE: local contrast (tileWidth/tileHeight are in pixels of the output)
-  // Only available in sharp ≥ 0.30; wrap in try/catch for safety.
+  if (resizeOpts) pipeline = pipeline.resize(resizeOpts);
+
+  const buffer = await pipeline.jpeg({ quality: 95 }).toBuffer();
+  const base64 = buffer.toString('base64');
+
+  return { buffer, mimetype: 'image/jpeg', filename: 'ticket.jpg', base64 };
+}
+
+// ─── Gemini Vision ─────────────────────────────────────────────────────────────
+
+const GEMINI_PROMPT = `Eres un asistente experto en lectura de tickets y comprobantes de compra.
+Analiza la imagen del ticket adjunta y extrae la siguiente información.
+Responde ÚNICAMENTE con un objeto JSON válido, sin markdown, sin explicaciones, sin texto adicional.
+
+El JSON debe tener exactamente esta estructura:
+{
+  "commerce": "nombre del comercio o tienda",
+  "amount": 1234.56,
+  "date": "YYYY-MM-DD",
+  "currency": "ARS",
+  "category": "Supermercado",
+  "rawText": "todo el texto visible del ticket, línea por línea"
+}
+
+Reglas:
+- "commerce": nombre del negocio/tienda tal como aparece en el ticket. Si no se ve, escribe "Comercio sin identificar".
+- "amount": el importe TOTAL a pagar (número, sin símbolos). Es el mayor importe del ticket, generalmente al final. Si hay varios totales, usa el "Total a pagar" o "Importe total". Si no se ve, usa 0.
+- "date": fecha de la compra en formato YYYY-MM-DD. Si no aparece, usa la fecha de hoy: ${new Date().toISOString().slice(0, 10)}.
+- "currency": código ISO de la moneda. Detecta el símbolo ($, €, £) o el texto (pesos, euros, ARS, EUR). Si el ticket es argentino (tiene CUIT, AFIP, pesos), usa "ARS". Valores posibles: ARS, EUR, USD, GBP, MXN.
+- "category": elige UNA de estas categorías según el tipo de comercio y los productos: Supermercado, Alimentación, Restaurantes, Salud, Transporte, Servicios, Indumentaria, Electrónica, Ocio, Educación, Hogar, Otro.
+- "rawText": transcribe TODO el texto que puedas leer del ticket, respetando saltos de línea.
+
+Ejemplos de categorías:
+- Supermercado: Coto, Jumbo, Carrefour, Disco, Walmart, supermercados en general
+- Alimentación: panaderías, verdulerías, carnicerías, productos de almacén
+- Restaurantes: bares, cafeterías, pizzerías, delivery, McDonald's, Burger King
+- Salud: farmacias, clínicas, ópticas, medicamentos
+- Transporte: YPF, Shell, nafta, SUBE, taxi, Uber, peajes
+- Servicios: luz, gas, agua, internet, telefonía, facturas de servicios
+- Indumentaria: ropa, calzado, accesorios, Zara, Adidas, Nike
+- Electrónica: Garbarino, Fravega, computadoras, celulares, electrónica
+- Ocio: cine, teatro, Netflix, Spotify, gimnasio, entretenimiento
+- Educación: librerías, universidades, cursos, libros
+- Hogar: ferreterías, muebles, Ikea, Easy, limpieza del hogar`;
+
+async function analyzeWithGemini(
+  base64: string,
+  mimeType: string,
+): Promise<TicketResult | null> {
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!apiKey) return null;
+
   try {
-    pipeline = (pipeline as any).clahe({ width: 3, height: 3 });
-  } catch {
-    // clahe not available in this sharp version — skip
+    const genAI = new GoogleGenerativeAI(apiKey);
+    // gemini-1.5-flash: fast, cheap, excellent vision — perfect for receipts
+    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+
+    const imagePart: Part = {
+      inlineData: { data: base64, mimeType: mimeType === 'application/pdf' ? 'application/pdf' : 'image/jpeg' },
+    };
+
+    const result = await model.generateContent([GEMINI_PROMPT, imagePart]);
+    const text   = result.response.text().trim();
+
+    // Strip any accidental markdown code fences
+    const json = text.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/i, '').trim();
+
+    const parsed = JSON.parse(json) as Partial<TicketResult>;
+
+    // Validate and sanitize
+    const today = new Date().toISOString().slice(0, 10);
+    return {
+      commerce: String(parsed.commerce || 'Comercio sin identificar').trim(),
+      amount:   toPositiveNumber(parsed.amount),
+      date:     isValidDate(parsed.date) ? parsed.date! : today,
+      currency: isValidCurrency(parsed.currency) ? parsed.currency! : 'ARS',
+      category: String(parsed.category || 'Otro').trim(),
+      rawText:  String(parsed.rawText || '').trim(),
+    };
+  } catch (err) {
+    console.error('Gemini Vision error:', err);
+    return null;
   }
+}
 
-  pipeline = pipeline.sharpen({ sigma: 1.5, m1: 2, m2: 3.5 });
+// ─── Helpers ───────────────────────────────────────────────────────────────────
 
-  if (resizeWidth || resizeHeight) {
-    pipeline = pipeline.resize(resizeWidth, resizeHeight, {
-      fit: 'inside',
-      withoutEnlargement: false,
-      kernel: 'lanczos3',
-    });
-  }
+function toPositiveNumber(v: unknown): number {
+  const n = Number(v);
+  return Number.isFinite(n) && n > 0 ? Math.round(n * 100) / 100 : 0;
+}
 
-  const buffer = await pipeline.jpeg({ quality: 97, mozjpeg: false }).toBuffer();
-  return { buffer, mimetype: 'image/jpeg', filename: 'ticket.jpg' };
+function isValidDate(d: unknown): d is string {
+  if (typeof d !== 'string') return false;
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(d)) return false;
+  const dt = new Date(d + 'T00:00:00');
+  if (isNaN(dt.getTime())) return false;
+  const y = dt.getFullYear();
+  return y >= 2000 && y <= new Date().getFullYear() + 1;
+}
+
+function isValidCurrency(c: unknown): c is TicketResult['currency'] {
+  return ['EUR', 'USD', 'ARS', 'GBP', 'MXN'].includes(c as string);
 }
 
 // ─── Controller ───────────────────────────────────────────────────────────────
@@ -148,135 +232,94 @@ export class TicketsController {
     return this.processTicketFile(file);
   }
 
-  // ─── Main processing flow ──────────────────────────────────────────────────
+  // ─── Main flow ─────────────────────────────────────────────────────────────
 
-  private async processTicketFile(file?: Express.Multer.File) {
-    if (!file) throw new BadRequestException('Debes enviar un archivo de imagen en el campo "ticket" o "image".');
+  private async processTicketFile(file?: Express.Multer.File): Promise<TicketResult> {
+    if (!file) throw new BadRequestException('Debes enviar un archivo en el campo "ticket" o "image".');
     if (!isAllowedFile(file)) {
       const ext = (file.originalname || '').toLowerCase().match(/\.[^.]+$/)?.[0] ?? '';
       throw new BadRequestException(
         `Formato no soportado: ${file.mimetype || ext}. ` +
-        'Formatos aceptados: JPG, PNG, WEBP, HEIC, HEIF, AVIF, BMP, TIFF, GIF, PDF.',
+        'Aceptados: JPG, PNG, WEBP, HEIC, HEIF, AVIF, BMP, TIFF, GIF, PDF.',
       );
     }
 
-    const rawText = await this.performOcr(file);
+    const norm = await normalizeImage(file);
 
-    // Normalise OCR artefacts: collapse multiple spaces/tabs; keep newlines.
-    const cleaned = rawText
-      .replace(/\r\n/g, '\n')
-      .replace(/\r/g, '\n')
-      .replace(/[ \t]+/g, ' ')   // collapse horizontal whitespace
-      .trim();
+    // ── 1. Try Gemini Vision (best quality) ───────────────────────────────────
+    const geminiResult = await analyzeWithGemini(norm.base64, norm.mimetype);
+    if (geminiResult) return geminiResult;
 
-    const lines = cleaned
-      .split('\n')
-      .map(l => l.trim())
-      .filter(l => l.length > 0);
-
-    const commerce = this.extractCommerce(lines);
-    const amount   = this.extractAmount(lines);
-    const date     = this.extractDate(lines);
-    const currency = this.detectCurrency(cleaned);
-    const category = this.suggestCategory(cleaned, commerce);
-
-    return {
-      commerce,
-      date:     this.normalizeDate(date),
-      amount,
-      category,
-      currency,
-      rawText:  cleaned,
-    };
+    // ── 2. Fallback: OCR text extraction + regex parsing ──────────────────────
+    console.warn('Gemini unavailable — falling back to OCR text pipeline');
+    const rawText = await this.extractTextFallback(norm);
+    return this.parseFromText(rawText);
   }
 
-  // ─── OCR engine orchestration ──────────────────────────────────────────────
+  // ─── Fallback OCR text pipeline ────────────────────────────────────────────
 
-  private async performOcr(file: Express.Multer.File): Promise<string> {
-    const norm = await normalizeImageBuffer(file);
+  private async extractTextFallback(norm: {
+    buffer: Buffer; mimetype: string; filename: string;
+  }): Promise<string> {
+    const hasKey   = Boolean(process.env.OCR_SPACE_API_KEY);
+    const provider = String(process.env.OCR_PROVIDER || 'ocrspace').toLowerCase();
 
-    const hasKey     = Boolean(process.env.OCR_SPACE_API_KEY);
-    const provider   = String(process.env.OCR_PROVIDER || 'ocrspace').toLowerCase();
-    const useRemote  = hasKey && provider === 'ocrspace';
-
-    if (useRemote) {
-      // Try engine 2 (ML, better on modern printed text) first,
-      // then engine 1 (Tesseract-based, more reliable on structured tables).
+    if (hasKey && provider === 'ocrspace') {
       for (const engine of ['2', '1']) {
         try {
-          const text = await this.callOcrSpace(norm, engine);
-          if (text.trim().length > 20) return text;  // accept if non-trivial
-        } catch (err) {
-          console.warn(`OCR.space engine ${engine} failed:`, err);
+          const t = await this.callOcrSpace(norm, engine);
+          if (t.trim().length > 20) return t;
+        } catch (e) {
+          console.warn(`OCR.space engine ${engine} failed:`, e);
         }
       }
-      console.warn('Both OCR.space engines failed — falling back to local Tesseract');
     }
 
     if (norm.mimetype === 'application/pdf') {
       throw new BadRequestException(
-        'El procesamiento de PDF requiere OCR_SPACE_API_KEY configurado en el servidor.',
+        'Para procesar PDFs configura GEMINI_API_KEY o OCR_SPACE_API_KEY en el servidor.',
       );
     }
 
     return this.runTesseract(norm.buffer);
   }
 
-  /**
-   * OCR.space REST call.
-   * Parameters tuned for receipt images:
-   *  - scale=true          : OCR.space upscales small images server-side
-   *  - isTable=true        : tries to preserve column/tabular structure
-   *  - detectOrientation   : handles rotated photos
-   *  - filetype=JPG        : explicit hint so server doesn't sniff unnecessarily
-   */
   private async callOcrSpace(
     norm: { buffer: Buffer; mimetype: string; filename: string },
     engine: string,
   ): Promise<string> {
     const form = new FormData();
     form.append('file', new Blob([new Uint8Array(norm.buffer)], { type: norm.mimetype }), norm.filename);
-    form.append('language',          'spa');
+    form.append('language', 'spa');
     form.append('isOverlayRequired', 'false');
-    form.append('OCREngine',         engine);
-    form.append('scale',             'true');
-    form.append('isTable',           'true');
+    form.append('OCREngine', engine);
+    form.append('scale', 'true');
+    form.append('isTable', 'true');
     form.append('detectOrientation', 'true');
-    form.append('filetype',          'JPG');
 
     const res = await fetch('https://api.ocr.space/parse/image', {
-      method:  'POST',
+      method: 'POST',
       headers: { apikey: String(process.env.OCR_SPACE_API_KEY) },
-      body:    form,
+      body: form,
     });
-
     if (!res.ok) throw new Error(`OCR.space HTTP ${res.status}`);
 
-    const json = (await res.json()) as {
+    const json = await res.json() as {
       IsErroredOnProcessing?: boolean;
       ErrorMessage?: string[];
       ParsedResults?: Array<{ ParsedText?: string }>;
     };
-
-    if (json.IsErroredOnProcessing) {
-      throw new Error((json.ErrorMessage ?? ['OCR.space error']).join(' | '));
-    }
+    if (json.IsErroredOnProcessing) throw new Error((json.ErrorMessage ?? []).join(' | '));
 
     const text = json.ParsedResults?.[0]?.ParsedText ?? '';
     if (!text.trim()) throw new Error('OCR.space returned empty text');
     return text;
   }
 
-  /**
-   * Local Tesseract.js fallback.
-   * PSM 6 (uniform block of text) performs best on receipt-style single-column layouts.
-   * We run two passes: first Spanish, then English+Spanish if the first yields little text.
-   */
   private async runTesseract(buffer: Buffer): Promise<string> {
-    const run = async (lang: string): Promise<string> => {
+    const attempt = async (lang: string) => {
       const w = await createWorker(lang, 1, { logger: () => undefined } as any);
       try {
-        // PSM 6 = assume a single uniform block of text
         await w.setParameters({ tessedit_pageseg_mode: '6' as any });
         const { data } = await w.recognize(buffer);
         return data.text ?? '';
@@ -284,362 +327,168 @@ export class TicketsController {
         await w.terminate();
       }
     };
-
-    // Primary: Spanish only
-    const spa = await run('spa');
+    const spa = await attempt('spa');
     if (spa.trim().length > 30) return spa;
-
-    // Fallback: bilingual (handles receipts that mix Spanish and English)
-    const bilingual = await run('spa+eng');
+    const bilingual = await attempt('spa+eng');
     return bilingual.length >= spa.length ? bilingual : spa;
   }
 
-  // ─── Commerce extraction ───────────────────────────────────────────────────
+  // ─── Text → structured data (fallback path only) ──────────────────────────
 
-  /**
-   * Identify the store/merchant name.
-   *
-   * Strategy (in priority order):
-   *  1. Exact or partial match against a curated brand dictionary
-   *  2. First "header-like" line in the top 12 lines
-   *     (all-caps or title-case, reasonable length, no digits, not a label)
-   *  3. Longest alphabetic line in the top 10 lines
-   */
+  private parseFromText(rawText: string): TicketResult {
+    const cleaned = rawText.replace(/\r\n/g, '\n').replace(/\r/g, '\n').replace(/[ \t]+/g, ' ').trim();
+    const lines   = cleaned.split('\n').map(l => l.trim()).filter(Boolean);
+
+    const commerce = this.extractCommerce(lines);
+    const amount   = this.extractAmount(lines);
+    const date     = this.extractDate(lines);
+    const currency = this.detectCurrency(cleaned);
+    const category = this.suggestCategory(cleaned, commerce);
+
+    return { commerce, date, amount, category, currency, rawText: cleaned };
+  }
+
+  // ── Commerce ──────────────────────────────────────────────────────────────
+
   private extractCommerce(lines: string[]): string {
-    // ── Brand dictionary ─────────────────────────────────────────────────────
-    const BRANDS: string[] = [
-      // Argentina — supermarkets / hypermarkets
-      'coto', 'coto digital', 'jumbo', 'disco', 'vea',
-      'carrefour', 'carrefour express', 'carrefour maxi',
-      'changomas', 'walmart', 'makro', 'maxiconsumo',
-      'dia', 'dia%', 'el super', 'super vea', 'super express',
-      'la anonima', 'anonima', 'cooperativa obrera',
-      'toledo', 'lider', 'quilmes market',
-      // Argentina — pharma
-      'farmacity', 'dr ahorro', 'farmahorro', 'farmacias del pueblo',
-      'farmacia', 'drogueria',
-      // Argentina — fuel / convenience
-      'ypf', 'ypf serviclub', 'shell', 'axion', 'axion energy',
-      'petrobras', 'puma energy', 'gulf',
-      // Argentina — fast food / café
-      'mcdonalds', "mcdonald's", 'burger king', 'subway', 'mostaza',
-      'wendys', "wendy's", 'starbucks', 'freddo', 'freddos',
-      'rappi', 'pedidosya', 'glovo',
-      // Argentina — electronics
-      'garbarino', 'fravega', 'frávega', 'musimundo', 'megatone',
-      'ribeiro', 'compumundo',
-      // Argentina — fashion
-      'zara', 'falabella', 'paris', 'ripley', 'h&m',
-      'adidas', 'nike', 'puma', 'lacoste',
-      // Argentina — banks / payments
-      'rapipago', 'pago facil', 'pagofacil', 'bco', 'banco',
-      'naranja', 'naranja x',
-      // Spain / Europe
-      'mercadona', 'lidl', 'alcampo', 'carrefour', 'eroski',
-      'consum', 'ahorramas', 'dia', 'el corte ingles',
-      'ikea', 'primark', 'decathlon', 'mediamarkt',
-      // International
-      'amazon', 'netflix', 'spotify', 'apple', 'google',
-      'uber', 'uber eats', 'cabify', 'bolt',
+    const BRANDS = [
+      'coto','jumbo','disco','vea','carrefour','changomas','walmart','makro',
+      'maxiconsumo','dia','la anonima','anonima','cooperativa obrera','super vea',
+      'farmacity','farmahorro','ypf','shell','axion','petrobras',
+      'mcdonalds',"mcdonald's",'burger king','subway','mostaza','wendys','starbucks',
+      'freddo','garbarino','fravega','frávega','musimundo','megatone',
+      'zara','falabella','paris','ripley','adidas','nike',
+      'rapipago','pago facil','naranja','mercadona','lidl','alcampo','eroski',
+      'ikea','primark','decathlon','amazon','netflix','spotify','apple','google',
+      'uber','cabify',
     ];
-
-    const low = (s: string) => s.toLowerCase();
-
-    // 1. Brand match (first 15 lines)
     for (const line of lines.slice(0, 15)) {
-      const ll = low(line);
-      for (const brand of BRANDS) {
-        if (ll.includes(brand)) {
-          // Clean up the line — remove noise chars but keep letters/numbers/spaces
-          return line.replace(/[^\w\sÀ-ÿ&.%-]/g, ' ').replace(/\s+/g, ' ').trim();
-        }
-      }
+      const ll = line.toLowerCase();
+      if (BRANDS.some(b => ll.includes(b)))
+        return line.replace(/\s+/g, ' ').trim();
     }
-
-    // Words that identify label/metadata lines (not store names)
-    const META = /ticket|factura|comprobante|compra|caja|hora|fecha|iva|subtotal|total|importe|tel[eé]f|cuit|cai|afip|n[rº°]|item|cant|precio|cuil|rut|ruc|rg\.|ing\.|domicilio|direcci[oó]n|local\b|sucursal|calle|avenida|av\.|boulevard|pasaje/i;
-
-    // 2. Header-like line in top 12 — prefers all-caps or title-case, no digits
-    const headerLine = lines.slice(0, 12).find(line => {
-      const c = line.replace(/[^\wÀ-ÿ\s]/g, ' ').replace(/\s+/g, ' ').trim();
-      if (c.length < 3 || c.length > 60) return false;
-      if (/\d/.test(c)) return false;
-      if (META.test(c)) return false;
-      return /[A-Za-zÀ-ÿ]{3}/.test(c);
+    const META = /ticket|factura|comprobante|caja|hora|fecha|iva|subtotal|total|importe|tel[eé]f|cuit|cai|afip|n[rº°]|item|cant|precio|domicilio|direcci[oó]n|local\b|sucursal|calle|av\./i;
+    const header = lines.slice(0, 12).find(l => {
+      const c = l.replace(/[^\wÀ-ÿ\s]/g, ' ').replace(/\s+/g, ' ').trim();
+      return c.length >= 3 && c.length <= 60 && !/\d/.test(c) && !META.test(c) && /[A-Za-zÀ-ÿ]{3}/.test(c);
     });
-    if (headerLine) return headerLine.trim();
-
-    // 3. Longest word-only line in top 10
-    let best = '';
-    for (const line of lines.slice(0, 10)) {
-      const c = line.replace(/[^\wÀ-ÿ\s]/g, '').replace(/\s+/g, ' ').trim();
-      if (c.length > best.length && /[A-Za-zÀ-ÿ]{3}/.test(c) && !META.test(c)) {
-        best = c;
-      }
-    }
-    if (best.length >= 3) return best;
-
+    if (header) return header.trim();
     return 'Comercio sin identificar';
   }
 
-  // ─── Amount extraction ─────────────────────────────────────────────────────
+  // ── Amount ────────────────────────────────────────────────────────────────
 
-  /**
-   * Extract the grand-total amount.
-   *
-   * Pass 1 — scan lines that contain a TOTAL / A-PAGAR keyword:
-   *   collect all money candidates, keep the largest per line, then return
-   *   the overall maximum (handles "Total bruto" < "Total a pagar" ordering).
-   *
-   * Pass 2 — if no TOTAL line found, return the largest plausible amount
-   *   in the whole document (last resort, avoids phone/zip numbers).
-   */
   private extractAmount(lines: string[]): number {
-    const RE_TOTAL    = /\btotal\b|importe\s+total|a\s+pagar|saldo\s+a\s+pagar|monto\s+total|total\s+compra|total\s+a\s+pagar|gran\s+total|neto\s+a\s+pagar|efectivo|cambio\s+a|vuelto/i;
-    const RE_IGNORE   = /subtotal|sub-total|iva\b|impuesto|descuento|bonif|perc|base\s+imponible|propina|recargo/i;
-    const RE_NOISE    = /\b\d{4,6}[-\s]\d{3,4}[-\s]\d{3,4}\b|@|www\.|\.com|tel[eé]f|celular|cp\b|c\.p\.|c\.?p\.?\s*\d|cod\.\s*postal/i;
-
+    const RE_TOTAL  = /\btotal\b|importe\s*total|a\s*pagar|saldo\s*a\s*pagar|monto\s*total|gran\s*total|neto\s*a\s*pagar/i;
+    const RE_IGNORE = /subtotal|sub-total|iva\b|impuesto|descuento|bonif|perc|base\s+imponible/i;
     const totals: number[] = [];
 
     for (const line of lines) {
-      const ll = line.toLowerCase();
-      if (!RE_TOTAL.test(ll)) continue;
-      if (RE_IGNORE.test(ll)) continue;
-      const candidates = this.parseAmountsFromLine(line);
-      if (candidates.length) totals.push(Math.max(...candidates));
+      if (!RE_TOTAL.test(line)) continue;
+      if (RE_IGNORE.test(line)) continue;
+      const vals = extractNumbers(line);
+      if (vals.length) totals.push(Math.max(...vals));
     }
-
     if (totals.length) return round2(Math.max(...totals));
 
-    // Fallback: largest amount anywhere (skip lines that look like addresses/phones)
     const all: number[] = [];
     for (const line of lines) {
-      if (RE_NOISE.test(line)) continue;
-      const candidates = this.parseAmountsFromLine(line);
-      candidates.forEach(v => { if (v > 0 && v < 1e9) all.push(v); });
+      if (/calle|tel[eé]f|celular|@|www\.|\.com/i.test(line)) continue;
+      extractNumbers(line).forEach(v => { if (v > 0 && v < 1e9) all.push(v); });
     }
-
     return all.length ? round2(Math.max(...all)) : 0;
   }
 
-  /**
-   * Extract every plausible monetary value from one line.
-   *
-   * Handles:
-   *   - European format : 1.234,56  →  1234.56
-   *   - US format       : 1,234.56  →  1234.56
-   *   - Integer ARS     : 12345     →  12345
-   *   - With symbols    : $ 1.234,56  /  1.234,56 $  /  ARS 12345
-   *
-   * Deliberately conservative: requires at least one digit before separator.
-   */
-  private parseAmountsFromLine(line: string): number[] {
-    // Remove currency symbols/codes for cleaner parsing, but remember position
-    const stripped = line.replace(/(?:[$€£¥]|ARS|USD|EUR|GBP|MXN)\s*/gi, '');
+  // ── Date ──────────────────────────────────────────────────────────────────
 
-    // Match numbers: 1.234,56  |  1,234.56  |  12345,67  |  12345  |  1234.5
-    const RE = /\b(\d{1,3}(?:[.,]\d{3})*[.,]\d{2}|\d{1,3}(?:[.,]\d{3})+|\d+(?:[.,]\d{1,2})?)\b/g;
-
-    const results: number[] = [];
-    let m: RegExpExecArray | null;
-    while ((m = RE.exec(stripped)) !== null) {
-      const raw = m[1];
-      const val = parseLocalizedNumber(raw);
-      if (Number.isFinite(val) && val > 0) results.push(val);
-    }
-    return results;
-  }
-
-  // ─── Date extraction ───────────────────────────────────────────────────────
-
-  /**
-   * Find the first plausible receipt date in the text.
-   *
-   * Supported formats:
-   *   DD/MM/YYYY   DD-MM-YYYY   DD.MM.YYYY
-   *   DD/MM/YY     DD-MM-YY
-   *   YYYY-MM-DD   YYYY/MM/DD
-   *   D/M/YY       D/M/YYYY
-   *   "20 de Marzo de 2025"  /  "20 MAR 2025"  (Spanish month names)
-   */
-  private extractDate(lines: string[]): string | undefined {
-    const MONTH_MAP: Record<string, string> = {
-      enero:'01', febrero:'02', marzo:'03', abril:'04',
-      mayo:'05', junio:'06', julio:'07', agosto:'08',
-      septiembre:'09', setiembre:'09', octubre:'10', noviembre:'11', diciembre:'12',
-      jan:'01', feb:'02', mar:'03', apr:'04', may:'05', jun:'06',
-      jul:'07', aug:'08', sep:'09', oct:'10', nov:'11', dec:'12',
-      ene:'01', ago:'08',
+  private extractDate(lines: string[]): string {
+    const today = new Date().toISOString().slice(0, 10);
+    const MN: Record<string, string> = {
+      ene:'01',enero:'01',feb:'02',febrero:'02',mar:'03',marzo:'03',
+      abr:'04',abril:'04',may:'05',mayo:'05',jun:'06',junio:'06',
+      jul:'07',julio:'07',ago:'08',agosto:'08',sep:'09',septiembre:'09',
+      setiembre:'09',oct:'10',octubre:'10',nov:'11',noviembre:'11',
+      dic:'12',diciembre:'12',
     };
-
     for (const line of lines) {
-      // ISO: YYYY-MM-DD or YYYY/MM/DD
       let m = line.match(/\b(20\d{2})[-\/](0?[1-9]|1[0-2])[-\/](0?[1-9]|[12]\d|3[01])\b/);
       if (m) return `${m[1]}-${m[2].padStart(2,'0')}-${m[3].padStart(2,'0')}`;
 
-      // DD/MM/YYYY  DD-MM-YYYY  DD.MM.YYYY
       m = line.match(/\b(0?[1-9]|[12]\d|3[01])[\/\-\.](0?[1-9]|1[0-2])[\/\-\.](20\d{2})\b/);
       if (m) return `${m[3]}-${m[2].padStart(2,'0')}-${m[1].padStart(2,'0')}`;
 
-      // DD/MM/YY  DD-MM-YY
       m = line.match(/\b(0?[1-9]|[12]\d|3[01])[\/\-\.](0?[1-9]|1[0-2])[\/\-\.](\d{2})\b/);
       if (m) return `20${m[3]}-${m[2].padStart(2,'0')}-${m[1].padStart(2,'0')}`;
 
-      // "20 de Marzo de 2025"  or  "20 Marzo 2025"  or  "20 MAR 2025"
       m = line.match(/\b(\d{1,2})\s+(?:de\s+)?([A-Za-z]{3,12})\s+(?:de\s+)?(20\d{2})\b/i);
       if (m) {
-        const mon = MONTH_MAP[m[2].toLowerCase().slice(0, 3)];
+        const mon = MN[m[2].toLowerCase().slice(0,3)];
         if (mon) return `${m[3]}-${mon}-${m[1].padStart(2,'0')}`;
       }
-
-      // "Marzo 20, 2025" (rare but seen on POS)
-      m = line.match(/\b([A-Za-z]{3,12})\s+(\d{1,2}),?\s+(20\d{2})\b/i);
-      if (m) {
-        const mon = MONTH_MAP[m[1].toLowerCase().slice(0, 3)];
-        if (mon) return `${m[3]}-${mon}-${m[2].padStart(2,'0')}`;
-      }
     }
-    return undefined;
+    return today;
   }
 
-  // ─── Currency detection ────────────────────────────────────────────────────
+  // ── Currency ──────────────────────────────────────────────────────────────
 
-  private detectCurrency(text: string): 'EUR' | 'USD' | 'ARS' | 'GBP' | 'MXN' {
-    const t = text;
+  private detectCurrency(text: string): TicketResult['currency'] {
     const l = text.toLowerCase();
-
-    // Explicit codes — highest confidence
-    if (/\bars\b/.test(l) || /peso[s]?\s+argentino[s]?/i.test(t))   return 'ARS';
-    if (/\bmxn\b/.test(l) || /peso[s]?\s+mexicano[s]?/i.test(t))    return 'MXN';
-    if (t.includes('€') || /\beur\b/.test(l))                        return 'EUR';
-    if (t.includes('£') || /\bgbp\b/.test(l))                        return 'GBP';
-    if (/us\$/.test(l)   || /\busd\b/.test(l) || /d[oó]lar/i.test(t)) return 'USD';
-
-    // Argentine receipt fingerprints (CUIT, AFIP, IVA alicuota, etc.)
-    if (/cuit|cai\b|afip|iva\s*\d{1,2}\s*%|monotributo|consumidor\s+final|responsable\s+inscripto|ing\.\s*brutos/i.test(l)) {
-      return 'ARS';
-    }
-
-    // Spanish receipt fingerprints
-    if (/n\.?\s*i\.?\s*f\.?\b|c\.?\s*i\.?\s*f\.?\b|iva\b.*\d+,\d{2}/.test(l)) return 'EUR';
-
-    // $ in context: if the app is primarily used in Argentina default to ARS
-    if (t.includes('$')) return 'ARS';
-
-    // No signal — default to EUR
+    if (/\bars\b|peso[s]?\s+argentino[s]?/i.test(text)) return 'ARS';
+    if (/\bmxn\b|peso[s]?\s+mexicano[s]?/i.test(text)) return 'MXN';
+    if (text.includes('€') || /\beur\b/.test(l)) return 'EUR';
+    if (text.includes('£') || /\bgbp\b/.test(l)) return 'GBP';
+    if (/us\$|\busd\b|d[oó]lar/i.test(text)) return 'USD';
+    if (/cuit|cai\b|afip|iva\s*\d{1,2}\s*%|monotributo|consumidor\s+final|responsable\s+inscripto/i.test(l)) return 'ARS';
+    if (text.includes('$')) return 'ARS';
     return 'EUR';
   }
 
-  // ─── Date normalisation ────────────────────────────────────────────────────
+  // ── Category ──────────────────────────────────────────────────────────────
 
-  /** Return YYYY-MM-DD. Already normalised by extractDate; just validate range. */
-  private normalizeDate(iso?: string): string {
-    const today = new Date().toISOString().slice(0, 10);
-    if (!iso) return today;
-
-    // Quick sanity check: must look like YYYY-MM-DD
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(iso)) return today;
-
-    const d = new Date(iso + 'T00:00:00');
-    if (isNaN(d.getTime())) return today;
-
-    // Reject implausible years (before 2000 or more than 1 year in the future)
-    const year = d.getFullYear();
-    const nowYear = new Date().getFullYear();
-    if (year < 2000 || year > nowYear + 1) return today;
-
-    return iso;
-  }
-
-  // ─── Category suggestion ───────────────────────────────────────────────────
-
-  /**
-   * Assign a category from the commerce name + full raw text.
-   * Returns the first matching category in priority order.
-   */
   private suggestCategory(text: string, commerce: string): string {
-    const haystack = (commerce + ' ' + text).toLowerCase();
+    const h = (commerce + ' ' + text).toLowerCase();
+    const m = (re: RegExp) => re.test(h);
 
-    const match = (re: RegExp) => re.test(haystack);
-
-    // ── Supermercado / Alimentación ──────────────────────────────────────────
-    if (match(/coto|jumbo|disco|carrefour|changomas|la\s+anonima|anonima|cooperativa\s+obrera|super\s+vea|vea\b|supermercado|autoservicio|almac[eé]n|verduleria|fruteria|panaderia|panader[ií]a|fiambreria|carniceria|despensa|dietética|walmart|makro|maxiconsumo/)) return 'Supermercado';
-    if (match(/yerba|mate\b|aceite|arroz|harina|az[uú]car|fideos|sal\b|pan\b|leche|manteca|queso|carne|pollo|cerdo|fruta|verdura|bebida|gaseosa|agua\s+mineral|mermelada|galleta|bizcocho|alf[ae]jor|chocolate|caf[eé]\b|t[eé]\b|vino\b|cerveza|yogur/)) return 'Alimentación';
-
-    // ── Restaurantes / Delivery ──────────────────────────────────────────────
-    if (match(/restaurant|resto\b|pizzer[ií]a|hamburgues|sushi|parrilla|tenedor\s+libre|cafeter[ií]a|bar\b|bar\s+y\s+rest|delivery|rappi|pedidosya|glovo|uber\s+eats|mcdonalds|mcdonald|burger\s+king|subway|mostaza|wendys|freddo|starbucks|tostados|lomit[oó]|milanesas/)) return 'Restaurantes';
-
-    // ── Salud / Farmacia ─────────────────────────────────────────────────────
-    if (match(/farmac[iy]|drogu[eé]ria|salud|cl[ií]nica|hospital|m[eé]dico|laboratorio|medicamento|remedio|aspirina|ibuprofeno|paracetamol|antibi[oó]tico|vitamina|suplemento|ortopedia|[oó]ptica|dental/)) return 'Salud';
-
-    // ── Transporte / Combustible ─────────────────────────────────────────────
-    if (match(/ypf|shell|axion|petrobras|puma\s+energy|gulf\b|nafta|combustible|gasoil|diesel|gasolina|estaci[oó]n\s+de\s+servicio|servicio\s+de\s+carga|peaje|autopista|subte|colectivo|tren\b|taxi|uber\b|cabify|remis|rent\s*a\s*car|concesionaria/)) return 'Transporte';
-
-    // ── Servicios / Utilities ────────────────────────────────────────────────
-    if (match(/edesur|edenor|metrogas|aysa|fibertel|claro\b|personal\b|movistar|telecom|internet|tel[eé]fono|celular|factura\s+de\s+luz|factura\s+de\s+gas|agua\b.*factura|servicio/)) return 'Servicios';
-
-    // ── Indumentaria / Moda ──────────────────────────────────────────────────
-    if (match(/zara|h&m|falabella|paris\b|ripley|adidas|nike\b|puma\b|lacoste|ropa|calzado|zapatilla|camisa|pantalon|vestido|jean|buzo|remera|campera|saco\b|zapato|bota\b|sandalia|indumentaria|vestimenta|moda\b|outlet|primark/)) return 'Indumentaria';
-
-    // ── Electrónica / Tecnología ─────────────────────────────────────────────
-    if (match(/garbarino|fravega|musimundo|megatone|ribeiro|compumundo|apple\s*store|samsung|lg\b|sony\b|notebook|laptop|celular|smartphone|tablet|tv\b|televisi[oó]n|computadora|impresora|auricular|electrodom[eé]stico/)) return 'Electrónica';
-
-    // ── Ocio / Entretenimiento / Suscripciones ───────────────────────────────
-    if (match(/netflix|spotify|amazon\s+prime|disney|hbo|flow\b|paramount|cine\b|teatro\b|concierto|evento|entradas|gym\b|gimnasio|fitness|crossfit|suscripci[oó]n|membres[ií]a/)) return 'Ocio';
-
-    // ── Educación ────────────────────────────────────────────────────────────
-    if (match(/universidad|facultad|escuela|colegio|libreria\b|librerias|papeleria|cuaderno|manual\b|libro\b|capacitaci[oó]n|curso\b|posgrado|maestr[ií]a|udemy|coursera/)) return 'Educación';
-
-    // ── Hogar ────────────────────────────────────────────────────────────────
-    if (match(/ikea|easy\b|sodimac|homedepo|ferreteri[ae]|pintura\b|pl[oó]mero|electricista|limpieza|detergente|lavandina|escoba|limpiador|hogar\b|mueble|silla\b|mesa\b|colchon/)) return 'Hogar';
-
+    if (m(/coto|jumbo|disco|carrefour|changomas|anonima|cooperativa\s+obrera|super\s+vea|vea\b|supermercado|autoservicio|walmart|makro/)) return 'Supermercado';
+    if (m(/almac[eé]n|verduleria|panaderia|carniceria|fruteria|dietética|fiambreria|yerba|aceite|arroz|leche|carne|pollo|fruta|verdura|gaseosa/)) return 'Alimentación';
+    if (m(/restaurant|pizzer[ií]a|hamburgues|sushi|parrilla|cafeter[ií]a|delivery|rappi|pedidosya|mcdonalds|burger\s+king|subway|mostaza|starbucks|freddo/)) return 'Restaurantes';
+    if (m(/farmac[iy]|drogu[eé]ria|salud|cl[ií]nica|hospital|m[eé]dico|laboratorio|medicamento|remedio|vitamina|[oó]ptica|dental/)) return 'Salud';
+    if (m(/ypf|shell|axion|petrobras|nafta|combustible|gasoil|gasolina|peaje|autopista|subte|colectivo|tren\b|taxi|uber\b|cabify|remis/)) return 'Transporte';
+    if (m(/edesur|edenor|metrogas|aysa|fibertel|claro\b|personal\b|movistar|telecom|internet|factura\s+de\s+luz|factura\s+de\s+gas/)) return 'Servicios';
+    if (m(/zara|falabella|paris\b|ripley|adidas|nike\b|puma\b|ropa|calzado|zapatilla|indumentaria|vestimenta|primark/)) return 'Indumentaria';
+    if (m(/garbarino|fravega|musimundo|megatone|notebook|laptop|celular|smartphone|tablet|electrodom[eé]stico/)) return 'Electrónica';
+    if (m(/netflix|spotify|amazon\s+prime|disney|hbo|flow\b|cine\b|teatro\b|gym\b|gimnasio|suscripci[oó]n/)) return 'Ocio';
+    if (m(/universidad|facultad|libreria\b|papeleria|cuaderno|libro\b|curso\b|udemy|coursera/)) return 'Educación';
+    if (m(/ikea|easy\b|sodimac|ferreteri[ae]|pintura\b|limpieza|detergente|hogar\b|mueble/)) return 'Hogar';
     return 'Otro';
   }
 }
 
-// ─── Pure utility functions (module-level, no class state needed) ─────────────
+// ─── Module-level numeric utilities ───────────────────────────────────────────
 
-/**
- * Parse a localised number string (European or US format) to a JS number.
- *
- * Logic:
- *   - If the last separator is followed by exactly 2 digits → decimal
- *   - Otherwise all separators are thousands separators
- *
- * Examples:
- *   "1.234,56" → 1234.56   (EU decimal)
- *   "1,234.56" → 1234.56   (US decimal)
- *   "1.234"    → 1234      (EU thousands, no decimal)
- *   "12345"    → 12345     (plain integer)
- *   "1234,5"   → 1234.5    (1 decimal place — OCR artefact, accept anyway)
- */
-function parseLocalizedNumber(raw: string): number {
-  const s = raw.trim().replace(/\s/g, '');
-  if (!s) return NaN;
+function extractNumbers(line: string): number[] {
+  const s = line.replace(/(?:[$€£¥]|ARS|USD|EUR|GBP|MXN)\s*/gi, '');
+  const RE = /\b(\d{1,3}(?:[.,]\d{3})*[.,]\d{1,2}|\d{1,3}(?:[.,]\d{3})+|\d+(?:[.,]\d{1,2})?)\b/g;
+  const results: number[] = [];
+  let m: RegExpExecArray | null;
+  while ((m = RE.exec(s)) !== null) {
+    const v = parseNum(m[1]);
+    if (Number.isFinite(v) && v > 0) results.push(v);
+  }
+  return results;
+}
 
-  const lastDot   = s.lastIndexOf('.');
-  const lastComma = s.lastIndexOf(',');
-  const decIdx    = Math.max(lastDot, lastComma);
-
-  if (decIdx === -1) return Number(s);
-
-  const after = s.slice(decIdx + 1);
-
-  // Exactly 2 (or 1) digits after the last separator → treat as decimal
+function parseNum(raw: string): number {
+  const s = raw.trim();
+  const ld = s.lastIndexOf('.');
+  const lc = s.lastIndexOf(',');
+  const di = Math.max(ld, lc);
+  if (di === -1) return Number(s);
+  const after = s.slice(di + 1);
   if (after.length <= 2 && /^\d+$/.test(after)) {
-    const intStr = s.slice(0, decIdx).replace(/[.,]/g, '');
-    return Number(`${intStr}.${after}`);
+    return Number(s.slice(0, di).replace(/[.,]/g, '') + '.' + after);
   }
-
-  // 3 digits after separator → thousands grouping (e.g. "1.234" = 1234)
-  if (after.length === 3 && /^\d{3}$/.test(after)) {
-    return Number(s.replace(/[.,]/g, ''));
-  }
-
-  // Fallback: strip all separators
   return Number(s.replace(/[.,]/g, ''));
 }
 
-function round2(n: number): number {
-  return Math.round(n * 100) / 100;
-}
+function round2(n: number): number { return Math.round(n * 100) / 100; }

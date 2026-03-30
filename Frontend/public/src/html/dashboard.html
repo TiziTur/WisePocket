@@ -353,8 +353,9 @@
           <div class="dash-panel">
             <p class="dash-panel-title" data-i18n="dash.ocr.panel.title">Fotografía o archivo</p>
             <form id="ocrForm" onsubmit="submitOcr(event)">
-              <label class="dash-label" for="ocrFile" data-i18n="dash.ocr.file.label">Imagen del ticket (JPG, PNG, PDF)</label>
-              <input id="ocrFile" type="file" class="dash-input mb-3" accept="image/*,.pdf" required />
+              <label class="dash-label" for="ocrFile" data-i18n="dash.ocr.file.label">Imagen del ticket (JPG, PNG, WEBP, HEIC, AVIF, PDF…)</label>
+              <input id="ocrFile" type="file" class="dash-input mb-3"
+                accept="image/*,.pdf,.heic,.heif,.avif,.bmp,.tiff,.tif,.webp" required />
               <div id="ocrPreviewWrap" style="display:none;margin-bottom:1rem">
                 <img id="ocrPreview" src="" alt="preview" style="max-width:100%;border-radius:.6rem;border:1px solid var(--k-border)" />
               </div>

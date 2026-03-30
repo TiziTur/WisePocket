@@ -3,6 +3,62 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { createWorker } from 'tesseract.js';
 import { memoryStorage } from 'multer';
+import * as sharp from 'sharp';
+
+/** MIME types accepted for OCR processing */
+const ALLOWED_MIMES = new Set([
+  'image/jpeg',
+  'image/jpg',
+  'image/png',
+  'image/webp',
+  'image/gif',
+  'image/bmp',
+  'image/tiff',
+  'image/tif',
+  'image/heic',
+  'image/heif',
+  'image/avif',
+  'application/pdf',
+]);
+
+/** File extensions accepted when MIME is generic/missing */
+const ALLOWED_EXTS = new Set([
+  '.jpg', '.jpeg', '.png', '.webp', '.gif',
+  '.bmp', '.tiff', '.tif', '.heic', '.heif',
+  '.avif', '.pdf',
+]);
+
+function isAllowedFile(file: Express.Multer.File): boolean {
+  const mime = (file.mimetype || '').toLowerCase();
+  if (ALLOWED_MIMES.has(mime)) return true;
+  // Fallback: check extension from original filename
+  const ext = (file.originalname || '').toLowerCase().match(/\.[^.]+$/)?.[0] ?? '';
+  return ALLOWED_EXTS.has(ext);
+}
+
+/**
+ * Normalise any supported image format to a JPEG buffer that both
+ * Tesseract.js and OCR.space can reliably process.
+ * PDFs are passed through as-is (OCR.space handles them; Tesseract skips them).
+ */
+async function normalizeImageBuffer(file: Express.Multer.File): Promise<{ buffer: Buffer; mimetype: string; filename: string }> {
+  const mime = (file.mimetype || '').toLowerCase();
+  const ext  = (file.originalname || '').toLowerCase().match(/\.[^.]+$/)?.[0] ?? '';
+
+  // PDFs go straight through — OCR.space handles them natively
+  if (mime === 'application/pdf' || ext === '.pdf') {
+    return { buffer: file.buffer, mimetype: 'application/pdf', filename: file.originalname || 'ticket.pdf' };
+  }
+
+  // For all image types (including HEIC/HEIF/WEBP/BMP/TIFF/AVIF) convert to JPEG
+  // sharp handles HEIC/HEIF on Node via libvips bindings
+  const jpegBuffer = await sharp(file.buffer)
+    .rotate()                   // auto-rotate based on EXIF orientation
+    .jpeg({ quality: 92 })
+    .toBuffer();
+
+  return { buffer: jpegBuffer, mimetype: 'image/jpeg', filename: 'ticket.jpg' };
+}
 
 @Controller('tickets')
 @UseGuards(JwtAuthGuard)
@@ -23,6 +79,14 @@ export class TicketsController {
   private async processTicketFile(file?: Express.Multer.File) {
     if (!file) {
       throw new BadRequestException('Debes enviar un archivo de imagen en el campo ticket o image.');
+    }
+
+    if (!isAllowedFile(file)) {
+      const ext = (file.originalname || '').toLowerCase().match(/\.[^.]+$/)?.[0] ?? '';
+      throw new BadRequestException(
+        `Formato no soportado: ${file.mimetype || ext}. ` +
+        'Formatos aceptados: JPG, PNG, WEBP, HEIC, HEIF, AVIF, BMP, TIFF, GIF, PDF.',
+      );
     }
 
     const text = await this.performOcr(file);
@@ -48,28 +112,38 @@ export class TicketsController {
   }
 
   private async performOcr(file: Express.Multer.File): Promise<string> {
+    // Normalise the image to JPEG (handles HEIC, WEBP, BMP, TIFF, AVIF, etc.)
+    const normalised = await normalizeImageBuffer(file);
+
     const provider = String(process.env.OCR_PROVIDER || 'ocrspace').toLowerCase();
 
     if (provider === 'ocrspace' && process.env.OCR_SPACE_API_KEY) {
       try {
-        return await this.performOcrWithOcrSpace(file);
+        return await this.performOcrWithOcrSpace(normalised);
       } catch (error) {
         // Fallback to local OCR when external service is unavailable.
         console.warn('OCR.space failed, using local OCR fallback:', error);
       }
     }
 
+    // Tesseract.js: skip PDFs (no native support), use JPEG buffer for images
+    if (normalised.mimetype === 'application/pdf') {
+      throw new BadRequestException(
+        'El procesamiento de PDF requiere OCR_SPACE_API_KEY configurado en el servidor.',
+      );
+    }
+
     const worker = await createWorker('spa+eng');
-    const result = await worker.recognize(file.buffer);
+    const result = await worker.recognize(normalised.buffer);
     await worker.terminate();
     return String(result?.data?.text || '');
   }
 
-  private async performOcrWithOcrSpace(file: Express.Multer.File): Promise<string> {
+  private async performOcrWithOcrSpace(normalised: { buffer: Buffer; mimetype: string; filename: string }): Promise<string> {
     const formData = new FormData();
-    const blob = new Blob([new Uint8Array(file.buffer)], { type: file.mimetype || 'image/jpeg' });
+    const blob = new Blob([new Uint8Array(normalised.buffer)], { type: normalised.mimetype });
 
-    formData.append('file', blob, file.originalname || 'ticket.jpg');
+    formData.append('file', blob, normalised.filename);
     formData.append('language', 'spa');
     formData.append('isOverlayRequired', 'false');
     formData.append('OCREngine', '2');

@@ -24,7 +24,7 @@ Klarity es una plataforma moderna de gestion financiera que permite registrar, a
 | Diseno | Sistema Klarity personalizado, responsive (mobile-first) |
 | Backend | NestJS, TypeORM, PostgreSQL/SQLite |
 | Autenticacion | JWT + RBAC, verificacion por correo, recuperacion de cuenta, Google Sign-In |
-| OCR e IA | OCR.space + fallback Tesseract, OpenAI/Anthropic opcional |
+| OCR e IA | OCR.space + fallback Tesseract, sharp (HEIC/WEBP/AVIF/BMP/TIFF→JPEG), OpenAI/Anthropic opcional |
 | Hosting | Railway (Frontend + Backend + DB) |
 | Internacionalizacion | ES/EN — cobertura completa en todas las paginas (HTML + JS runtime) |
 
@@ -75,7 +75,7 @@ Klarity es una plataforma moderna de gestion financiera que permite registrar, a
 - Autenticacion JWT con registro y login seguro.
 - Gestion de perfiles con edicion.
 - CRUD completo de gastos.
-- Carga de tickets con OCR para extraccion automatica.
+- Carga de tickets con OCR para extraccion automatica. Formatos soportados: JPG, PNG, WEBP, HEIC/HEIF, AVIF, BMP, TIFF, GIF, PDF. Las imagenes se convierten automaticamente a JPEG via sharp antes del procesamiento.
 - Visualizacion de gastos y dashboards analiticos.
 - Analisis de patrones de consumo.
 - Recomendaciones financieras.
@@ -374,7 +374,7 @@ Klarity es una plataforma moderna de gestion financiera que permite registrar, a
 | Diseno | Sistema Klarity personalizado, responsive (mobile-first) |
 | Backend | NestJS, TypeORM, PostgreSQL/SQLite |
 | Autenticacion | JWT + RBAC, verificacion por correo, recuperacion de cuenta, Google Sign-In |
-| OCR e IA | OCR.space + fallback Tesseract, OpenAI/Anthropic opcional |
+| OCR e IA | OCR.space + fallback Tesseract, sharp (HEIC/WEBP/AVIF/BMP/TIFF→JPEG), OpenAI/Anthropic opcional |
 | Hosting | Railway (Frontend + Backend + DB) |
 | Internacionalizacion | ES/EN — cobertura completa en todas las paginas (HTML + JS runtime) |
 
@@ -424,7 +424,7 @@ Klarity es una plataforma moderna de gestion financiera que permite registrar, a
 - Autenticacion JWT con registro y login seguro.
 - Gestion de perfiles con edicion.
 - CRUD completo de gastos.
-- Carga de tickets con OCR para extraccion automatica.
+- Carga de tickets con OCR para extraccion automatica. Formatos soportados: JPG, PNG, WEBP, HEIC/HEIF, AVIF, BMP, TIFF, GIF, PDF. Las imagenes se convierten automaticamente a JPEG via sharp antes del procesamiento.
 - Visualizacion de gastos y dashboards analiticos.
 - Analisis de patrones de consumo.
 - Recomendaciones financieras.

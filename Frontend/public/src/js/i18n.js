@@ -286,7 +286,7 @@
       'dash.ov.recent.title':    'Últimos gastos',
       'dash.ov.insights.title':  'Insights rápidos',
       'dash.ov.delta.label':     'Mes actual vs anterior',
-      'dash.ov.merchant.label':  'Comercio más frecuente',
+      'dash.ov.merchant.label':  'Top comercios',
       'dash.tbl.concept':        'Concepto',
       'dash.tbl.category':       'Categoría',
       'dash.tbl.amount':         'Importe',
@@ -319,6 +319,7 @@
       'dash.add.currency.label': 'Moneda',
       'dash.add.date.label':     'Fecha',
       'dash.add.monthly.label':  'Este gasto es mensual (alquiler, suscripción, etc.)',
+      'dash.add.desc.label':     'Descripción',
       'dash.add.saveBtn':        'Guardar gasto',
       'dash.add.tips.title':     'Consejos rápidos',
       'dash.add.tip1':           'Registra los gastos el mismo día para no olvidarlos.',
@@ -369,6 +370,13 @@
       'dash.del.body':           '¿Seguro que quieres eliminar este gasto? Esta acción no se puede deshacer.',
       'dash.del.cancel':         'Cancelar',
       'dash.del.confirm':        'Eliminar',
+
+      // Dashboard — Edit expense modal
+      'dash.edit.title':         'Editar gasto',
+      'dash.edit.cancel':        'Cancelar',
+      'dash.edit.save':          'Guardar cambios',
+      'dash.edit.saving':        'Guardando…',
+      'dash.edit.btnTitle':      'Editar',
 
       // Dashboard — JS runtime strings
       'dash.js.noExpenses':      'Sin gastos aún',
@@ -950,7 +958,7 @@
       'dash.ov.recent.title':    'Recent expenses',
       'dash.ov.insights.title':  'Quick insights',
       'dash.ov.delta.label':     'Current month vs previous',
-      'dash.ov.merchant.label':  'Most frequent merchant',
+      'dash.ov.merchant.label':  'Top merchants',
       'dash.tbl.concept':        'Description',
       'dash.tbl.category':       'Category',
       'dash.tbl.amount':         'Amount',
@@ -983,6 +991,7 @@
       'dash.add.currency.label': 'Currency',
       'dash.add.date.label':     'Date',
       'dash.add.monthly.label':  'This is a recurring monthly expense (rent, subscription, etc.)',
+      'dash.add.desc.label':     'Description',
       'dash.add.saveBtn':        'Save expense',
       'dash.add.tips.title':     'Quick tips',
       'dash.add.tip1':           'Log expenses on the same day so you don\'t forget them.',
@@ -1033,6 +1042,13 @@
       'dash.del.body':           'Are you sure you want to delete this expense? This action cannot be undone.',
       'dash.del.cancel':         'Cancel',
       'dash.del.confirm':        'Delete',
+
+      // Dashboard — Edit expense modal
+      'dash.edit.title':         'Edit expense',
+      'dash.edit.cancel':        'Cancel',
+      'dash.edit.save':          'Save changes',
+      'dash.edit.saving':        'Saving…',
+      'dash.edit.btnTitle':      'Edit',
 
       // Dashboard — JS runtime strings
       'dash.js.noExpenses':      'No expenses yet',

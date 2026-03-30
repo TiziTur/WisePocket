@@ -193,8 +193,8 @@
           </div>
           <div class="col-12 col-md-6">
             <div style="background:var(--k-bg);border:1px solid var(--k-border);border-radius:.9rem;padding:.9rem">
-              <div style="font-size:.8rem;color:var(--k-muted);text-transform:uppercase;letter-spacing:.04em" data-i18n="dash.ov.merchant.label">Comercio más frecuente</div>
-              <div id="insightsTopMerchant" style="font-weight:700;color:var(--k-text);margin-top:.25rem">—</div>
+              <div style="font-size:.8rem;color:var(--k-muted);text-transform:uppercase;letter-spacing:.04em" data-i18n="dash.ov.merchant.label">Top comercios</div>
+              <div id="insightsTopMerchants" style="margin-top:.35rem"></div>
             </div>
           </div>
         </div>
@@ -666,6 +666,65 @@
   </div>
 </div>
 
+<!-- ── Edit Expense Modal ─────────────────────────────────── -->
+<div id="editExpenseModal" class="klarity-modal" aria-hidden="true">
+  <div class="klarity-modal-card" role="dialog" aria-modal="true" aria-labelledby="editExpenseTitle" style="max-width:480px;width:95%">
+    <h3 id="editExpenseTitle" class="mb-3" style="font-size:1.05rem" data-i18n="dash.edit.title">Editar gasto</h3>
+    <form id="editExpenseForm" onsubmit="submitEditExpense(event)">
+      <div class="row g-3">
+        <div class="col-12">
+          <label class="dash-label" for="eConcept" data-i18n="dash.add.concept.label">Concepto *</label>
+          <input id="eConcept" type="text" class="dash-input" required />
+        </div>
+        <div class="col-sm-6">
+          <label class="dash-label" for="eCategory" data-i18n="dash.add.category.label">Categoría</label>
+          <select id="eCategory" class="dash-input">
+            <option value="Otro" data-i18n="dash.cat.other">Otro</option>
+            <option value="Alimentación" data-i18n="dash.cat.food">Alimentación</option>
+            <option value="Transporte" data-i18n="dash.cat.transport">Transporte</option>
+            <option value="Ocio" data-i18n="dash.cat.leisure">Ocio</option>
+            <option value="Suscripciones" data-i18n="dash.cat.subs">Suscripciones</option>
+            <option value="Salud" data-i18n="dash.cat.health">Salud</option>
+            <option value="Vivienda" data-i18n="dash.cat.housing">Vivienda</option>
+          </select>
+        </div>
+        <div class="col-sm-6">
+          <label class="dash-label" for="eAmount" data-i18n="dash.add.amount.label">Importe *</label>
+          <input id="eAmount" type="number" min="0" step="0.01" class="dash-input" placeholder="0.00" required />
+        </div>
+        <div class="col-sm-6">
+          <label class="dash-label" for="eCurrency" data-i18n="dash.add.currency.label">Moneda</label>
+          <select id="eCurrency" class="dash-input">
+            <option value="EUR">EUR</option>
+            <option value="USD">USD</option>
+            <option value="ARS">ARS</option>
+            <option value="GBP">GBP</option>
+            <option value="MXN">MXN</option>
+          </select>
+        </div>
+        <div class="col-sm-6">
+          <label class="dash-label" for="eDate" data-i18n="dash.add.date.label">Fecha</label>
+          <input id="eDate" type="date" class="dash-input" />
+        </div>
+        <div class="col-12">
+          <label class="dash-label" for="eDescription" data-i18n="dash.add.desc.label">Descripción</label>
+          <input id="eDescription" type="text" class="dash-input" />
+        </div>
+        <div class="col-12">
+          <label class="dash-check-row">
+            <input type="checkbox" id="eIsMonthly" class="dash-checkbox" />
+            <span data-i18n="dash.add.monthly.label">Gasto mensual recurrente</span>
+          </label>
+        </div>
+      </div>
+      <div class="d-flex justify-content-end gap-2 mt-3">
+        <button type="button" class="btn btn-light btn-sm" onclick="closeEditModal()" data-i18n="dash.edit.cancel">Cancelar</button>
+        <button type="submit" id="editSaveBtn" class="btn btn-primary btn-sm" data-i18n="dash.edit.save">Guardar cambios</button>
+      </div>
+    </form>
+  </div>
+</div>
+
 <!-- ── Overlay for mobile sidebar ──────────────────────── -->
 <button id="sidebarOverlay" type="button" data-i18n-aria="dash.overlay.aria" aria-label="Cerrar menú lateral"
   style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:998;border:0;padding:0;cursor:pointer"></button>
@@ -919,16 +978,26 @@ function renderKPIs(data) {
     }
   }
 
-  const merchantEl = document.getElementById('insightsTopMerchant');
+  const merchantEl = document.getElementById('insightsTopMerchants');
   if (merchantEl) {
     const freq = {};
     data.forEach(e => {
-      const key = (e.concept || e.commerce || e.description || T('dash.js.noConcept')).trim();
+      const key = (e.concept || e.commerce || e.description || '').trim();
       if (!key) return;
       freq[key] = (freq[key] || 0) + 1;
     });
-    const top = Object.entries(freq).sort((a, b) => b[1] - a[1])[0];
-    merchantEl.textContent = top ? (top[0] + ' · ' + top[1] + T('dash.js.times')) : '—';
+    const top3 = Object.entries(freq).sort((a, b) => b[1] - a[1]).slice(0, 3);
+    if (!top3.length) {
+      merchantEl.innerHTML = `<span style="color:var(--k-muted);font-size:.87rem">—</span>`;
+    } else {
+      const medals = ['🥇','🥈','🥉'];
+      merchantEl.innerHTML = top3.map(([name, count], i) => `
+        <div style="display:flex;align-items:center;gap:.45rem;padding:.18rem 0;${i < top3.length - 1 ? 'border-bottom:1px solid var(--k-border);margin-bottom:.22rem' : ''}">
+          <span style="font-size:1.05rem;line-height:1">${medals[i]}</span>
+          <span style="font-weight:${i === 0 ? '700' : '600'};color:var(--k-text);font-size:${i === 0 ? '.95rem' : '.88rem'};flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${escHtml(name)}">${escHtml(name)}</span>
+          <span style="font-size:.78rem;color:var(--k-muted);white-space:nowrap">${count}${T('dash.js.times')}</span>
+        </div>`).join('');
+    }
   }
 }
 
@@ -1033,7 +1102,10 @@ function renderFullTable(data) {
       <td><strong>${formatMoney(convertAmount(e.amount, e.currency), displayCurrency, 2)}</strong></td>
       <td class="col-currency">${escHtml(e.currency||'EUR')}</td>
       <td>${fmtDate(e.date||e.createdAt)}</td>
-      <td><button class="dash-btn-icon danger" onclick="openDeleteModal('${e.id}')" data-i18n-title="dash.js.deleteTitle" title="Eliminar"><i class="bi bi-trash3"></i></button></td>
+      <td style="white-space:nowrap">
+        <button class="dash-btn-icon" onclick="openEditModal('${e.id}')" data-i18n-title="dash.edit.btnTitle" title="Editar" style="color:var(--k-primary)"><i class="bi bi-pencil"></i></button>
+        <button class="dash-btn-icon danger" onclick="openDeleteModal('${e.id}')" data-i18n-title="dash.js.deleteTitle" title="Eliminar"><i class="bi bi-trash3"></i></button>
+      </td>
     </tr>`).join('');
 }
 
@@ -1222,6 +1294,85 @@ async function confirmDeleteExpense() {
   } catch(err) {
     closeDeleteModal();
     alert('Error: ' + err.message);
+  }
+}
+
+// ── Edit expense ──────────────────────────────────────────
+let expenseToEditId = null;
+
+function openEditModal(id) {
+  const expense = allExpenses.find(e => String(e.id) === String(id));
+  if (!expense) return;
+  expenseToEditId = id;
+
+  document.getElementById('eConcept').value      = expense.commerce || expense.concept || expense.description || '';
+  document.getElementById('eCategory').value     = expense.category || 'Otro';
+  document.getElementById('eAmount').value       = expense.amount || '';
+  document.getElementById('eCurrency').value     = expense.currency || 'EUR';
+  document.getElementById('eDescription').value  = expense.description || '';
+  document.getElementById('eIsMonthly').checked  = !!expense.isMonthly;
+
+  // Format date as YYYY-MM-DD for date input
+  const rawDate = expense.date || expense.createdAt;
+  if (rawDate) {
+    const d = new Date(rawDate);
+    if (!isNaN(d)) {
+      const yyyy = d.getFullYear();
+      const mm   = String(d.getMonth() + 1).padStart(2, '0');
+      const dd   = String(d.getDate()).padStart(2, '0');
+      document.getElementById('eDate').value = `${yyyy}-${mm}-${dd}`;
+    }
+  }
+
+  const modal = document.getElementById('editExpenseModal');
+  if (!modal) return;
+  modal.classList.add('show');
+  modal.setAttribute('aria-hidden', 'false');
+  document.getElementById('eConcept').focus();
+}
+
+function closeEditModal() {
+  const modal = document.getElementById('editExpenseModal');
+  if (!modal) return;
+  modal.classList.remove('show');
+  modal.setAttribute('aria-hidden', 'true');
+  expenseToEditId = null;
+}
+
+async function submitEditExpense(event) {
+  event.preventDefault();
+  if (!expenseToEditId) return;
+  const saveBtn = document.getElementById('editSaveBtn');
+  if (saveBtn) { saveBtn.disabled = true; saveBtn.textContent = T('dash.edit.saving'); }
+
+  const body = {
+    commerce:    document.getElementById('eConcept').value.trim(),
+    category:    document.getElementById('eCategory').value,
+    amount:      parseFloat(document.getElementById('eAmount').value),
+    currency:    document.getElementById('eCurrency').value,
+    description: document.getElementById('eDescription').value.trim(),
+    isMonthly:   document.getElementById('eIsMonthly').checked,
+  };
+  const dateVal = document.getElementById('eDate').value;
+  if (dateVal) body.date = dateVal;
+
+  try {
+    const res = await fetch(API + '/expenses/' + expenseToEditId, {
+      method: 'PUT',
+      headers: { ...authHeaders(), 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+    if (res.status === 401) { logout(); return; }
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.message || res.statusText);
+    }
+    closeEditModal();
+    await loadExpenses();
+  } catch(err) {
+    alert('Error: ' + err.message);
+  } finally {
+    if (saveBtn) { saveBtn.disabled = false; saveBtn.textContent = T('dash.edit.save'); }
   }
 }
 
@@ -1890,6 +2041,12 @@ function renderAdvisorAnswer(data) {
 document.getElementById('deleteExpenseModal').addEventListener('click', (event) => {
   if (event.target && event.target.id === 'deleteExpenseModal') {
     closeDeleteModal();
+  }
+});
+
+document.getElementById('editExpenseModal').addEventListener('click', (event) => {
+  if (event.target && event.target.id === 'editExpenseModal') {
+    closeEditModal();
   }
 });
 

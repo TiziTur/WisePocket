@@ -1,301 +1,1069 @@
-DOCUMENTACION TECNICA Y DE PROCESO - KLARITY
-Version: 2026-03-29
-Repositorio: Proyecto_IngWeb_2
+================================================================================
+  DOCUMENTACIÓN DEL PROYECTO — SISTEMA DE GESTIÓN DE GASTOS PERSONALES
+  Ingeniería Web 2 — Universidad
+  Fecha de actualización: Marzo 2026
+================================================================================
 
-====================================================================
-1) RESUMEN DEL PROYECTO
-====================================================================
-Klarity es una plataforma web full-stack para gestion de gastos personales.
-Incluye paneles por rol (usuario, asesor, admin), OCR de tickets, recomendaciones y autenticacion reforzada.
-Arquitectura basada en frontend estatico + backend NestJS REST con JWT.
+ÍNDICE
+------
+  1.  Descripción general del sistema
+  2.  Arquitectura utilizada
+  3.  Modelo de datos
+  4.  Endpoints del backend (API REST)
+  5.  Tecnologías utilizadas
+  6.  Explicación del uso de la IA
+  7.  Sistema de roles y permisos
+  8.  Autenticación y seguridad
+  9.  Frontend — estructura y funcionalidades
+  10. Sistema de internacionalización (i18n)
+  11. Despliegue
+  12. Extras implementados
 
-====================================================================
-2) ARQUITECTURA
-====================================================================
-2.1 Frontend
-- Tecnologias: HTML, CSS, JavaScript.
-- Estructura:
-  - Frontend/public/src/html
-  - Frontend/public/src/css
-  - Frontend/public/src/js
-- Paneles:
-  - dashboard.html (usuario)
-  - advisor.html (asesor)
-  - admin.html (admin)
-  - login.html (auth)
-- Scripts relevantes:
-  - login.js
-  - i18n.js
-  - universal-i18n.js (traduccion runtime de textos hardcodeados)
 
-2.2 Backend
-- Framework: NestJS.
-- ORM: TypeORM.
-- DB: PostgreSQL en produccion / SQLite local fallback.
-- Modulos:
-  - auth
-  - users
-  - expenses
-  - tickets
-  - advisor
-- Prefijo API: /api
+================================================================================
+  1. DESCRIPCIÓN GENERAL DEL SISTEMA
+================================================================================
 
-2.3 Despliegue
-- Frontend: Railway.
-- Backend + DB: Railway.
+El sistema es una aplicación web de gestión de gastos personales que permite a
+los usuarios registrar, categorizar, analizar y controlar sus finanzas. Está
+pensada para cubrir el ciclo completo de administración financiera personal:
+desde el registro de un ticket de supermercado escaneado con la cámara, hasta
+la consulta de un asesor financiero basado en inteligencia artificial.
 
-====================================================================
-3) MODELO DE DATOS
-====================================================================
-3.1 User
-- id (uuid)
-- email (unique)
-- name
-- passwordHash
-- emailVerified
-- emailVerificationTokenHash
-- emailVerificationExpiresAt (type Date en TypeORM; compatible PostgreSQL/SQLite)
-- passwordResetTokenHash
-- passwordResetExpiresAt (type Date en TypeORM; compatible PostgreSQL/SQLite)
-- authProvider (password/google)
-- role (user/advisor/admin)
-- createdAt
-- updatedAt
+Funcionalidades principales para el usuario:
 
-3.2 Expense
-- id (uuid)
-- commerce
-- category
-- description
-- date
-- amount
-- currency (ARS, USD, EUR, GBP, MXN)
-- participants
-- isMonthly (boolean)
-- user relation
-- createdAt
-- updatedAt
+  - Registro e inicio de sesión (email/contraseña o Google OAuth).
+  - Verificación de email obligatoria antes de acceder al sistema.
+  - Dashboard con KPIs en tiempo real: total gastado, gasto promedio diario,
+    categoría de mayor gasto, número de gastos registrados.
+  - Gráfico de dona (doughnut) por categoría de gasto.
+  - Top-3 de comercios con mayor gasto (podio visual).
+  - Gráfico de barras con evolución mensual de los últimos 6 meses.
+  - Gráfico de comparación entre el mes actual y el mes anterior.
+  - Panel de detección de anomalías (gastos inusualmente altos).
+  - Widget de logros/gamificación en el dashboard.
+  - Listado completo de gastos con filtros avanzados (texto libre, categoría,
+    rango de fechas, rango de importes, etiquetas) y paginación.
+  - Exportación de gastos a CSV.
+  - Formulario de alta de gastos con campos: comercio, categoría, descripción,
+    fecha, importe, moneda, participantes, si es mensual recurrente, y etiquetas.
+  - Lectura automática de tickets/recibos mediante OCR (Gemini Vision, con
+    fallback a OCR.space y Tesseract.js local).
+  - Soporte para carga de múltiples tickets en cola (Extra 12).
+  - Etiquetas personalizadas en gastos (Extra 14).
+  - Presupuestos por categoría con barras de progreso y alertas visuales.
+  - Metas de ahorro con seguimiento de progreso.
+  - Gamificación: sistema de insignias/logros desbloqueables.
+  - Gastos compartidos con otros usuarios y división de importes.
+  - Red de amigos/contactos dentro de la plataforma.
+  - Asesor financiero IA: análisis de patrones, recomendaciones personalizadas
+    y chat interactivo con modelos de lenguaje (OpenAI / Anthropic).
+  - Conversión de divisas en tiempo real (EUR, USD, ARS, GBP, MXN).
+  - Interfaz completamente bilingüe (español / inglés).
+  - Panel de administración para gestión de usuarios y roles.
+  - Panel de asesor para visualizar el estado financiero de sus clientes.
+  - Notificaciones internas de alertas de presupuesto y metas.
 
-3.3 AdvisorRecommendation
-- id (uuid)
-- advisorUserId
-- targetUserId
-- provider
-- question
-- answer
-- createdAt
 
-====================================================================
-4) AUTENTICACION Y AUTORIZACION
-====================================================================
-4.1 Metodo de autenticacion
-- JWT Bearer Token.
-- Login y registro tradicional via /auth.
-- Login social con Google ID Token.
-- Verificacion de email para cuentas password (temporalmente desactivada en runtime actual).
-- Recuperacion de cuenta por token temporal.
+================================================================================
+  2. ARQUITECTURA UTILIZADA
+================================================================================
 
-4.2 RBAC
-- Roles definidos en enum.
-- Decorador @Roles.
-- RolesGuard en rutas protegidas.
+El proyecto sigue una arquitectura de tres capas desacopladas:
 
-4.3 Flujo general actual
-1. Registro crea usuario con emailVerified=false.
-2. Backend genera token de verificacion, guarda hash y envia enlace por email.
-3. Usuario verifica correo (endpoint verify-email).
-4. Login valida credenciales y estado de verificacion.
-5. Backend firma JWT y frontend guarda token.
-6. Requests posteriores usan Authorization: Bearer <token>.
+  ┌─────────────────────────────────────────────────────────────────┐
+  │                        CLIENTE (Browser)                        │
+  │   HTML + CSS + JavaScript vanilla (sin framework de frontend)   │
+  │   Servido por: Node.js static server en Railway                 │
+  └─────────────────────────┬───────────────────────────────────────┘
+                             │  HTTP / JSON (REST)
+                             │  Authorization: Bearer <JWT>
+  ┌─────────────────────────▼───────────────────────────────────────┐
+  │                    BACKEND (NestJS / Node.js)                    │
+  │   API REST con prefijo global /api                              │
+  │   Módulos: auth, users, expenses, tickets, advisor,             │
+  │            budgets, goals, gamification,                        │
+  │            friendships, shared-expenses                         │
+  │   Alojado en: Railway                                           │
+  └─────────────────────────┬───────────────────────────────────────┘
+                             │  TypeORM
+  ┌─────────────────────────▼───────────────────────────────────────┐
+  │                       BASE DE DATOS                             │
+  │   PostgreSQL en producción (Railway)                            │
+  │   SQLite en desarrollo local (fallback automático)              │
+  └─────────────────────────────────────────────────────────────────┘
 
-====================================================================
-5) SEGURIDAD IMPLEMENTADA
-====================================================================
-- Passwords hasheadas con bcryptjs.
-- ValidationPipe global con whitelist, transform y forbidNonWhitelisted.
-- DTOs de auth endurecidos (tamano y formato, password fuerte).
-- CORS configurable por CORS_ORIGIN.
-- Helmet activo para headers de seguridad.
-- JWT_SECRET configurable por entorno.
-- Guardias de autenticacion y roles.
-- Rate limiting global con @nestjs/throttler.
-- Throttling adicional por endpoint en auth.
-- Tokens de verify/reset almacenados hasheados (SHA-256).
-- Normalizacion de email en backend.
-- Envio de email tolerante a fallos SMTP (timeout/falla no bloquea flujo de registro o recuperacion).
+Adicionalmente el backend se comunica con servicios externos:
 
-====================================================================
-6) FUNCIONALIDADES POR ROL
-====================================================================
-6.1 Usuario
-- CRUD de gastos.
-- OCR ticket con alta automatica.
-- Presupuestos visuales y selector de moneda global.
-- Insights rapidos y recurrentes.
-- Chat asesor.
+  - Google Gemini 1.5 Flash  → OCR de tickets (visión multimodal)
+  - OCR.space API            → OCR de fallback
+  - Google OAuth 2.0         → inicio de sesión con Google
+  - OpenAI / Anthropic API   → asesor financiero IA
+  - Proveedor de email       → verificación de cuenta y reset de contraseña
 
-6.2 Asesor
-- Lista de clientes con busqueda.
-- Semaforo financiero.
-- Resumen visual + patrones timeline.
-- Recomendaciones con historial.
+Decisiones de diseño relevantes:
 
-6.3 Admin
-- Vista global de usuarios y gastos.
-- Filtro/busqueda y cambio de rol.
-- Grafico de nuevos usuarios.
+  · El frontend es HTML/CSS/JS puro sin bundler ni framework, lo que facilita
+    el despliegue como archivos estáticos y la comprensión del código.
+  · El backend usa NestJS, que aporta inyección de dependencias, decoradores
+    tipados y una estructura modular clara.
+  · La base de datos se auto-sincroniza en desarrollo (synchronize: true en
+    TypeORM); en producción se asumiría uso de migraciones, pero para el
+    alcance del proyecto la sincronización automática es suficiente.
+  · CORS está configurado de forma dinámica leyendo la variable de entorno
+    CORS_ORIGIN (lista separada por comas), comparando sin distinguir mayúsculas
+    y eliminando barras finales.
+  · Todas las rutas están protegidas por JWT excepto los endpoints de auth
+    (register, login, google, verify-email, etc.).
 
-====================================================================
-7) ENDPOINTS PRINCIPALES
-====================================================================
-7.1 Auth
-- POST /api/auth/register
-- POST /api/auth/login
-- POST /api/auth/google
-- POST /api/auth/verify-email
-- POST /api/auth/resend-verification
-- POST /api/auth/request-password-reset
-- POST /api/auth/reset-password
-- GET /api/auth/me
-- PUT /api/auth/profile
-- PATCH /api/auth/profile
 
-7.2 Users
-- GET /api/users
-- PATCH /api/users/:id
+================================================================================
+  3. MODELO DE DATOS
+================================================================================
 
-7.3 Expenses
-- GET /api/expenses
-- POST /api/expenses
-- PUT /api/expenses/:id
-- DELETE /api/expenses/:id
+A continuación se describen todas las entidades de la base de datos, sus campos,
+tipos y relaciones.
 
-7.4 Advisor
-- GET /api/advisor/overview
-- GET /api/advisor/overview/:userId
-- GET /api/advisor/patterns/:userId
-- GET /api/advisor/users/:userId/patterns (compat)
-- POST /api/advisor/ask
-- GET /api/advisor/recommendations/:userId
-- GET /api/advisor/clients/health
+--------------------------------------------------------------------------------
+  3.1  users
+--------------------------------------------------------------------------------
+  Tabla principal de usuarios del sistema.
 
-7.5 Tickets
-- POST /api/tickets/ocr
-- POST /api/tickets/upload (compat)
+  id                        UUID (PK, autogenerado)
+  email                     TEXT, único, NOT NULL
+  name                      TEXT, NOT NULL
+  passwordHash              TEXT, NOT NULL         -- bcrypt hash
+  emailVerified             BOOLEAN, default FALSE
+  emailVerificationTokenHash TEXT, nullable
+  emailVerificationExpiresAt DATE, nullable
+  passwordResetTokenHash    TEXT, nullable
+  passwordResetExpiresAt    DATE, nullable
+  authProvider              VARCHAR, nullable       -- 'google' | null (password)
+  role                      TEXT, default 'user'   -- 'user' | 'advisor' | 'admin'
+  createdAt                 TIMESTAMP (auto)
+  updatedAt                 TIMESTAMP (auto)
 
-====================================================================
-8) CONFIGURACION DE ENTORNO
-====================================================================
-Backend (minimo):
-- DATABASE_URL
-- JWT_SECRET
-- PORT
-- DB_SSL
-- CORS_ORIGIN
-- APP_URL
-- CORS_ORIGIN admite lista separada por comas para varios frontends.
-- CORS_ORIGIN se normaliza internamente (case-insensitive y sin slash final).
+  Relaciones:
+    - expenses:   OneToMany → expenses.user
 
-Backend (auth extendido):
-- GOOGLE_CLIENT_ID
-- SMTP_HOST
-- SMTP_PORT
-- SMTP_USER
-- SMTP_PASS
-- MAIL_FROM
+--------------------------------------------------------------------------------
+  3.2  expenses
+--------------------------------------------------------------------------------
+  Registro individual de un gasto.
 
-Seeds (opcional):
-- SEED_DEFAULT_PASSWORD
-- SEED_ADMIN_PASSWORD
-- SEED_ADVISOR_PASSWORD
-- SEED_DEMO_PASSWORD
+  id           UUID (PK, autogenerado)
+  commerce     TEXT, NOT NULL                     -- nombre del comercio
+  category     TEXT, NOT NULL                     -- categoría (ver lista)
+  description  TEXT, nullable
+  date         DATE, NOT NULL
+  amount       FLOAT, NOT NULL
+  currency     TEXT, default 'EUR'                -- EUR | USD | ARS | GBP | MXN
+  participants TEXT, nullable                     -- nombres separados por coma
+  isMonthly    BOOLEAN, default FALSE             -- gasto recurrente mensual
+  tags         TEXT (simple-array), nullable      -- etiquetas personalizadas
+  user         ManyToOne → users (CASCADE DELETE)
+  createdAt    TIMESTAMP (auto)
+  updatedAt    TIMESTAMP (auto)
 
-Frontend:
-- Config API base en src/js/config.js
-- Config Google client id en src/js/config.js (window.KLARITY_GOOGLE_CLIENT_ID)
-- Rutas limpias servidas por `Frontend/server.js`.
+  Categorías disponibles:
+    Alimentación, Transporte, Salud, Ocio, Educación, Hogar, Ropa,
+    Servicios, Supermercado, Restaurantes, Electrónica, Indumentaria, Otro
 
-Despliegue full Railway:
-- Frontend usa un servidor Node estatico propio (`Frontend/server.js`) sin frameworks.
-- Frontend inyecta configuracion runtime via `/runtime-config.js`.
-- Backend y Frontend se despliegan como servicios separados con root directories `Backend` y `Frontend`.
+  Notas:
+    - El campo "tags" usa la estrategia "simple-array" de TypeORM: se almacena
+      como texto delimitado por comas en una sola columna.
+    - El campo "participants" también es texto libre; es distinto de la entidad
+      shared_expense_participants (que modela divisiones formales).
 
-====================================================================
-9) CAMBIOS RECIENTES (2026-03-28)
-====================================================================
-- Se elimino exposicion de credenciales demo en login.
-- Se agrego recuperacion de cuenta y reenvio de verificacion en UI.
-- Se incorporo Google Sign-In.
-- Se agrego servicio de correo para verify/reset con fallback a logs.
-- Se aplico rate limiting global + por endpoints auth.
-- Se completo la traduccion EN en todas las pages con universal-i18n runtime.
-- Se agrego estrategia profesional de idioma con landing separada: ES (`/`) y EN (`/en`).
-- Se agrego selector de idioma persistente en login, dashboard, advisor y admin.
+--------------------------------------------------------------------------------
+  3.3  budgets
+--------------------------------------------------------------------------------
+  Presupuesto mensual por categoría por usuario. Restricción UNIQUE (user, category).
 
-====================================================================
-10) CAMBIOS RECIENTES (2026-03-29 — Despliegue Railway)
-====================================================================
-- Se preparo el proyecto para despliegue 100% en Railway (frontend + backend + DB).
-- Se agrego frontend server sin frameworks (`Frontend/server.js`) con rutas limpias y runtime-config.
-- Se agrego `Frontend/railway.json` y `Frontend/package.json` para build/deploy dedicados.
-- Se actualizaron todas las pages para cargar `/runtime-config.js` en lugar de un config fijo.
-- Se amplio diccionario runtime universal para cubrir textos hardcodeados restantes en landing y paneles.
-- Se retiro la seccion Demo Lab de la landing para mejorar foco y conversion.
-- Se reemplazo grafico de barras por grafico de torta con porcentajes en resumen de gastos por categoria.
-- Se completo i18n de footer de landing y etiqueta temporal del mockup (mes) para evitar textos fijos en idioma incorrecto.
-- Se ajustaron favicons por contexto (marca en landing, seguridad en login).
-- Se extendio i18n de login para botones, placeholders, recuperacion, Google y mensajes runtime.
-- Se agrego cobertura i18n puntual para textos remanentes en login y seccion presupuestos del dashboard.
+  id           UUID (PK, autogenerado)
+  category     TEXT, NOT NULL    -- 'total' o nombre de categoría
+  limitAmount  FLOAT, NOT NULL
+  currency     TEXT, default 'EUR'
+  user         ManyToOne → users (CASCADE DELETE)
+  createdAt    TIMESTAMP (auto)
+  updatedAt    TIMESTAMP (auto)
 
-====================================================================
-11) CAMBIOS RECIENTES (2026-03-28 — i18n completo ES/EN)
-====================================================================
-Objetivo: internacionalizacion total de la aplicacion. Todo texto visible, aria-label,
-placeholder y title attribute es traducible. Las paginas usan tres capas coordinadas.
+  Nota: La categoría especial 'total' permite definir un presupuesto global.
 
-11.1 Sistema i18n — arquitectura de tres capas
-- `lang.js`: routing de idioma, localStorage, redireccion (/ = ES, /en = EN). Solo lectura.
-- `i18n.js`: capa primaria. Diccionario ES+EN con ~250 claves. Aplica data-i18n (innerHTML),
-  data-i18n-placeholder, data-i18n-title y data-i18n-aria. Expone window.__klarityI18n y
-  window.setLang / window.getLang.
-- `universal-i18n.js`: capa de seguridad. Reemplaza nodos de texto no cubiertos por data-i18n
-  mediante regex. Solo actua cuando lang === 'en'.
+--------------------------------------------------------------------------------
+  3.4  goals  (metas de ahorro)
+--------------------------------------------------------------------------------
+  Metas de ahorro personal del usuario.
 
-11.2 T() helper — strings renderizadas por JS
-Patron usado en dashboard.html, advisor.html y admin.html para strings inyectadas via innerHTML/textContent:
-  function T(key) {
-    const lang = window.getLang ? window.getLang() : (localStorage.getItem('klarity-lang') || 'es');
-    const dict = window.__klarityI18n && window.__klarityI18n[lang];
-    return (dict && dict[key] !== undefined) ? dict[key] : key;
+  id           UUID (PK, autogenerado)
+  name         TEXT, NOT NULL
+  targetAmount FLOAT, NOT NULL    -- importe objetivo
+  savedAmount  FLOAT, default 0   -- importe ya ahorrado
+  currency     TEXT, default 'EUR'
+  deadline     DATE, nullable
+  user         ManyToOne → users (CASCADE DELETE)
+  createdAt    TIMESTAMP (auto)
+  updatedAt    TIMESTAMP (auto)
+
+--------------------------------------------------------------------------------
+  3.5  badge_definitions  (definiciones de insignias)
+--------------------------------------------------------------------------------
+  Catálogo de insignias disponibles en el sistema. Poblado mediante seed al
+  inicio de la aplicación.
+
+  id              TEXT (PK, slug, e.g. 'first-expense')
+  nameEs          TEXT, NOT NULL
+  nameEn          TEXT, NOT NULL
+  descriptionEs   TEXT, NOT NULL
+  descriptionEn   TEXT, NOT NULL
+  icon            TEXT            -- clase Bootstrap Icons (e.g. 'bi-star-fill')
+  color           TEXT            -- color hexadecimal del chip
+  imageUrl        TEXT, nullable  -- URL opcional de imagen/SVG personalizada
+  conditionType   TEXT            -- tipo de condición (ver enum abajo)
+  conditionValue  FLOAT, default 1
+  conditionValue2 FLOAT, nullable -- umbral secundario (e.g. hora fin en rango horario)
+
+  Tipos de condición (ConditionType):
+    expense_count      -- número total de gastos >= conditionValue
+    monthly_budget     -- gasto mensual <= presupuesto N meses seguidos
+    streak_months      -- N meses consecutivos con al menos un gasto
+    ocr_use            -- usar OCR al menos N veces
+    category_diversity -- gastos en al menos N categorías distintas
+    recurring_set      -- al menos N gastos marcados como mensuales
+    shared_expense     -- al menos N gastos compartidos registrados
+    time_of_day        -- registrar gasto entre conditionValue y conditionValue2 horas
+
+--------------------------------------------------------------------------------
+  3.6  user_badges  (insignias obtenidas por usuarios)
+--------------------------------------------------------------------------------
+  Tabla de unión entre usuario e insignia obtenida.
+
+  id           UUID (PK, autogenerado)
+  user         ManyToOne → users (CASCADE DELETE)
+  badge        ManyToOne → badge_definitions (CASCADE DELETE)
+  earnedAt     TIMESTAMP (auto)
+
+  Restricción: UNIQUE (user, badge) — una insignia no se duplica.
+
+--------------------------------------------------------------------------------
+  3.7  advisor_recommendations
+--------------------------------------------------------------------------------
+  Historial de consultas al asesor IA.
+
+  id            UUID (PK, autogenerado)
+  advisorUserId TEXT    -- ID del asesor/admin que realizó la consulta (o el propio usuario)
+  targetUserId  TEXT    -- ID del usuario analizado
+  provider      TEXT    -- 'openai' | 'anthropic'
+  question      TEXT    -- pregunta formulada
+  answer        TEXT    -- respuesta generada por la IA
+  createdAt     TIMESTAMP (auto)
+
+--------------------------------------------------------------------------------
+  3.8  friendships
+--------------------------------------------------------------------------------
+  Solicitudes de amistad entre usuarios.
+
+  id           UUID (PK, autogenerado)
+  requester    ManyToOne → users (eager, CASCADE DELETE)  -- quien envió la solicitud
+  addressee    ManyToOne → users (eager, CASCADE DELETE)  -- quien la recibió
+  status       TEXT, default 'pending'  -- 'pending' | 'accepted' | 'rejected'
+  createdAt    TIMESTAMP (auto)
+  updatedAt    TIMESTAMP (auto)
+
+--------------------------------------------------------------------------------
+  3.9  shared_expenses
+--------------------------------------------------------------------------------
+  Gastos compartidos entre varios usuarios.
+
+  id           UUID (PK, autogenerado)
+  title        TEXT, NOT NULL
+  totalAmount  FLOAT, NOT NULL
+  currency     TEXT, default 'EUR'
+  date         DATE, NOT NULL
+  category     TEXT, nullable
+  description  TEXT, nullable
+  paidBy       ManyToOne → users (eager, CASCADE DELETE)    -- quien pagó
+  createdBy    ManyToOne → users (eager, CASCADE DELETE)    -- quien registró
+  participants OneToMany → shared_expense_participants (cascade, eager)
+  createdAt    TIMESTAMP (auto)
+  updatedAt    TIMESTAMP (auto)
+
+--------------------------------------------------------------------------------
+  3.10  shared_expense_participants
+--------------------------------------------------------------------------------
+  Participante individual de un gasto compartido.
+
+  id             UUID (PK, autogenerado)
+  sharedExpense  ManyToOne → shared_expenses (CASCADE DELETE)
+  user           ManyToOne → users (eager, nullable, CASCADE DELETE)
+  name           TEXT    -- nombre del participante (puede no ser usuario del sistema)
+  amountOwed     FLOAT   -- cuánto debe este participante
+  isPaid         BOOLEAN, default FALSE
+  createdAt      TIMESTAMP (auto)
+  updatedAt      TIMESTAMP (auto)
+
+--------------------------------------------------------------------------------
+  Diagrama de relaciones resumido
+--------------------------------------------------------------------------------
+
+  users ──< expenses
+  users ──< budgets
+  users ──< goals
+  users ──< user_badges >── badge_definitions
+  users (requester) ──< friendships >── users (addressee)
+  users (paidBy/createdBy) ──< shared_expenses ──< shared_expense_participants >── users
+  advisor_recommendations (relación lógica por userId, sin FK formal)
+
+
+================================================================================
+  4. ENDPOINTS DEL BACKEND (API REST)
+================================================================================
+
+Prefijo global: /api
+Todas las rutas protegidas requieren header:
+  Authorization: Bearer <token_JWT>
+
+Throttling global: 120 peticiones por minuto por IP.
+Throttlings específicos más estrictos en endpoints de autenticación (ver detalle).
+
+--------------------------------------------------------------------------------
+  4.1  AUTH — /api/auth
+--------------------------------------------------------------------------------
+
+POST   /api/auth/register
+  Cuerpo: { email, name, password }
+  Acción: Registra un nuevo usuario. Envía email de verificación.
+  Rate limit: 6/min
+  Respuesta: { message }
+
+POST   /api/auth/login
+  Cuerpo: { email, password }
+  Acción: Autentica con email/contraseña. Requiere email verificado.
+  Rate limit: 10/min
+  Respuesta: { access_token, user: { id, name, email, role } }
+
+POST   /api/auth/google
+  Cuerpo: { idToken }   -- token de Google Identity
+  Acción: Crea o recupera usuario por cuenta Google; emite JWT propio.
+  Rate limit: 12/min
+  Respuesta: { access_token, user: { id, name, email, role } }
+
+POST   /api/auth/verify-email
+  Cuerpo: { token }
+  Acción: Verifica el email del usuario con el token recibido por correo.
+  Rate limit: 10/min
+  Respuesta: { message }
+
+POST   /api/auth/resend-verification
+  Cuerpo: { email }
+  Acción: Reenvía el email de verificación.
+  Rate limit: 5/min
+  Respuesta: { message }
+
+POST   /api/auth/request-password-reset
+  Cuerpo: { email }
+  Acción: Envía email con enlace para restablecer contraseña.
+  Rate limit: 5/min
+  Respuesta: { message }
+
+POST   /api/auth/reset-password
+  Cuerpo: { token, newPassword }
+  Acción: Establece nueva contraseña usando el token del email.
+  Rate limit: 8/min
+  Respuesta: { message }
+
+GET    /api/auth/me
+  Protegida: sí (JWT)
+  Acción: Devuelve el perfil del usuario autenticado.
+  Respuesta: { id, name, email, role, emailVerified, ... }
+
+PUT    /api/auth/profile
+PATCH  /api/auth/profile
+  Protegida: sí (JWT)
+  Cuerpo: { name?, email?, password?, ... }  (campos opcionales según DTO)
+  Acción: Actualiza el perfil del usuario. PUT y PATCH se comportan igual.
+  Respuesta: perfil actualizado
+
+--------------------------------------------------------------------------------
+  4.2  USERS — /api/users
+--------------------------------------------------------------------------------
+
+GET    /api/users
+  Roles: ADVISOR, ADMIN
+  Query params: q (búsqueda), role (filtro de rol), page, limit
+  Acción: Lista todos los usuarios con paginación opcional.
+  Respuesta: Array de usuarios o { data: [...], meta: { total, page, limit } }
+
+PATCH  /api/users/:id
+  Roles: ADMIN
+  Cuerpo: { role }
+  Acción: Cambia el rol de un usuario.
+  Respuesta: usuario actualizado
+
+DELETE /api/users/:id
+  Roles: ADMIN
+  Acción: Elimina un usuario y sus datos (CASCADE).
+  Respuesta: confirmación
+
+--------------------------------------------------------------------------------
+  4.3  EXPENSES — /api/expenses
+--------------------------------------------------------------------------------
+
+GET    /api/expenses
+  Protegida: sí (JWT), acceso al propio usuario
+  Query params:
+    q         -- búsqueda en texto libre (comercio, descripción, categoría)
+    category  -- filtro exacto de categoría
+    dateFrom  -- fecha mínima (YYYY-MM-DD)
+    dateTo    -- fecha máxima (YYYY-MM-DD)
+    amountMin -- importe mínimo
+    amountMax -- importe máximo
+    tag       -- filtro por etiqueta
+    page      -- número de página (default 1)
+    limit     -- resultados por página (default 20)
+  Respuesta: { data: [...gastos], meta: { total, page, limit, pages } }
+
+POST   /api/expenses
+  Protegida: sí (JWT)
+  Cuerpo: {
+    commerce, category, date, amount, currency?,
+    description?, participants?, isMonthly?, tags?
+  }
+  Acción: Crea un nuevo gasto. Dispara evaluación de gamificación.
+  Respuesta: gasto creado
+
+PUT    /api/expenses/:id
+  Protegida: sí (JWT), solo el propietario
+  Cuerpo: mismos campos que POST (todos requeridos)
+  Acción: Reemplaza el gasto completo. Dispara re-evaluación de gamificación.
+  Respuesta: gasto actualizado
+
+PATCH  /api/expenses/:id
+  Protegida: sí (JWT), solo el propietario
+  Cuerpo: mismos campos que POST (parciales)
+  Acción: Actualización parcial del gasto. Dispara re-evaluación de gamificación.
+  Respuesta: gasto actualizado
+
+DELETE /api/expenses/:id
+  Protegida: sí (JWT), solo el propietario
+  Acción: Elimina el gasto. Dispara re-evaluación de gamificación.
+  Respuesta: confirmación
+
+--------------------------------------------------------------------------------
+  4.4  TICKETS (OCR) — /api/tickets
+--------------------------------------------------------------------------------
+
+POST   /api/tickets/upload
+  Protegida: sí (JWT)
+  Content-Type: multipart/form-data
+  Campo: ticket   (archivo imagen o PDF)
+  Formatos aceptados: JPG, PNG, WEBP, GIF, BMP, TIFF, HEIC, HEIF, AVIF, PDF
+  Acción: Procesa el ticket con la pipeline de OCR (ver sección 6).
+  Respuesta: {
+    commerce, amount, date, currency, category, rawText
   }
 
-11.3 Orden de carga de scripts (todas las paginas de app)
-  runtime-config.js → theme.js → lang.js → i18n.js → universal-i18n.js → script de pagina
+POST   /api/tickets/ocr
+  Protegida: sí (JWT)
+  Content-Type: multipart/form-data
+  Campo: image   (mismo comportamiento que /upload, nombre de campo distinto)
+  Respuesta: idéntica a /upload
 
-11.4 Correcciones criticas aplicadas a i18n.js
-- Objeto TRANSLATIONS tenia ; de cierre faltante — corregido.
-- applyLang() no manejaba data-i18n-title ni data-i18n-aria — agregados.
-- window.__klarityI18n no estaba expuesto — corregido (una linea).
+Ambos endpoints son intercambiables; /upload acepta campo "ticket" y
+/ocr acepta campo "image". El frontend usa /tickets/upload para el flujo
+de carga individual y /tickets/ocr para el flujo multi-ticket.
 
-11.5 Paginas completadas
-- login.html: script i18n.js agregado; data-i18n en todos los textos; data-i18n-placeholder
-  en inputs; data-i18n-title y data-i18n-aria en botones de password toggle; claves
-  login.* agregadas al diccionario ES+EN.
-- dashboard.html: tratamiento data-i18n completo en HTML; refactor T() completo en JS
-  (saludos, mensajes FX, estados vacios, tabla, categorias, KPIs, barras de presupuesto,
-  compromisos recurrentes, asesor IA, perfil, modal de borrado); fmtDate() y KPI de fecha
-  usan locale dinamico segun idioma activo.
-- advisor.html: script i18n.js agregado; data-i18n en todos los nodos de texto; T() refactor
-  completo (status labels Alto riesgo/Atencion/Saludable, vacios, KPIs de resumen y patrones,
-  historial de recomendaciones, locale dinamico).
-- admin.html: script i18n.js agregado; data-i18n en todos los nodos de texto; T() refactor
-  completo (tabla de usuarios/gastos, cambio de rol confirm(), checkHealth() strings,
-  fmtDate() y chart locale dinamicos, vacios).
+--------------------------------------------------------------------------------
+  4.5  ADVISOR — /api/advisor
+--------------------------------------------------------------------------------
 
-11.6 Claves i18n nuevas — prefijos por pagina/seccion
-- login.*       — pagina de autenticacion
-- dash.*        — dashboard de usuario (incluyendo dash.js.* para runtime)
-- adv.*         — panel asesor (incluyendo adv.js.* para runtime)
-- adm.*         — panel admin (incluyendo adm.js.* para runtime)
+GET    /api/advisor/overview
+  Roles: ADVISOR, ADMIN
+  Acción: Vista global de todos los clientes gestionados.
+  Respuesta: array con resumen financiero de cada cliente
 
-Fin del documento.
+GET    /api/advisor/overview/:userId
+  Roles: ADVISOR, ADMIN
+  Acción: Vista detallada de un cliente específico (KPIs, tendencias).
+  Respuesta: objeto con métricas del usuario
+
+GET    /api/advisor/patterns/:userId
+  Roles: ADVISOR, ADMIN
+  (también disponible como GET /api/advisor/users/:userId/patterns)
+  Acción: Patrones de gasto del usuario (horarios, categorías frecuentes,
+          evolución, anomalías).
+  Respuesta: objeto con patrones analizados
+
+POST   /api/advisor/ask
+  Roles: USER, ADVISOR, ADMIN
+  Cuerpo: { userId?, question, provider? }
+  Nota: si el rol es USER, el userId se fuerza al propio usuario.
+  Acción: Envía una pregunta al modelo de IA y devuelve la respuesta.
+          Guarda el par pregunta/respuesta en advisor_recommendations.
+  Respuesta: { answer, provider }
+
+GET    /api/advisor/recommendations/:userId
+  Roles: ADVISOR, ADMIN
+  Acción: Historial de consultas guardadas para un usuario.
+  Respuesta: array de recomendaciones
+
+GET    /api/advisor/clients/health
+  Roles: ADVISOR, ADMIN
+  Acción: Resumen de salud financiera de todos los clientes del asesor.
+  Respuesta: array con score de salud por cliente
+
+--------------------------------------------------------------------------------
+  4.6  BUDGETS — /api/budgets
+--------------------------------------------------------------------------------
+
+GET    /api/budgets
+  Protegida: sí (JWT)
+  Acción: Lista todos los presupuestos del usuario autenticado.
+  Respuesta: array de budgets
+
+PUT    /api/budgets/:category
+  Protegida: sí (JWT)
+  Parámetro: category (URL-encoded si contiene caracteres especiales)
+  Cuerpo: { limitAmount, currency? }
+  Acción: Crea o actualiza (upsert) el presupuesto de esa categoría.
+  Respuesta: budget creado/actualizado
+
+DELETE /api/budgets/:category
+  Protegida: sí (JWT)
+  Acción: Elimina el presupuesto de esa categoría.
+  Respuesta: confirmación
+
+--------------------------------------------------------------------------------
+  4.7  GOALS — /api/goals
+--------------------------------------------------------------------------------
+
+GET    /api/goals
+  Protegida: sí (JWT)
+  Acción: Lista todas las metas de ahorro del usuario.
+  Respuesta: array de goals
+
+POST   /api/goals
+  Protegida: sí (JWT)
+  Cuerpo: { name, targetAmount, savedAmount?, currency?, deadline? }
+  Acción: Crea una nueva meta de ahorro.
+  Respuesta: goal creada
+
+PATCH  /api/goals/:id
+  Protegida: sí (JWT), solo el propietario
+  Cuerpo: campos opcionales de goal
+  Acción: Actualiza parcialmente la meta (nombre, importes, fecha límite).
+  Respuesta: goal actualizada
+
+DELETE /api/goals/:id
+  Protegida: sí (JWT), solo el propietario
+  Acción: Elimina la meta.
+  Respuesta: confirmación
+
+--------------------------------------------------------------------------------
+  4.8  GAMIFICATION — /api/gamification
+--------------------------------------------------------------------------------
+
+GET    /api/gamification/badges
+  Protegida: sí (JWT)
+  Acción: Devuelve todas las insignias definidas en el sistema con indicación
+          de cuáles ha obtenido el usuario autenticado.
+  Respuesta: array de { badge, earned: boolean, earnedAt? }
+
+POST   /api/gamification/evaluate
+  Protegida: sí (JWT)
+  Acción: Dispara manualmente la re-evaluación de insignias del usuario.
+          (Se llama automáticamente en create/update/delete de expenses.)
+  Respuesta: array de insignias recién otorgadas
+
+--------------------------------------------------------------------------------
+  4.9  FRIENDSHIPS — /api/friendships
+--------------------------------------------------------------------------------
+
+  Endpoints para gestionar solicitudes de amistad entre usuarios.
+  Permiten buscar usuarios, enviar/aceptar/rechazar solicitudes y
+  listar amigos actuales para su uso en gastos compartidos.
+
+--------------------------------------------------------------------------------
+  4.10  SHARED EXPENSES — /api/shared-expenses
+--------------------------------------------------------------------------------
+
+  Endpoints para crear, listar, actualizar y eliminar gastos compartidos.
+  Un gasto compartido tiene un total, una lista de participantes (usuarios
+  del sistema o personas externas) y el estado de pago de cada uno.
+
+
+================================================================================
+  5. TECNOLOGÍAS UTILIZADAS
+================================================================================
+
+BACKEND
+-------
+  Lenguaje:       TypeScript
+  Runtime:        Node.js 20+
+  Framework:      NestJS 10
+  ORM:            TypeORM
+  Base de datos:  PostgreSQL (producción) / SQLite (desarrollo local)
+  Autenticación:  JWT (jsonwebtoken) + Passport.js
+  Encriptación:   bcrypt (hashes de contraseñas y tokens)
+  Seguridad HTTP: Helmet (cabeceras HTTP seguras)
+  Rate limiting:  @nestjs/throttler
+  Validación:     class-validator + class-transformer (DTOs tipados)
+  Ficheros:       Multer (almacenamiento en memoria, sin disco)
+  OCR primario:   @google/generative-ai (Gemini 1.5 Flash Vision)
+  OCR fallback 1: OCR.space API (llamada REST con fetch nativo)
+  OCR fallback 2: Tesseract.js (WASM, ejecución local en servidor)
+  Imagen:         sharp (redimensionado, rotación EXIF, escala de grises)
+  HEIC/HEIF:      heic-convert (decodificación pura JS, sin libheif nativa)
+  IA advisor:     OpenAI API + Anthropic API (Claude)
+
+FRONTEND
+--------
+  Lenguaje:       JavaScript (ES2020+, sin transpilador)
+  Estructura:     HTML5 semántico + CSS3 + JS vanilla
+  Gráficos:       Chart.js 4
+  Iconografía:    Bootstrap Icons 1.11
+  Estilos:        CSS custom (variables CSS, responsive, dark-mode compatible)
+  i18n:           Sistema propio de 3 capas (lang.js + i18n.js + universal-i18n.js)
+  OCR UI:         FileReader API + fetch multipart
+  Monedas:        Frankfurter API (tasas de cambio en tiempo real)
+  Auth social:    Google Identity Services (GSI) library
+  Notificaciones: Sistema propio de alertas sin dependencias externas
+
+SERVIDOR ESTÁTICO
+-----------------
+  Motor:          Node.js + http-server o Express estático
+  Script:         Frontend/server.js
+  Inyección conf: runtime-config.js (inyecta API_URL en tiempo de ejecución)
+
+DESPLIEGUE
+----------
+  Plataforma:     Railway (backend + base de datos + frontend estático)
+  CI/CD:          Git push → Railway build automático
+
+HERRAMIENTAS DE DESARROLLO
+---------------------------
+  Control de versiones:  Git / GitHub
+  Linter/Formatter:      ESLint + Prettier (backend)
+  Gestor de paquetes:    npm
+
+
+================================================================================
+  6. EXPLICACIÓN DEL USO DE LA IA
+================================================================================
+
+El proyecto incorpora inteligencia artificial en dos módulos completamente
+distintos: el OCR de tickets y el asesor financiero.
+
+--------------------------------------------------------------------------------
+  6.1  OCR de tickets — Gemini Vision
+--------------------------------------------------------------------------------
+
+Objetivo:
+  Extraer automáticamente los datos de un ticket de compra (comercio, importe,
+  fecha, moneda, categoría) a partir de una fotografía o archivo PDF.
+
+Pipeline completo:
+
+  1. El usuario sube una imagen (JPG, PNG, HEIC, WEBP, PDF, etc.) desde el
+     navegador via POST multipart a /api/tickets/upload o /api/tickets/ocr.
+
+  2. El servidor verifica que el tipo de archivo es aceptado (MIME + extensión).
+
+  3. Si GEMINI_API_KEY está configurada (ruta principal):
+     a. Preparación para Gemini:
+        - Si es HEIC/HEIF: decodificar a JPEG con heic-convert.
+        - Rotar según metadatos EXIF con sharp.
+        - Redimensionar: si la imagen es menor a 1200px se upscalea;
+          si supera 3000px se recorta (límite de carga inline de Gemini).
+        - Re-codificar a JPEG 92% de calidad.
+        - IMPORTANTE: se mantiene en COLOR. Gemini usa el color, logos y
+          layout visual para mejorar la precisión, a diferencia del OCR
+          tradicional que se beneficia del blanco y negro.
+     b. El servidor construye un prompt estructurado que instruye al modelo
+        a devolver exactamente un JSON con: commerce, amount, date, currency,
+        category, rawText. El prompt incluye ejemplos de cada categoría,
+        reglas de detección de moneda (CUIT/AFIP → ARS, símbolo € → EUR, etc.)
+        y el modelo a usar: gemini-1.5-flash (rápido, económico, visión excelente).
+     c. Se envía la imagen como inlineData Base64 junto al prompt a la API
+        de Google Generative AI.
+     d. Se parsea la respuesta JSON y se validan todos los campos antes de
+        devolverlos al cliente.
+     e. Si Gemini falla (red, cuota, JSON inválido), se pasa al fallback.
+
+  4. Si no hay GEMINI_API_KEY o Gemini falló (ruta de fallback):
+     a. Preparación para OCR clásico:
+        - Rotar, convertir a escala de grises, normalizar contraste, enfocar
+          (sharpen) y escalar a mínimo 1800px. Estas transformaciones agresivas
+          mejoran la precisión del OCR tradicional en papel térmico.
+     b. Fallback 1 — OCR.space: si OCR_SPACE_API_KEY está configurada,
+        se llama primero con engine=2 y si devuelve menos de 20 caracteres
+        se reintenta con engine=1.
+     c. Fallback 2 — Tesseract.js: OCR local en WASM, sin red. Intenta
+        primero en español ('spa'), luego bilingüe ('spa+eng') si el resultado
+        es corto.
+     d. El texto plano extraído se procesa con un pipeline de regex y
+        heurísticas para extraer: comercio (lookup de marcas conocidas +
+        heurística de primeras líneas), importe (regex de totales + máximo
+        numérico), fecha (múltiples formatos) y moneda (símbolos + texto).
+
+  Resultado siempre devuelto al frontend:
+  {
+    "commerce":  "Carrefour Express",
+    "amount":    1234.56,
+    "date":      "2026-03-15",
+    "currency":  "ARS",
+    "category":  "Supermercado",
+    "rawText":   "CARREFOUR EXPRESS\n..."
+  }
+
+  Con estos datos el formulario de gastos se pre-rellena automáticamente y
+  el usuario solo confirma o ajusta antes de guardar.
+
+--------------------------------------------------------------------------------
+  6.2  Asesor Financiero IA
+--------------------------------------------------------------------------------
+
+Objetivo:
+  Proporcionar al usuario (o a un asesor humano) análisis profundos de los
+  patrones de gasto, recomendaciones personalizadas y un chat interactivo
+  con modelos de lenguaje de gran tamaño.
+
+Flujo:
+
+  1. Antes de enviar la pregunta a la IA, el backend recopila contexto del
+     usuario analizado:
+     - Todos sus gastos de los últimos meses.
+     - Presupuestos configurados y nivel de cumplimiento.
+     - Patrones detectados: categorías más frecuentes, horarios de gasto,
+       anomalías, tendencias mensuales, gasto promedio, comparativa mes actual
+       vs. mes anterior.
+     - Metas de ahorro y progreso.
+
+  2. El contexto se serializa como texto y se prepende al mensaje del usuario,
+     construyendo un prompt enriquecido que permite al modelo responder con
+     datos reales del usuario (no genéricos).
+
+  3. Proveedor configurable:
+     - OpenAI (GPT-4o o similar): se usa cuando OPENAI_API_KEY está configurada.
+     - Anthropic (Claude 3): se usa cuando ANTHROPIC_API_KEY está configurada.
+     El DTO AdvisorAskDto puede incluir un campo "provider" para seleccionar
+     el modelo en tiempo de ejecución.
+
+  4. La respuesta del modelo se devuelve al frontend y se guarda en
+     advisor_recommendations para su consulta posterior en el historial.
+
+  5. Endpoints dedicados de análisis (sin pregunta libre):
+     - GET /advisor/overview/:userId    → KPIs financieros del usuario
+     - GET /advisor/patterns/:userId    → patrones de comportamiento
+     - GET /advisor/clients/health      → score de salud financiera de todos
+                                          los clientes del asesor
+
+  Casos de uso diferenciados por rol:
+    · Usuario normal: accede al chat IA desde el panel "Asesor IA". El userId
+      se fuerza al propio usuario; no puede consultar datos de terceros.
+    · Asesor: ve el listado de sus clientes con indicadores de salud financiera
+      y puede consultar datos detallados de cada uno.
+    · Admin: acceso total a todos los usuarios y todas las funciones de asesor.
+
+  Transparencia:
+    La respuesta siempre indica el proveedor de IA utilizado, y el historial
+    de consultas es visible para el asesor/admin que las realizó.
+
+
+================================================================================
+  7. SISTEMA DE ROLES Y PERMISOS
+================================================================================
+
+El sistema tiene tres roles, implementados con un enum Role en el backend:
+
+  Role.USER    ('user')
+    - Acceso exclusivo a sus propios datos.
+    - Puede registrar gastos, presupuestos, metas, usar OCR y el chat IA.
+    - No puede ver datos de otros usuarios.
+
+  Role.ADVISOR ('advisor')
+    - Puede listar usuarios (GET /api/users).
+    - Puede ver gastos, patrones y recomendaciones de cualquier usuario.
+    - Acceso completo a todos los endpoints de /api/advisor.
+    - No puede cambiar roles ni eliminar usuarios.
+
+  Role.ADMIN   ('admin')
+    - Todos los permisos de ADVISOR.
+    - Puede cambiar el rol de cualquier usuario (PATCH /api/users/:id).
+    - Puede eliminar usuarios (DELETE /api/users/:id).
+
+Los roles se verifican con RolesGuard + @Roles() decorator en cada endpoint.
+Los usuarios se crean con Role.USER por defecto. Un admin puede ascenderlos.
+
+
+================================================================================
+  8. AUTENTICACIÓN Y SEGURIDAD
+================================================================================
+
+JWT
+  - Al hacer login o register exitoso el backend emite un JSON Web Token.
+  - El token contiene: { sub: userId, email, role, iat, exp }.
+  - El frontend almacena el token en localStorage y lo envía en cada petición
+    como "Authorization: Bearer <token>".
+  - Las rutas protegidas usan JwtAuthGuard para verificar y decodificar el token.
+
+Google OAuth
+  - El frontend usa la librería Google Identity Services (GSI) para obtener un
+    idToken del usuario.
+  - El token se envía a POST /api/auth/google.
+  - El backend verifica el token con Google y busca o crea el usuario.
+  - Se emite un JWT propio del sistema, sin dependencia de sesiones de Google.
+
+Verificación de email
+  - Al registrarse, se genera un token seguro (hash bcrypt almacenado en BD).
+  - Se envía por email un enlace con el token en texto plano.
+  - Al verificar, se compara el hash y se activa la cuenta.
+  - Tokens de verificación y reset tienen fecha de expiración.
+
+Seguridad adicional
+  - Contraseñas: hash bcrypt (nunca se almacenan en texto plano).
+  - Helmet: cabeceras HTTP de seguridad (X-Frame-Options, CSP básico, etc.).
+  - ThrottlerModule: 120 req/min globalmente; endpoints de auth con límites
+    más estrictos (5–12 por minuto según el endpoint).
+  - ValidationPipe global con whitelist:true — cualquier campo no declarado en
+    el DTO se ignora silenciosamente (previene inyección de campos no esperados).
+  - forbidNonWhitelisted:true — se lanza excepción si se envían campos extra.
+  - CORS configurado explícitamente por lista de orígenes permitidos.
+
+
+================================================================================
+  9. FRONTEND — ESTRUCTURA Y FUNCIONALIDADES
+================================================================================
+
+--------------------------------------------------------------------------------
+  9.1  Páginas HTML
+--------------------------------------------------------------------------------
+
+  index.html / en.html
+    Landing page bilingüe (español / inglés). Presenta el producto y redirige
+    al login.
+
+  login.html
+    Página de autenticación con tabs: Iniciar sesión / Registrarse.
+    Funcionalidades:
+      - Login con email/contraseña.
+      - Registro con nombre, email y contraseña.
+      - Login con Google (botón GSI).
+      - Olvidé mi contraseña (solicitud de reset).
+      - Reenviar email de verificación.
+    Sin sesión activa, todas las demás páginas redirigen aquí.
+
+  dashboard.html (~3100 líneas)
+    Panel principal del usuario. Organizado en secciones activadas por sidebar:
+
+    OVERVIEW
+      - KPIs: total gastado (mes actual), gasto diario promedio, categoría
+        dominante, número de gastos.
+      - Gráfico de dona por categoría (Chart.js).
+      - Podio Top-3 comercios por importe.
+      - Gráfico de barras mensual (últimos 6 meses).
+      - Gráfico de comparación mes actual vs. mes anterior.
+      - Panel de anomalías: gastos que superan 3 veces la mediana de su
+        categoría se destacan con alerta visual.
+      - Widget de logros recientes.
+
+    GASTOS
+      - Tabla paginada con todos los gastos.
+      - Barra de filtros avanzados: texto libre, categoría (select),
+        rango de fechas (dos datepicker), rango de importes, etiqueta.
+      - Botón de exportar a CSV.
+      - Chip de etiquetas por gasto.
+
+    AÑADIR GASTO
+      - Formulario con validación de cliente:
+        comercio, categoría, descripción, fecha, importe, moneda,
+        participantes, checkbox "recurrente mensual", campo de etiquetas.
+      - Las etiquetas se ingresan como texto separado por comas.
+
+    SUBIR TICKET (OCR)
+      - Tab individual: carga un archivo, muestra resultado de OCR, permite
+        editar antes de guardar.
+      - Tab multi-ticket (Extra 12): cola de archivos, procesamiento
+        secuencial con barra de progreso por archivo, previsualización
+        y edición individual antes de confirmación masiva.
+
+    PRESUPUESTOS
+      - Lista de presupuestos por categoría.
+      - Barra de progreso: verde si < 80%, amarilla si 80–99%, roja si >= 100%.
+      - Formulario para crear/editar presupuesto (categoría + límite + moneda).
+      - Alertas de presupuesto integradas en el panel de notificaciones.
+
+    LOGROS
+      - Grid de todas las insignias del sistema.
+      - Las obtenidas se muestran con color e icono; las no obtenidas en gris.
+      - Al pasar el cursor se muestra la descripción de la condición.
+
+    GASTOS COMPARTIDOS
+      - Listado de gastos compartidos donde el usuario es pagador o participante.
+      - Formulario para registrar nuevo gasto compartido con participantes.
+      - Vista de estado de pagos por participante.
+
+    METAS DE AHORRO
+      - Tarjetas por meta con barra de progreso y días restantes.
+      - CRUD completo: crear, editar importe ahorrado, eliminar.
+      - Alertas de metas integradas en notificaciones.
+
+    ASESOR IA
+      - Tarjeta de perfil financiero del usuario (KPIs resumidos).
+      - Chat interactivo con el modelo de IA.
+      - Historial de conversaciones previas.
+
+    PERFIL
+      - Formulario de edición de nombre, email y contraseña.
+
+  advisor.html
+    Panel exclusivo para usuarios con rol ADVISOR o ADMIN.
+    - Listado de clientes con indicadores de salud financiera.
+    - Vista detallada de cada cliente: gastos, patrones, recomendaciones.
+    - Chat IA en nombre del cliente.
+
+  admin.html
+    Panel exclusivo para ADMIN.
+    - Tabla de todos los usuarios con búsqueda y filtro por rol.
+    - Cambio de rol (user / advisor / admin) desde la interfaz.
+    - Eliminación de usuarios.
+
+--------------------------------------------------------------------------------
+  9.2  Arquitectura JavaScript del dashboard
+--------------------------------------------------------------------------------
+
+  SECTIONS — array que define todas las secciones del dashboard. La función
+  showSection(key) oculta todas y muestra solo la sección solicitada,
+  activando el ítem correspondiente del sidebar.
+
+  allExpenses — array global que almacena todos los gastos cargados desde
+  la API. Los filtros y gráficos operan sobre este array en memoria para
+  evitar llamadas redundantes al backend.
+
+  displayCurrency — moneda de visualización elegida por el usuario.
+
+  convertAmount(amount, fromCurrency) — convierte un importe usando las
+  tasas de cambio obtenidas de la API de Frankfurter. Permite ver todos
+  los gastos en la moneda preferida.
+
+  T('key') — función de traducción en tiempo de ejecución. Consulta el
+  diccionario cargado por i18n.js.
+
+  _notifications — array de notificaciones internas. El ícono de campana
+  en el header muestra el número de alertas sin leer. Se generan
+  automáticamente al detectar presupuestos superados y metas sin progreso.
+
+  _multiQueue — array de archivos pendientes en el modo multi-ticket OCR.
+  Cada elemento contiene el archivo, el resultado del OCR y si fue
+  editado/confirmado.
+
+--------------------------------------------------------------------------------
+  9.3  Configuración en tiempo de ejecución
+--------------------------------------------------------------------------------
+
+  Frontend/public/src/js/runtime-config.js es generado por el servidor estático
+  (Frontend/server.js) en el momento del primer request, inyectando la variable
+  de entorno API_URL como window.__API_URL__. Esto permite desplegar el mismo
+  build estático en cualquier entorno sin recompilar.
+
+
+================================================================================
+  10. SISTEMA DE INTERNACIONALIZACIÓN (i18n)
+================================================================================
+
+El frontend soporta español (es) e inglés (en) mediante un sistema propio
+de tres capas:
+
+  Capa 1 — lang.js
+    Detecta el idioma del usuario (localStorage, preferencia del navegador
+    o ruta URL) y redirige o recarga con el idioma correcto.
+    Expone window.__LANG__ para uso en otras capas.
+
+  Capa 2 — i18n.js (diccionario principal)
+    Contiene el diccionario completo ES/EN con más de 800 claves.
+    Al cargar, recorre todos los elementos DOM con atributo data-i18n y
+    reemplaza su contenido por la traducción correspondiente.
+    También traduce placeholders, titles y aria-labels.
+    Expone la función global T(key) para uso dinámico en JS.
+
+  Capa 3 — universal-i18n.js (fallback por regex)
+    Recorre el árbol de nodos de texto del DOM buscando cadenas en español
+    conocidas y las reemplaza por su equivalente en inglés cuando el idioma
+    activo es 'en'. Cubre casos donde el texto está hardcodeado en HTML
+    sin atributo data-i18n.
+
+  El cambio de idioma es persistente (localStorage) y no requiere recargar
+  la página completa; se re-aplica la traducción sobre el DOM existente.
+
+
+================================================================================
+  11. DESPLIEGUE
+================================================================================
+
+El proyecto se despliega completamente en Railway (railway.app):
+
+  Servicio "backend"
+    - Build: npm run build (tsc → dist/)
+    - Start: node dist/main.js
+    - Variables de entorno requeridas:
+        DATABASE_URL         -- URL de PostgreSQL de Railway
+        JWT_SECRET           -- clave secreta para firmar JWT
+        GEMINI_API_KEY       -- clave de Google Generative AI (OCR)
+        OPENAI_API_KEY       -- clave de OpenAI (advisor IA)
+        ANTHROPIC_API_KEY    -- clave de Anthropic / Claude (advisor IA)
+        OCR_SPACE_API_KEY    -- clave de fallback OCR.space
+        CORS_ORIGIN          -- URL(s) del frontend (separadas por coma)
+        GOOGLE_CLIENT_ID     -- ID de cliente OAuth de Google
+        APP_URL              -- URL pública del backend (para emails)
+        SMTP_*               -- configuración de email (host, port, user, pass)
+
+  Servicio "frontend"
+    - Build: (ninguno, archivos estáticos)
+    - Start: node Frontend/server.js
+    - Variables de entorno requeridas:
+        API_URL              -- URL pública del backend (con /api)
+    - El servidor inyecta API_URL en runtime-config.js en cada arranque.
+
+  Base de datos
+    - PostgreSQL gestionado por Railway.
+    - TypeORM se conecta via DATABASE_URL.
+    - synchronize: true — el esquema se sincroniza automáticamente al iniciar.
+
+  Flujo de despliegue:
+    1. git push origin main
+    2. Railway detecta el push y lanza el build del backend.
+    3. NestJS arranca, sincroniza el esquema y siembra las insignias (seed).
+    4. El frontend estático queda disponible inmediatamente (sin build).
+
+
+================================================================================
+  12. EXTRAS IMPLEMENTADOS
+================================================================================
+
+El proyecto implementa los 20 extras opcionales de la consigna:
+
+  Extra 1  — Verificación de email al registrarse (token por correo).
+  Extra 2  — Login con Google OAuth (Google Identity Services).
+  Extra 3  — Recuperación de contraseña por email (token seguro).
+  Extra 4  — Roles de usuario: user / advisor / admin con permisos distintos.
+  Extra 5  — Panel de administración (gestión de usuarios y roles).
+  Extra 6  — Panel de asesor (vista de clientes y salud financiera).
+  Extra 7  — OCR de tickets con Gemini Vision (extracción automática de datos).
+  Extra 8  — Presupuestos por categoría con alertas visuales y notificaciones.
+  Extra 9  — Metas de ahorro con seguimiento de progreso y alertas.
+  Extra 10 — Gamificación: sistema de insignias desbloqueables por hitos.
+  Extra 11 — Gastos compartidos con división entre participantes.
+  Extra 12 — Carga múltiple de tickets en cola (multi-upload con progreso).
+  Extra 13 — Red de amigos/contactos dentro de la plataforma.
+  Extra 14 — Etiquetas personalizadas en gastos (tags, filtro por etiqueta).
+  Extra 15 — Detección de anomalías de gasto (panel en dashboard).
+  Extra 16 — Conversión de divisas en tiempo real (Frankfurter API).
+  Extra 17 — Internacionalización completa ES/EN (sistema i18n de 3 capas).
+  Extra 18 — Asesor financiero IA con chat (OpenAI / Anthropic).
+  Extra 19 — Exportación de gastos a CSV.
+  Extra 20 — Análisis de patrones de gasto (horarios, tendencias, comparativas).
+
+
+================================================================================
+  FIN DEL DOCUMENTO
+================================================================================

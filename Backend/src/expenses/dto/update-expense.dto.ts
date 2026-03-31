@@ -1,4 +1,4 @@
-import { IsBoolean, IsDateString, IsEnum, IsNumber, IsOptional, IsString, Max, Min } from 'class-validator';
+import { IsArray, IsBoolean, IsDateString, IsEnum, IsNumber, IsOptional, IsString, Max, Min } from 'class-validator';
 
 export class UpdateExpenseDto {
 	@IsOptional()
@@ -39,4 +39,9 @@ export class UpdateExpenseDto {
 	@IsOptional()
 	@IsBoolean()
 	isMonthly?: boolean;
+
+	@IsOptional()
+	@IsArray()
+	@IsString({ each: true })
+	tags?: string[];
 }

@@ -88,6 +88,7 @@ export class ExpensesService {
       currency: dto.currency,
       participants: dto.participants ?? 1,
       isMonthly: dto.isMonthly ?? false,
+      tags: dto.tags?.length ? dto.tags.map(t => t.trim()).filter(Boolean) : null,
       user: { id: userId } as Expense['user'],
     });
 
@@ -121,12 +122,15 @@ export class ExpensesService {
       throw new NotFoundException('Gasto no encontrado.');
     }
 
-    const patch: Partial<Expense> = { ...dto };
+    const patch: Partial<Expense> = { ...dto } as Partial<Expense>;
     if (dto.concept && !dto.commerce) {
       patch.commerce = dto.concept;
       if (!dto.description) {
         patch.description = dto.concept;
       }
+    }
+    if (dto.tags !== undefined) {
+      patch.tags = dto.tags?.length ? dto.tags.map(t => t.trim()).filter(Boolean) : null;
     }
 
     Object.assign(expense, patch);

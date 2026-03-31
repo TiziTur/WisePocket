@@ -446,6 +446,28 @@
       'dash.goals.remaining':           'Pendiente',
       'dash.goals.reached':             '¡Meta alcanzada!',
 
+      // Extra 14 — Tags
+      'dash.tags.label':               'Etiquetas',
+      'dash.tags.ph':                  'ej. vacaciones, trabajo, hijos',
+      'dash.tags.hint':                'Separá con comas. Ej: viaje, trabajo',
+      'dash.tags.filterLabel':         'Filtrar por etiqueta',
+      'dash.tags.filterPh':            'Etiqueta',
+      'dash.tags.clearFilter':         'Limpiar etiqueta',
+
+      // Extra 12 — Multi-upload OCR
+      'dash.ocr.multi.title':          'Carga múltiple de tickets',
+      'dash.ocr.multi.sub':            'Procesá varios tickets a la vez',
+      'dash.ocr.multi.dropzone':       'Arrastrá archivos aquí o hacé clic para seleccionar',
+      'dash.ocr.multi.addMore':        'Agregar más archivos',
+      'dash.ocr.multi.processAll':     'Procesar todos',
+      'dash.ocr.multi.clearAll':       'Limpiar lista',
+      'dash.ocr.multi.progress':       'Procesando {n} de {total}...',
+      'dash.ocr.multi.done':           '{ok} guardados, {err} con error.',
+      'dash.ocr.multi.pending':        'Pendiente',
+      'dash.ocr.multi.processing':     'Procesando...',
+      'dash.ocr.multi.saved':          'Guardado',
+      'dash.ocr.multi.error':          'Error',
+      'dash.ocr.multi.noFiles':        'Seleccioná al menos un archivo.',
 
       'dash.js.noExpenses':      'Sin gastos aún',
       'dash.js.noData':          'Sin datos',
@@ -1186,6 +1208,28 @@
       'dash.goals.remaining':           'Remaining',
       'dash.goals.reached':             'Goal reached!',
 
+      // Extra 14 — Tags
+      'dash.tags.label':               'Tags',
+      'dash.tags.ph':                  'e.g. vacation, work, kids',
+      'dash.tags.hint':                'Separate with commas. E.g: trip, work',
+      'dash.tags.filterLabel':         'Filter by tag',
+      'dash.tags.filterPh':            'Tag',
+      'dash.tags.clearFilter':         'Clear tag filter',
+
+      // Extra 12 — Multi-upload OCR
+      'dash.ocr.multi.title':          'Bulk receipt upload',
+      'dash.ocr.multi.sub':            'Process multiple receipts at once',
+      'dash.ocr.multi.dropzone':       'Drag files here or click to select',
+      'dash.ocr.multi.addMore':        'Add more files',
+      'dash.ocr.multi.processAll':     'Process all',
+      'dash.ocr.multi.clearAll':       'Clear list',
+      'dash.ocr.multi.progress':       'Processing {n} of {total}...',
+      'dash.ocr.multi.done':           '{ok} saved, {err} with errors.',
+      'dash.ocr.multi.pending':        'Pending',
+      'dash.ocr.multi.processing':     'Processing...',
+      'dash.ocr.multi.saved':          'Saved',
+      'dash.ocr.multi.error':          'Error',
+      'dash.ocr.multi.noFiles':        'Please select at least one file.',
 
       'dash.js.noExpenses':      'No expenses yet',
       'dash.js.noData':          'No data',

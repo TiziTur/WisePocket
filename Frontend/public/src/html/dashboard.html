@@ -313,6 +313,10 @@
             <label class="dash-label mb-1" for="filterAmtMax" data-i18n="dash.exp.filter.max">Máx.</label>
             <input id="filterAmtMax" type="number" min="0" step="0.01" class="dash-input" oninput="filterExpenses()" />
           </div>
+          <div class="col-12 col-sm-6 col-md-2">
+            <label class="dash-label mb-1" for="filterTag" data-i18n="dash.tags.filterLabel">Filtrar por etiqueta</label>
+            <input id="filterTag" type="text" class="dash-input" data-i18n-placeholder="dash.tags.filterPh" placeholder="Etiqueta" oninput="filterExpenses()" />
+          </div>
           <div class="col-12 col-md-1 d-flex align-items-end">
             <button class="btn btn-outline-secondary btn-sm w-100" onclick="clearExpenseFilters()" data-i18n="dash.exp.filter.clear">Limpiar</button>
           </div>
@@ -330,11 +334,12 @@
                 <th data-i18n="dash.tbl.amount">Importe</th>
                 <th class="col-currency" data-i18n="dash.tbl.currency">Moneda</th>
                 <th data-i18n="dash.tbl.date">Fecha</th>
+                <th data-i18n="dash.tags.label">Etiquetas</th>
                 <th></th>
               </tr>
             </thead>
             <tbody id="allExpensesTbody">
-              <tr><td colspan="6" class="dash-empty"><span class="loading-spinner"></span></td></tr>
+              <tr><td colspan="7" class="dash-empty"><span class="loading-spinner"></span></td></tr>
             </tbody>
           </table>
         </div>
@@ -399,6 +404,11 @@
                   </label>
                 </div>
                 <div class="col-12">
+                  <label class="dash-label" for="dTags" data-i18n="dash.tags.label">Etiquetas</label>
+                  <input id="dTags" type="text" class="dash-input" data-i18n-placeholder="dash.tags.ph" placeholder="ej. vacaciones, trabajo, hijos" />
+                  <div style="font-size:.76rem;color:var(--k-muted);margin-top:.25rem" data-i18n="dash.tags.hint">Separá con comas. Ej: viaje, trabajo</div>
+                </div>
+                <div class="col-12">
                   <div id="dashExpenseMsg" class="mt-1" style="font-size:.87rem;min-height:1.5rem"></div>
                   <button type="submit" class="btn btn-primary w-100 mt-1" id="dashExpenseBtn" data-i18n="dash.add.saveBtn">
                     Guardar gasto
@@ -430,28 +440,100 @@
         </div>
       </div>
 
-      <div class="row g-3">
-        <div class="col-12 col-md-6">
-          <div class="dash-panel">
-            <p class="dash-panel-title" data-i18n="dash.ocr.panel.title">Fotografía o archivo</p>
-            <form id="ocrForm" onsubmit="submitOcr(event)">
-              <label class="dash-label" for="ocrFile" data-i18n="dash.ocr.file.label">Imagen del ticket (JPG, PNG, WEBP, HEIC, AVIF, PDF…)</label>
-              <input id="ocrFile" type="file" class="dash-input mb-3"
-                accept="image/*,.pdf,.heic,.heif,.avif,.bmp,.tiff,.tif,.webp" required />
-              <div id="ocrPreviewWrap" style="display:none;margin-bottom:1rem">
-                <img id="ocrPreview" src="" alt="preview" style="max-width:100%;border-radius:.6rem;border:1px solid var(--k-border)" />
-              </div>
-              <button type="submit" class="btn btn-primary w-100" id="ocrBtn">
-                <i class="bi bi-camera-fill me-1"></i> <span data-i18n="dash.ocr.processBtn">Procesar ticket</span>
-              </button>
-              <div id="ocrMsg" class="mt-2" style="font-size:.87rem;min-height:1.5rem"></div>
-            </form>
+      <!-- Tab switcher: single / multi -->
+      <div class="d-flex gap-2 mb-3" role="tablist">
+        <button id="ocrTabSingle" type="button" class="btn btn-primary btn-sm" role="tab" onclick="switchOcrTab('single')" aria-selected="true">
+          <i class="bi bi-image me-1"></i><span data-i18n="dash.ocr.panel.title">Fotografía o archivo</span>
+        </button>
+        <button id="ocrTabMulti" type="button" class="btn btn-outline-primary btn-sm" role="tab" onclick="switchOcrTab('multi')" aria-selected="false">
+          <i class="bi bi-images me-1"></i><span data-i18n="dash.ocr.multi.title">Carga múltiple de tickets</span>
+        </button>
+      </div>
+
+      <!-- ── Single upload panel ─────────────────────────────── -->
+      <div id="ocrPanelSingle">
+        <div class="row g-3">
+          <div class="col-12 col-md-6">
+            <div class="dash-panel">
+              <p class="dash-panel-title" data-i18n="dash.ocr.panel.title">Fotografía o archivo</p>
+              <form id="ocrForm" onsubmit="submitOcr(event)">
+                <label class="dash-label" for="ocrFile" data-i18n="dash.ocr.file.label">Imagen del ticket (JPG, PNG, WEBP, HEIC, AVIF, PDF…)</label>
+                <input id="ocrFile" type="file" class="dash-input mb-3"
+                  accept="image/*,.pdf,.heic,.heif,.avif,.bmp,.tiff,.tif,.webp" required />
+                <div id="ocrPreviewWrap" style="display:none;margin-bottom:1rem">
+                  <img id="ocrPreview" src="" alt="preview" style="max-width:100%;border-radius:.6rem;border:1px solid var(--k-border)" />
+                </div>
+                <button type="submit" class="btn btn-primary w-100" id="ocrBtn">
+                  <i class="bi bi-camera-fill me-1"></i> <span data-i18n="dash.ocr.processBtn">Procesar ticket</span>
+                </button>
+                <div id="ocrMsg" class="mt-2" style="font-size:.87rem;min-height:1.5rem"></div>
+              </form>
+            </div>
+          </div>
+          <div class="col-12 col-md-6">
+            <div class="dash-panel h-100">
+              <p class="dash-panel-title" data-i18n="dash.ocr.result.title">Texto extraído</p>
+              <pre id="ocrOutput" style="font-size:.8rem;color:var(--k-text2);white-space:pre-wrap;min-height:120px;background:var(--k-bg);padding:.75rem;border-radius:.6rem;border:1px solid var(--k-border)" data-i18n="dash.ocr.result.ph">Aquí aparecerá el texto extraído del ticket...</pre>
+            </div>
           </div>
         </div>
-        <div class="col-12 col-md-6">
-          <div class="dash-panel h-100">
-            <p class="dash-panel-title" data-i18n="dash.ocr.result.title">Texto extraído</p>
-            <pre id="ocrOutput" style="font-size:.8rem;color:var(--k-text2);white-space:pre-wrap;min-height:120px;background:var(--k-bg);padding:.75rem;border-radius:.6rem;border:1px solid var(--k-border)" data-i18n="dash.ocr.result.ph">Aquí aparecerá el texto extraído del ticket...</pre>
+      </div>
+
+      <!-- ── Multi-upload panel ──────────────────────────────── -->
+      <div id="ocrPanelMulti" style="display:none">
+        <div class="dash-panel mb-3">
+          <p class="dash-panel-title" data-i18n="dash.ocr.multi.sub">Procesá varios tickets a la vez</p>
+
+          <!-- Drop zone -->
+          <div id="multiDropZone"
+            style="border:2px dashed var(--k-border);border-radius:.75rem;padding:2rem;text-align:center;cursor:pointer;transition:border-color .2s,background .2s"
+            onclick="document.getElementById('multiFileInput').click()"
+            ondragover="event.preventDefault();this.style.borderColor='var(--k-primary)';this.style.background='var(--k-primary-light,#ede9fe)'"
+            ondragleave="this.style.borderColor='';this.style.background=''"
+            ondrop="handleMultiDrop(event)">
+            <i class="bi bi-cloud-upload" style="font-size:2rem;color:var(--k-muted)"></i>
+            <p class="mb-0 mt-2" style="color:var(--k-text2);font-size:.9rem" data-i18n="dash.ocr.multi.dropzone">Arrastrá archivos aquí o hacé clic para seleccionar</p>
+          </div>
+          <input id="multiFileInput" type="file" multiple
+            accept="image/*,.pdf,.heic,.heif,.avif,.bmp,.tiff,.tif,.webp"
+            style="display:none" onchange="handleMultiFileSelect(this.files)" />
+
+          <div class="d-flex gap-2 mt-3 flex-wrap">
+            <button type="button" class="btn btn-outline-primary btn-sm" onclick="document.getElementById('multiFileInput').click()">
+              <i class="bi bi-plus-lg me-1"></i><span data-i18n="dash.ocr.multi.addMore">Agregar más archivos</span>
+            </button>
+            <button type="button" class="btn btn-primary btn-sm" id="multiProcessBtn" onclick="processAllTickets()">
+              <i class="bi bi-cpu me-1"></i><span data-i18n="dash.ocr.multi.processAll">Procesar todos</span>
+            </button>
+            <button type="button" class="btn btn-outline-secondary btn-sm" onclick="clearMultiQueue()">
+              <i class="bi bi-trash me-1"></i><span data-i18n="dash.ocr.multi.clearAll">Limpiar lista</span>
+            </button>
+          </div>
+
+          <!-- Progress summary -->
+          <div id="multiProgressSummary" class="mt-2" style="font-size:.87rem;min-height:1.3rem;color:var(--k-text2)"></div>
+        </div>
+
+        <!-- File queue table -->
+        <div class="dash-table-wrap" id="multiQueueWrap" style="display:none">
+          <div class="dash-table-head">
+            <span class="dash-table-title" style="font-size:.88rem" data-i18n="dash.ocr.multi.title">Carga múltiple de tickets</span>
+          </div>
+          <div style="overflow-x:auto">
+            <table class="dash-table">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th data-i18n="dash.tbl.concept">Archivo</th>
+                  <th data-i18n="dash.add.concept.label">Concepto detectado</th>
+                  <th data-i18n="dash.add.amount.label">Importe</th>
+                  <th data-i18n="dash.add.date.label">Fecha</th>
+                  <th>Estado</th>
+                </tr>
+              </thead>
+              <tbody id="multiQueueTbody">
+              </tbody>
+            </table>
           </div>
         </div>
       </div>
@@ -820,6 +902,11 @@
             <input type="checkbox" id="eIsMonthly" class="dash-checkbox" />
             <span data-i18n="dash.add.monthly.label">Gasto mensual recurrente</span>
           </label>
+        </div>
+        <div class="col-12">
+          <label class="dash-label" for="eTags" data-i18n="dash.tags.label">Etiquetas</label>
+          <input id="eTags" type="text" class="dash-input" data-i18n-placeholder="dash.tags.ph" placeholder="ej. vacaciones, trabajo, hijos" />
+          <div style="font-size:.76rem;color:var(--k-muted);margin-top:.25rem" data-i18n="dash.tags.hint">Separá con comas. Ej: viaje, trabajo</div>
         </div>
       </div>
       <div class="d-flex justify-content-end gap-2 mt-3">
@@ -1249,19 +1336,25 @@ function renderRecentTable(data) {
 function renderFullTable(data) {
   const tb = document.getElementById('allExpensesTbody');
   if (!tb) return;
-  if (!data.length) { tb.innerHTML = `<tr><td colspan="6" class="dash-empty"><i class="bi bi-inbox d-block"></i>${T('dash.js.noExpenses')}</td></tr>`; return; }
-  tb.innerHTML = data.map(e => `
-    <tr>
+  if (!data.length) { tb.innerHTML = `<tr><td colspan="7" class="dash-empty"><i class="bi bi-inbox d-block"></i>${T('dash.js.noExpenses')}</td></tr>`; return; }
+  tb.innerHTML = data.map(e => {
+    const tagArr = Array.isArray(e.tags) ? e.tags.filter(Boolean) : [];
+    const tagsHtml = tagArr.length
+      ? tagArr.map(t => `<span style="display:inline-block;background:var(--k-primary-light,#ede9fe);color:var(--k-primary);border-radius:.35rem;padding:.1rem .45rem;font-size:.72rem;margin:.1rem .15rem 0 0">${escHtml(t)}</span>`).join('')
+      : '<span style="color:var(--k-muted);font-size:.78rem">—</span>';
+    return `<tr>
       <td><strong>${escHtml(getExpenseConcept(e))}</strong></td>
       <td>${catDot(e.category)}</td>
       <td><strong>${formatMoney(convertAmount(e.amount, e.currency), displayCurrency, 2)}</strong></td>
       <td class="col-currency">${escHtml(e.currency||'EUR')}</td>
       <td>${fmtDate(e.date||e.createdAt)}</td>
+      <td style="max-width:160px">${tagsHtml}</td>
       <td style="white-space:nowrap">
         <button class="dash-btn-icon" onclick="openEditModal('${e.id}')" data-i18n-title="dash.edit.btnTitle" title="Editar" style="color:var(--k-primary)"><i class="bi bi-pencil"></i></button>
         <button class="dash-btn-icon danger" onclick="openDeleteModal('${e.id}')" data-i18n-title="dash.js.deleteTitle" title="Eliminar"><i class="bi bi-trash3"></i></button>
       </td>
-    </tr>`).join('');
+    </tr>`;
+  }).join('');
 }
 
 function updateConceptSuggestions(data) {
@@ -1327,6 +1420,7 @@ function filterExpenses() {
   const dateTo  = (document.getElementById('filterDateTo')  || {}).value || '';
   const amtMin  = parseFloat((document.getElementById('filterAmtMin')||{}).value) || null;
   const amtMax  = parseFloat((document.getElementById('filterAmtMax')||{}).value) || null;
+  const tagFilter = (document.getElementById('filterTag')||{}).value?.trim().toLowerCase() || '';
 
   const filtered = allExpenses.filter(e => {
     const label = ((e.concept || '') + ' ' + (e.commerce || '') + ' ' + (e.description || '')).toLowerCase();
@@ -1337,6 +1431,10 @@ function filterExpenses() {
     const amt = convertAmount(e.amount, e.currency);
     if (amtMin !== null && amt < amtMin) return false;
     if (amtMax !== null && amt > amtMax) return false;
+    if (tagFilter) {
+      const tags = Array.isArray(e.tags) ? e.tags.map(t => t.toLowerCase()) : [];
+      if (!tags.some(t => t.includes(tagFilter))) return false;
+    }
     return true;
   });
 
@@ -1350,7 +1448,7 @@ function filterExpenses() {
 }
 
 function clearExpenseFilters() {
-  ['filterText','filterDateFrom','filterDateTo','filterAmtMin','filterAmtMax'].forEach(id => {
+  ['filterText','filterDateFrom','filterDateTo','filterAmtMin','filterAmtMax','filterTag'].forEach(id => {
     const el = document.getElementById(id); if (el) el.value = '';
   });
   const cat = document.getElementById('filterCategory'); if (cat) cat.value = '';
@@ -1364,6 +1462,7 @@ function exportExpensesCSV() {
   const dateTo  = (document.getElementById('filterDateTo')  || {}).value || '';
   const amtMin  = parseFloat((document.getElementById('filterAmtMin')||{}).value) || null;
   const amtMax  = parseFloat((document.getElementById('filterAmtMax')||{}).value) || null;
+  const tagFilter = (document.getElementById('filterTag')||{}).value?.trim().toLowerCase() || '';
   const rows = allExpenses.filter(e => {
     const label = ((e.concept || '') + ' ' + (e.commerce || '') + ' ' + (e.description || '')).toLowerCase();
     if (text     && !label.includes(text)) return false;
@@ -1373,10 +1472,14 @@ function exportExpensesCSV() {
     const amt = convertAmount(e.amount, e.currency);
     if (amtMin !== null && amt < amtMin) return false;
     if (amtMax !== null && amt > amtMax) return false;
+    if (tagFilter) {
+      const tags = Array.isArray(e.tags) ? e.tags.map(t => t.toLowerCase()) : [];
+      if (!tags.some(t => t.includes(tagFilter))) return false;
+    }
     return true;
   });
   const esc = v => '"' + String(v ?? '').replace(/"/g, '""') + '"';
-  const header = ['Concepto','Categoría','Importe','Moneda','Importe (' + displayCurrency + ')','Fecha','Mensual','Descripción'];
+  const header = ['Concepto','Categoría','Importe','Moneda','Importe (' + displayCurrency + ')','Fecha','Mensual','Descripción','Etiquetas'];
   const lines = [header.map(esc).join(',')];
   rows.forEach(e => {
     lines.push([
@@ -1388,6 +1491,7 @@ function exportExpensesCSV() {
       esc((e.date || e.createdAt || '').split('T')[0]),
       esc(e.isMonthly ? 'Sí' : 'No'),
       esc(e.description || ''),
+      esc(Array.isArray(e.tags) ? e.tags.filter(Boolean).join('; ') : ''),
     ].join(','));
   });
   const blob = new Blob(['\uFEFF' + lines.join('\n')], { type: 'text/csv;charset=utf-8;' });
@@ -1699,6 +1803,7 @@ async function submitExpense(e) {
     currency:  document.getElementById('dCurrency').value,
     date:      document.getElementById('dDate').value || today,
     isMonthly: document.getElementById('dIsMonthly').checked,
+    tags:      (document.getElementById('dTags').value || '').split(',').map(t=>t.trim()).filter(Boolean),
   };
   try {
     const res = await fetch(API + '/expenses', { method:'POST', headers: authHeaders(), body: JSON.stringify(body) });
@@ -1761,6 +1866,7 @@ function openEditModal(id) {
   document.getElementById('eCurrency').value     = expense.currency || 'EUR';
   document.getElementById('eDescription').value  = expense.description || '';
   document.getElementById('eIsMonthly').checked  = !!expense.isMonthly;
+  document.getElementById('eTags').value         = Array.isArray(expense.tags) ? expense.tags.filter(Boolean).join(', ') : '';
 
   // Format date as YYYY-MM-DD for date input
   const rawDate = expense.date || expense.createdAt;
@@ -1802,6 +1908,7 @@ async function submitEditExpense(event) {
     currency:    document.getElementById('eCurrency').value,
     description: document.getElementById('eDescription').value.trim(),
     isMonthly:   document.getElementById('eIsMonthly').checked,
+    tags:        (document.getElementById('eTags').value || '').split(',').map(t=>t.trim()).filter(Boolean),
   };
   const dateVal = document.getElementById('eDate').value;
   if (dateVal) body.date = dateVal;
@@ -1898,6 +2005,148 @@ async function submitOcr(e) {
   } finally {
     btn.disabled = false; btn.innerHTML = `<i class="bi bi-camera-fill me-1"></i> ${T('dash.ocr.processBtn')}`;
   }
+}
+
+// ── OCR Tab switcher ──────────────────────────────────────
+function switchOcrTab(tab) {
+  const isSingle = tab === 'single';
+  document.getElementById('ocrPanelSingle').style.display = isSingle ? '' : 'none';
+  document.getElementById('ocrPanelMulti').style.display  = isSingle ? 'none' : '';
+  document.getElementById('ocrTabSingle').className = isSingle ? 'btn btn-primary btn-sm' : 'btn btn-outline-primary btn-sm';
+  document.getElementById('ocrTabMulti').className  = isSingle ? 'btn btn-outline-primary btn-sm' : 'btn btn-primary btn-sm';
+  document.getElementById('ocrTabSingle').setAttribute('aria-selected', String(isSingle));
+  document.getElementById('ocrTabMulti').setAttribute('aria-selected', String(!isSingle));
+}
+
+// ── Multi-upload queue ────────────────────────────────────
+// Each entry: { file, status: 'pending'|'processing'|'saved'|'error', commerce:'', amount:0, date:'', errMsg:'' }
+let _multiQueue = [];
+
+function handleMultiDrop(e) {
+  e.preventDefault();
+  const dz = document.getElementById('multiDropZone');
+  dz.style.borderColor = ''; dz.style.background = '';
+  const files = Array.from(e.dataTransfer?.files || []);
+  addFilesToQueue(files);
+}
+
+function handleMultiFileSelect(fileList) {
+  addFilesToQueue(Array.from(fileList || []));
+  // Reset so the same files can be re-added if cleared
+  document.getElementById('multiFileInput').value = '';
+}
+
+function addFilesToQueue(files) {
+  files.forEach(f => {
+    if (_multiQueue.some(q => q.file.name === f.name && q.file.size === f.size)) return; // dedup
+    _multiQueue.push({ file: f, status: 'pending', commerce: '', amount: 0, date: '', errMsg: '' });
+  });
+  renderMultiQueue();
+}
+
+function clearMultiQueue() {
+  _multiQueue = [];
+  renderMultiQueue();
+  document.getElementById('multiProgressSummary').textContent = '';
+}
+
+function renderMultiQueue() {
+  const wrap  = document.getElementById('multiQueueWrap');
+  const tbody = document.getElementById('multiQueueTbody');
+  if (!_multiQueue.length) { wrap.style.display = 'none'; return; }
+  wrap.style.display = '';
+
+  const statusLabel = {
+    pending:    `<span style="color:var(--k-muted);font-size:.8rem">${T('dash.ocr.multi.pending')}</span>`,
+    processing: `<span style="color:var(--k-primary);font-size:.8rem"><span class="loading-spinner" style="width:14px;height:14px"></span> ${T('dash.ocr.multi.processing')}</span>`,
+    saved:      `<span style="color:var(--k-success);font-size:.8rem"><i class="bi bi-check-circle-fill"></i> ${T('dash.ocr.multi.saved')}</span>`,
+    error:      (msg) => `<span style="color:var(--k-danger,#ef4444);font-size:.8rem" title="${escHtml(msg)}"><i class="bi bi-exclamation-circle-fill"></i> ${T('dash.ocr.multi.error')}</span>`,
+  };
+
+  tbody.innerHTML = _multiQueue.map((item, idx) => {
+    const st = item.status === 'error' ? statusLabel.error(item.errMsg) : (statusLabel[item.status] || '');
+    return `<tr>
+      <td style="color:var(--k-muted);font-size:.8rem">${idx + 1}</td>
+      <td style="font-size:.82rem;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${escHtml(item.file.name)}">${escHtml(item.file.name)}</td>
+      <td style="font-size:.82rem">${item.commerce ? escHtml(item.commerce) : '—'}</td>
+      <td style="font-size:.82rem">${item.amount ? fmtMoney(item.amount, 'EUR') : '—'}</td>
+      <td style="font-size:.82rem">${item.date || '—'}</td>
+      <td>${st}</td>
+    </tr>`;
+  }).join('');
+}
+
+async function processAllTickets() {
+  if (!_multiQueue.length) {
+    document.getElementById('multiProgressSummary').textContent = T('dash.ocr.multi.noFiles');
+    return;
+  }
+  const btn = document.getElementById('multiProcessBtn');
+  btn.disabled = true;
+  const total = _multiQueue.length;
+  let ok = 0, err = 0;
+
+  for (let i = 0; i < _multiQueue.length; i++) {
+    const item = _multiQueue[i];
+    if (item.status === 'saved') { ok++; continue; } // skip already saved
+    item.status = 'processing';
+    renderMultiQueue();
+    document.getElementById('multiProgressSummary').textContent =
+      T('dash.ocr.multi.progress').replace('{n}', i + 1).replace('{total}', total);
+
+    try {
+      // Step 1 — OCR
+      const formData = new FormData();
+      formData.append('image', item.file);
+      const ocrRes = await fetch(API + '/tickets/ocr', {
+        method: 'POST',
+        headers: { 'Authorization': 'Bearer ' + getToken() },
+        body: formData,
+      });
+      if (ocrRes.status === 401) { logout(); return; }
+      if (!ocrRes.ok) throw new Error((await ocrRes.json()).message || 'Error OCR');
+      const data = await ocrRes.json();
+
+      item.commerce = String(data.commerce || 'Ticket OCR').trim();
+      item.amount   = Number(data.amount || 0);
+      item.date     = data.date || new Date().toISOString().split('T')[0];
+
+      if (!(Number.isFinite(item.amount) && item.amount > 0)) throw new Error(T('dash.js.noAmount'));
+
+      // Step 2 — save expense
+      const concept = item.commerce;
+      const saveBody = {
+        concept,
+        category: data.category || 'Otro',
+        amount: item.amount,
+        currency: normalizeCurrency(data.currency || 'EUR'),
+        date: item.date,
+        isMonthly: isMonthlyConcept(concept),
+        description: String(data.rawText || '').slice(0, 500),
+      };
+      const saveRes = await fetch(API + '/expenses', {
+        method: 'POST',
+        headers: authHeaders(),
+        body: JSON.stringify(saveBody),
+      });
+      if (saveRes.status === 401) { logout(); return; }
+      if (!saveRes.ok) throw new Error((await saveRes.json()).message || 'No se pudo guardar');
+
+      item.status = 'saved';
+      ok++;
+    } catch(e) {
+      item.status = 'error';
+      item.errMsg = e.message;
+      err++;
+    }
+    renderMultiQueue();
+  }
+
+  // Reload expenses so dashboard reflects new data
+  await loadExpenses();
+  document.getElementById('multiProgressSummary').innerHTML =
+    `<span style="color:var(--k-success)"><i class="bi bi-check-circle me-1"></i>${T('dash.ocr.multi.done').replace('{ok}', ok).replace('{err}', err)}</span>`;
+  btn.disabled = false;
 }
 
 // ── Budgets ───────────────────────────────────────────────

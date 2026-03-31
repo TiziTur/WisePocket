@@ -30,6 +30,9 @@ export class Expense {
   @Column({ type: 'boolean', default: false })
   isMonthly: boolean;
 
+  @Column({ type: 'simple-array', nullable: true, default: null })
+  tags: string[] | null;
+
   @ManyToOne(() => User, (user) => user.expenses, { eager: true, onDelete: 'CASCADE' })
   user: User;
 
